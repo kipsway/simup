@@ -114,8 +114,79 @@ class AuthManager {
           this.currentUser = found;
         }
       }
+      if (!this.currentUser) {
+        this.ensureGuestUser();
+      }
     } catch (e) {
       console.error('SIMUP Auth: Error initializing session', e);
+      this.ensureGuestUser();
+    }
+  }
+
+  ensureGuestUser() {
+    try {
+      const users = this.getAllUsers();
+      if (users.length > 0) {
+        this.currentUser = users[0];
+        localStorage.setItem(this.STORAGE_KEY_SESSION, this.currentUser.username);
+        return this.currentUser;
+      }
+      const randNum = Math.floor(1000 + Math.random() * 9000);
+      const guest = {
+        id: 'user_' + Date.now(),
+        username: `Игрок_${randNum}`,
+        salt: 'guest_salt',
+        passwordHash: 'guest_hash',
+        balance: 500.00,
+        inventory: [
+          {
+            id: 'inv_starter_' + Date.now(),
+            skinId: 'cs2_ak47_redline_FT',
+            name: 'AK-47 | Красная линия',
+            nameEn: 'AK-47 | Redline',
+            wear: 'FT',
+            wearName: 'После полевых (FT)',
+            price: 24.50,
+            rarity: 'classified',
+            rarityColor: '#d32ce6',
+            category: 'rifle',
+            game: 'cs2',
+            image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdsZGHyd4_Bd1RvM1-F_ge4lOvs0Z-7tZqayXRh6yE8pGB8sr4R4iiR',
+            acquiredAt: Date.now(),
+            source: 'Стартовый набор'
+          }
+        ],
+        stats: {
+          totalUpgrades: 0,
+          upgradesWon: 0,
+          upgradesLost: 0,
+          casesOpened: 0,
+          totalWagered: 0,
+          netProfit: 0,
+          bestWin: 0
+        },
+        loans: {
+          currentDebt: 0,
+          totalBorrowed: 0,
+          totalRepaid: 0,
+          autoRepay: true
+        },
+        dailyStreak: {
+          currentStreak: 0,
+          lastClaimDate: null
+        },
+        claimedAchievements: [],
+        history: [],
+        createdAt: Date.now()
+      };
+      users.push(guest);
+      this.saveUsers(users);
+      this.currentUser = guest;
+      localStorage.setItem(this.STORAGE_KEY_SESSION, guest.username);
+      return this.currentUser;
+    } catch (err) {
+      console.error('SIMUP Auth: Error creating guest session', err);
+      return null;
     }
   }
 

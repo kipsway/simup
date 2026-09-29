@@ -233,11 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.showAuthModal = openAuthModal;
 
   function closeAuthModal() {
-    if (!window.authManager.currentUser) {
-      window.notify.warning('Внимание', 'Пожалуйста, авторизуйтесь или зарегистрируйтесь для игры.');
-      return;
-    }
-    modalAuth.classList.remove('active');
+    modalAuth?.classList.remove('active');
   }
 
   authModalClose?.addEventListener('click', closeAuthModal);
@@ -357,12 +353,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial trigger if not logged in
-  if (!window.authManager.currentUser) {
-    setTimeout(() => {
-      openAuthModal('register');
-    }, 450);
-  } else {
+  // Initial user header display
+  if (window.authManager.currentUser) {
     updateHeaderUserUI(window.authManager.currentUser);
   }
 
@@ -930,11 +922,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   </div>
                   <div class="history-meta-sub">${isWin ? `Выплата: $${(h.payout || 0).toFixed(2)} (1.95x)` : 'Потеряно'}</div>
                 </div>
-                ${h.provablyFair ? `
-                  <button class="btn-verify-pf-chip" data-audit-hist-index="${idx}" title="Проверить SHA-256 хэш">
-                    🔒 Проверить
-                  </button>
-                ` : ''}
               </div>
             </div>
           `;
@@ -968,11 +955,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   </div>
                   <div class="history-meta-sub">${isWin ? `Выплата: $${(h.payout || 0).toFixed(2)}` : 'Сгорело'}</div>
                 </div>
-                ${h.provablyFair ? `
-                  <button class="btn-verify-pf-chip" data-audit-hist-index="${idx}" title="Проверить SHA-256 хэш">
-                    🔒 Проверить
-                  </button>
-                ` : ''}
               </div>
             </div>
           `;
@@ -1006,11 +988,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   </div>
                   <div class="history-meta-sub">${h.isWin ? `Выплата: $${(h.payout || 0).toFixed(2)}` : 'Потеряно'}</div>
                 </div>
-                ${h.provablyFair ? `
-                  <button class="btn-verify-pf-chip" data-audit-hist-index="${idx}" title="Проверить SHA-256 хэш">
-                    🔒 Проверить
-                  </button>
-                ` : ''}
               </div>
             </div>
           `;
@@ -1098,26 +1075,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="history-meta-sub">Ставка: $${(h.totalBet || 0).toFixed(2)}</div>
               </div>
-              ${h.provablyFair ? `
-                <button class="btn-verify-pf-chip" data-audit-hist-index="${idx}" title="Проверить SHA-256 хэш">
-                  🔒 Проверить
-                </button>
-              ` : ''}
             </div>
           </div>
         `;
       }).join('');
-
-      // Wire up Provably Fair audit buttons in history
-      historyContainer.querySelectorAll('[data-audit-hist-index]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = parseInt(btn.dataset.auditHistIndex, 10);
-          const roundData = history[idx];
-          if (roundData && roundData.provablyFair) {
-            openProvablyFairAuditModal(roundData);
-          }
-        });
-      });
     }
 
     // Filter pill buttons in history
@@ -1254,20 +1215,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const targetWinPayoutVal = document.getElementById('target-win-payout-val');
   const btnBrowseCatalogTarget = document.getElementById('btn-browse-catalog-target');
 
-  // Provably fair bar elements
-  const pfBarClientSeed = document.getElementById('pf-bar-client-seed');
-  const pfBarServerHash = document.getElementById('pf-bar-server-hash');
-  const pfBarNonce = document.getElementById('pf-bar-nonce');
-  const btnOpenPfModal = document.getElementById('btn-open-pf-modal');
 
-  // Provably fair modal
-  const modalProvablyFair = document.getElementById('modal-provably-fair');
-  const pfModalClose = document.getElementById('pf-modal-close');
-  const pfClientSeedInput = document.getElementById('pf-client-seed-input');
-  const pfServerHashInput = document.getElementById('pf-server-hash-input');
-  const pfNonceInput = document.getElementById('pf-nonce-input');
-  const pfLastRoundDetails = document.getElementById('pf-last-round-details');
-  const btnSaveClientSeed = document.getElementById('btn-save-client-seed');
 
   // Set default initial target skin
   const allSkins = window.catalogController?.skins || [];
@@ -1281,6 +1229,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function drawWheel(chance, direction, currentRoll = null) {
     if (!wheelCanvas) return;
     const ctx = wheelCanvas.getContext('2d');
+    if (!ctx) return;
     const w = wheelCanvas.width;
     const h = wheelCanvas.height;
     const cx = w / 2;
@@ -1394,11 +1343,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Direction pills
     if (btnDirUnder) btnDirUnder.classList.toggle('active', window.upgraderEngine.direction === 'under');
     if (btnDirOver) btnDirOver.classList.toggle('active', window.upgraderEngine.direction === 'over');
-
-    // Provably fair bar
-    if (pfBarClientSeed) pfBarClientSeed.textContent = window.upgraderEngine.clientSeed;
-    if (pfBarServerHash) pfBarServerHash.textContent = window.upgraderEngine.serverSeedHash.substring(0, 16) + '...';
-    if (pfBarNonce) pfBarNonce.textContent = `#${window.upgraderEngine.nonce}`;
 
     // Draw Wheel
     drawWheel(chance, window.upgraderEngine.direction);
@@ -1641,92 +1585,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // =========================================================================
-  // PROVABLY FAIR MODAL & AUDIT
-  // =========================================================================
-  function openProvablyFairAuditModal(roundData) {
-    if (!roundData || !roundData.provablyFair) return;
-    const pf = roundData.provablyFair;
 
-    pfClientSeedInput.value = pf.clientSeed;
-    pfServerHashInput.value = pf.serverSeedHash;
-    pfNonceInput.value = pf.nonce;
-
-    pfLastRoundDetails.innerHTML = `
-      <div style="margin-bottom: 8px;">
-        <strong>Исход:</strong> ${roundData.isWin ? '<span style="color:#00ff88; font-weight: 800;">Победа (+' + (roundData.targetSkin?.price || 0).toFixed(2) + '$)</span>' : '<span style="color:#ef4444; font-weight: 800;">Поражение</span>'}<br>
-        <strong>Выпавшее число:</strong> ${roundData.roll} (Шанс был ${roundData.chance}%)<br>
-        <strong>Раскрытый Server Seed:</strong> <span style="color: var(--accent-color);">${pf.serverSeed}</span><br>
-        <strong>Server Hash (SHA-256):</strong> ${pf.serverSeedHash}<br>
-        <strong>Client Seed:</strong> ${pf.clientSeed}<br>
-        <strong>Nonce:</strong> #${pf.nonce}
-      </div>
-      <button class="btn-submit-action" id="btn-verify-sha-now" style="margin-top: 10px; padding: 9px 14px; font-size: 13px; width: 100%;">
-        ⚡ Проверить криптографический хэш SHA-256
-      </button>
-      <div id="pf-verification-result" style="margin-top: 8px; font-size: 12px;"></div>
-    `;
-
-    document.getElementById('btn-verify-sha-now')?.addEventListener('click', async () => {
-      const resEl = document.getElementById('pf-verification-result');
-      if (!resEl) return;
-      resEl.innerHTML = '<span style="color: var(--text-muted);">Выполняется вычисление SHA-256...</span>';
-      
-      const check = await window.leaderboardManager.verifyProvablyFair({
-        serverSeed: pf.serverSeed,
-        serverSeedHash: pf.serverSeedHash,
-        clientSeed: pf.clientSeed,
-        nonce: pf.nonce
-      });
-
-      if (check.valid) {
-        resEl.innerHTML = `
-          <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 12px; border-radius: 6px; color: #10b981; font-weight: 700;">
-            ✓ Хэш полностью подтвержден! Server Seed Hash совпадает с заранее зафиксированным. Рассчитанный бросок: ${check.verifiedRoll}
-          </div>
-        `;
-      } else {
-        resEl.innerHTML = `
-          <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 6px; color: #ef4444; font-weight: 700;">
-            ✕ Ошибка верификации: ${check.error || 'Несоответствие хэша'}
-          </div>
-        `;
-      }
-    });
-
-    modalProvablyFair?.classList.add('active');
-  }
-
-  btnOpenPfModal?.addEventListener('click', () => {
-    if (pfClientSeedInput) pfClientSeedInput.value = window.upgraderEngine.clientSeed;
-    if (pfServerHashInput) pfServerHashInput.value = window.upgraderEngine.serverSeedHash;
-    if (pfNonceInput) pfNonceInput.value = window.upgraderEngine.nonce;
-
-    const last = window.upgraderEngine.lastRoundData;
-    if (last && last.provablyFair) {
-      openProvablyFairAuditModal(last);
-      return;
-    }
-
-    if (pfLastRoundDetails) pfLastRoundDetails.textContent = 'Раундов еще не было. Сделайте первый апгрейд!';
-    modalProvablyFair?.classList.add('active');
-  });
-
-  pfModalClose?.addEventListener('click', () => {
-    modalProvablyFair?.classList.remove('active');
-  });
-
-  btnSaveClientSeed?.addEventListener('click', () => {
-    const val = pfClientSeedInput?.value?.trim();
-    if (!val) {
-      window.notify.warning('Client Seed', 'Введите строку для сида.');
-      return;
-    }
-    window.upgraderEngine.clientSeed = val;
-    updateUpgraderUI();
-    window.notify.success('Provably Fair', 'Новый Client Seed сохранен!');
-    modalProvablyFair?.classList.remove('active');
-  });
 
   // =========================================================================
   // BLOCK 4: CASES CONTROLLER & ROULETTE REEL

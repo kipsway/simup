@@ -30,7 +30,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SIMUP">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=3.0">
 
   <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
   <script type="application/ld+json">
@@ -484,17 +484,6 @@
               🎮 Начать игру ($10.00)
             </button>
           </div>
-
-          <!-- Provably Fair Info Bar -->
-          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-dim);">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-              <span>🔒 Provably Fair SHA-256</span>
-              <span id="mines-pf-status" style="color: #10b981;">Хэш готов</span>
-            </div>
-            <div style="font-family: monospace; font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;" id="mines-pf-hash">
-              Запустите раунд для получения хэша
-            </div>
-          </div>
         </div>
 
         <!-- RIGHT MINES 5x5 BOARD -->
@@ -618,17 +607,6 @@
             🪙 ПОДБРОСИТЬ МОНЕТУ ($10.00)
           </button>
 
-          <!-- PROVABLY FAIR BAR -->
-          <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-dim);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>🔒 Provably Fair SHA-256</span>
-              <span id="cf-pf-status" style="color: #10b981;">Хэш готов</span>
-            </div>
-            <div style="font-family: monospace; font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;" id="cf-pf-hash">
-              Запустите раунд для просмотра хэша
-            </div>
-          </div>
-
         </div>
 
         <!-- RIGHT 3D FLIP ARENA -->
@@ -733,17 +711,6 @@
               <span>🚀 ЗАПУСТИТЬ РАКЕТУ</span>
               <span id="btn-crash-action-price">($10.00)</span>
             </button>
-          </div>
-
-          <!-- PROVABLY FAIR BAR -->
-          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-dim);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>🔒 Provably Fair SHA-256</span>
-              <span id="crash-pf-status" style="color: #10b981;">Хэш готов</span>
-            </div>
-            <div style="font-family: monospace; font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;" id="crash-pf-hash">
-              Запустите раунд для просмотра хэша
-            </div>
           </div>
         </div>
 
@@ -956,7 +923,7 @@
               <span>🏛️</span> Кредитная политика & Влияние на рейтинг
             </div>
             <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
-              • <strong>Честная экономика</strong>: бесплатные накрутки баланса отключены. Средства зарабатываются победами, продажей скинов и займами.<br>
+              • <strong>Игровая экономика</strong>: баланс зарабатывается победами в играх, продажей скинов и займами в банке.<br>
               • <strong>Штраф к рейтингу 1.5x</strong>: долг по кредиту уменьшает ваш рейтинг в таблице лидеров в полуторном размере (долг $500 снижает позицию на -$750).<br>
               • <strong>Метка должника</strong>: игроки с долгами получают предупреждающий бейдж ⚠️ в общем лидерборде.
             </div>
@@ -1348,7 +1315,7 @@
 
       <div style="margin-top: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 14px;">
         <div style="font-size: 12px; color: var(--text-muted);">
-          Математика 1-в-1: честный расчет вероятностей по обратному весу стоимости предмета.
+          Математика 1-в-1: расчет вероятностей по обратному весу стоимости предмета.
         </div>
         <button class="btn-submit-action" id="btn-save-custom-case" style="margin-top: 0; width: auto; padding: 12px 28px;" disabled>
           💾 Сохранить и добавить в Кейсы
@@ -1432,28 +1399,30 @@
   </nav>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="js/sound.js"></script>
-  <script src="js/skins-data.js"></script>
-  <script src="js/notifications.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/economy.js"></script>
-  <script src="js/catalog.js"></script>
-  <script src="js/upgrader.js"></script>
-  <script src="js/cases-data.js"></script>
-  <script src="js/cases.js"></script>
-  <script src="js/leaderboard.js"></script>
-  <script src="js/contracts.js"></script>
-  <script src="js/lucky-wheel.js"></script>
-  <script src="js/case-builder.js"></script>
-  <script src="js/mines.js"></script>
-  <script src="js/quests.js"></script>
-  <script src="js/coinflip.js"></script>
-  <script src="js/crash.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/sound.js?v=3.0"></script>
+  <script src="js/skins-data.js?v=3.0"></script>
+  <script src="js/notifications.js?v=3.0"></script>
+  <script src="js/auth.js?v=3.0"></script>
+  <script src="js/economy.js?v=3.0"></script>
+  <script src="js/catalog.js?v=3.0"></script>
+  <script src="js/upgrader.js?v=3.0"></script>
+  <script src="js/cases-data.js?v=3.0"></script>
+  <script src="js/cases.js?v=3.0"></script>
+  <script src="js/leaderboard.js?v=3.0"></script>
+  <script src="js/contracts.js?v=3.0"></script>
+  <script src="js/lucky-wheel.js?v=3.0"></script>
+  <script src="js/case-builder.js?v=3.0"></script>
+  <script src="js/mines.js?v=3.0"></script>
+  <script src="js/quests.js?v=3.0"></script>
+  <script src="js/coinflip.js?v=3.0"></script>
+  <script src="js/crash.js?v=3.0"></script>
+  <script src="js/app.js?v=3.0"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=3.0').then(reg => {
+          reg.update();
+        }).catch(() => {});
       });
     }
   </script>

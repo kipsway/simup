@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SIMUP - Симулятор Апгрейда CS2, Dota 2 & Rust</title>
+  <meta name="description" content="Реалистичный симулятор Upgrader для CS2, Dota 2 и Rust. Шансы 1 в 1, огромная база скинов, кейсы, система кредитов и лидерборд без реальных денег.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/200svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗡️</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="emerald">
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <!-- LOGO -->
+      <div class="brand-section" id="brand-logo-btn">
+        <div class="brand-logo-icon">⚡</div>
+        <div class="brand-logo-text">SIM<span>UP</span></div>
+        <span class="badge-sim">Simulator</span>
+      </div>
+
+      <!-- MAIN NAVIGATION -->
+      <nav class="nav-tabs" aria-label="Навигация сайта">
+        <button class="nav-tab-btn active" data-tab="upgrader">
+          <span>🎯</span> Апгрейдер
+        </button>
+        <button class="nav-tab-btn" data-tab="cases">
+          <span>📦</span> Кейсы
+        </button>
+        <button class="nav-tab-btn" data-tab="contracts">
+          <span>📜</span> Контракты
+        </button>
+        <button class="nav-tab-btn" data-tab="mines">
+          <span>💣</span> Мины
+        </button>
+        <button class="nav-tab-btn" data-tab="coinflip">
+          <span>🪙</span> Коинфлип
+        </button>
+        <button class="nav-tab-btn" data-tab="crash">
+          <span>🚀</span> Краш
+        </button>
+        <button class="nav-tab-btn" data-tab="leaderboard">
+          <span>🏆</span> Лидерборд
+        </button>
+        <button class="nav-tab-btn" data-tab="bank">
+          <span>🏦</span> Кредиты & Банк
+        </button>
+        <button class="nav-tab-btn" data-tab="profile">
+          <span>👤</span> Профиль
+        </button>
+      </nav>
+
+      <!-- USER & SYSTEM CONTROLS -->
+      <div class="header-actions">
+        <!-- Daily Quests & Battle Pass Trigger -->
+        <button class="btn-header-action" id="btn-open-quests" title="Ежедневные задания и Боевой Пропуск" aria-label="Задания">
+          <span>🎁</span>
+          <span class="header-action-label">Задания</span>
+          <span class="action-count-badge" id="quests-badge" style="display: none;">0</span>
+        </button>
+
+        <!-- Audio Control Popover -->
+        <div class="audio-control-wrapper" id="audio-control-wrapper">
+          <button class="audio-toggle-btn" id="audio-toggle-btn" title="Настройки звука" aria-label="Звук">
+            🔊
+          </button>
+          <div class="audio-popover" id="audio-popover">
+            <div class="audio-popover-header">
+              <span>Громкость звука</span>
+              <span id="audio-volume-text" class="audio-volume-text">80%</span>
+            </div>
+            <div class="audio-slider-wrap">
+              <input type="range" min="0" max="100" value="80" class="audio-volume-slider" id="audio-volume-slider" aria-label="Громкость">
+            </div>
+            <div class="audio-presets-row">
+              <button class="audio-preset-btn" data-vol="0">🔇 0%</button>
+              <button class="audio-preset-btn" data-vol="30">30%</button>
+              <button class="audio-preset-btn" data-vol="70">70%</button>
+              <button class="audio-preset-btn" data-vol="100">100%</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Theme Picker Button -->
+        <button class="theme-toggle-btn" id="theme-toggle-btn" title="Сменить тему оформления" aria-label="Тема">
+          🎨
+        </button>
+
+        <!-- Balance Card -->
+        <div class="balance-card">
+          <div class="balance-info">
+            <span class="balance-title">Баланс</span>
+            <span class="balance-amount" id="header-balance">$0.00</span>
+          </div>
+          <button class="btn-deposit" id="btn-quick-deposit" title="Пополнить виртуальный баланс">
+            <span>+</span> Пополнить
+          </button>
+        </div>
+
+        <!-- User Profile Pill or Login Trigger -->
+        <div id="user-header-container">
+          <!-- Injected via JavaScript (AuthManager) -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== LIVE DROPS TICKER ==================== -->
+  <div class="live-drops-bar" id="live-drops-bar">
+    <div class="live-drops-header">
+      <span class="live-pulse-dot"></span>
+      <span class="live-drops-title">LIVE ДРОПЫ</span>
+    </div>
+    <div class="live-drops-scroller" id="live-drops-track">
+      <!-- Injected via JavaScript -->
+    </div>
+  </div>
+
+  <!-- ==================== MAIN CONTAINER ==================== -->
+  <main class="app-container">
+
+    <!-- TAB 1: UPGRADER -->
+    <section class="tab-content active" id="tab-upgrader">
+      
+      <!-- UPGRADER ARENA (BLOCK 3 CORE) -->
+      <div class="upgrader-arena-grid" id="upgrader-arena">
+        
+        <!-- LEFT COLUMN: BET CONFIGURATION & MULTI-UPGRADE -->
+        <div class="upgrader-panel-box">
+          <div>
+            <div class="upgrader-box-title">
+              <span>Ваша ставка</span>
+              <span style="font-size: 11px; color: var(--accent-color); font-weight: 700;" id="arena-user-balance">Баланс: $0.00</span>
+            </div>
+
+            <!-- Chips for quick balance adjustment -->
+            <div class="bet-chips-row">
+              <button class="bet-chip" data-bet-add="1">+$1</button>
+              <button class="bet-chip" data-bet-add="5">+$5</button>
+              <button class="bet-chip" data-bet-add="25">+$25</button>
+              <button class="bet-chip" data-bet-add="100">+$100</button>
+              <button class="bet-chip" data-bet-action="half">1/2</button>
+              <button class="bet-chip" data-bet-action="double">2x</button>
+              <button class="bet-chip" data-bet-action="clear">Сброс</button>
+              <button class="bet-chip" data-bet-action="max" style="color: var(--accent-color);">МАКС</button>
+            </div>
+
+            <!-- Manual input field -->
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label class="form-label" for="arena-balance-input">Сумма с баланса ($)</label>
+              <input type="number" id="arena-balance-input" class="form-input" min="0" step="0.5" value="10.00" style="padding: 10px 14px; font-weight: 800;">
+            </div>
+
+            <!-- Multi-upgrade Inventory Drawer -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px;">
+              <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">
+                Скины из инвентаря
+              </span>
+              <span style="font-size: 11px; color: var(--text-dim);" id="drawer-selected-count">
+                Выбрано: 0
+              </span>
+            </div>
+
+            <div class="inventory-drawer-scroll" id="arena-inventory-drawer">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+
+          <!-- Total Bet Footer -->
+          <div style="background: rgba(0,0,0,0.35); border-radius: var(--radius-md); padding: 12px 14px; border: 1px solid var(--border-color); margin-top: 14px; display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Итого ставка:</span>
+            <span style="font-size: 19px; font-weight: 900; color: var(--accent-color);" id="arena-total-bet-val">$10.00</span>
+          </div>
+        </div>
+
+        <!-- CENTER COLUMN: INTERACTIVE WHEEL & FIRE BUTTON -->
+        <div class="upgrader-col-center">
+          <!-- Top row: Direction switch (Over / Under) & House Edge toggle -->
+          <div class="wheel-top-controls">
+            <div class="over-under-pill-wrap">
+              <button class="btn-direction-pill active" id="btn-dir-under">UNDER (0 → X)</button>
+              <button class="btn-direction-pill" id="btn-dir-over">OVER (X → 100)</button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button class="btn-turbo-pill" id="btn-toggle-turbo" title="Турбо режим: ускоренная прокрутка за 1.2 сек">
+                <span>⚡ Турбо</span>
+              </button>
+
+              <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Комиссия:</span>
+              <select id="house-edge-select" class="filter-select" style="padding: 4px 8px; font-size: 11px;">
+                <option value="0.08">8% (Реалистично)</option>
+                <option value="0.00">0% (Честный симулятор)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 60fps Interactive Wheel Box -->
+          <div class="upgrader-wheel-box">
+            <canvas id="wheel-canvas" class="wheel-canvas" width="290" height="290"></canvas>
+            
+            <!-- Center readout display -->
+            <div class="wheel-center-display">
+              <span class="wheel-center-title" id="wheel-center-status">Шанс</span>
+              <span class="wheel-center-chance" id="wheel-chance-val">0.00%</span>
+              <span class="wheel-center-mult" id="wheel-mult-val">0.00x</span>
+            </div>
+
+            <!-- Rotating needle pointer -->
+            <div class="wheel-needle-pointer" id="wheel-needle">
+              <div class="needle-shape"></div>
+            </div>
+          </div>
+
+          <!-- Quick Multiplier Chips -->
+          <div class="quick-multipliers-bar">
+            <button class="btn-mult-chip" data-quick-mult="1.5">1.5x</button>
+            <button class="btn-mult-chip" data-quick-mult="2">2x</button>
+            <button class="btn-mult-chip" data-quick-mult="5">5x</button>
+            <button class="btn-mult-chip" data-quick-mult="10">10x</button>
+            <button class="btn-mult-chip" data-quick-mult="20">20x</button>
+            <button class="btn-mult-chip" data-quick-mult="50">50x</button>
+            <button class="btn-mult-chip" data-quick-mult="100">100x</button>
+          </div>
+
+          <!-- Big Pulsating Upgrade Button -->
+          <button class="btn-upgrade-fire" id="btn-fire-upgrade">
+            <span>⚡ АПГРЕЙД</span>
+            <span id="btn-upgrade-price-tag">($10.00)</span>
+          </button>
+        </div>
+
+        <!-- RIGHT COLUMN: TARGET SKIN SHOWCASE -->
+        <div class="upgrader-panel-box">
+          <div class="upgrader-box-title">
+            <span>Целевой скин</span>
+            <button id="btn-browse-catalog-target" style="background: transparent; border: none; color: var(--accent-color); font-size: 11.5px; font-weight: 700; cursor: pointer;">
+              Каталог ↓
+            </button>
+          </div>
+
+          <!-- Holographic Target Skin Container -->
+          <div class="target-skin-showcase" id="target-skin-showcase">
+            <div class="target-glow-back" id="target-glow-back"></div>
+            <img src="" alt="Целевой скин" id="target-skin-img" class="target-img-huge">
+            <div class="target-title-name" id="target-skin-name">Выберите скин</div>
+            <div class="target-price-big" id="target-skin-price">$0.00</div>
+          </div>
+
+          <!-- Quick Info / Win Payout Preview -->
+          <div style="background: rgba(0,0,0,0.35); border-radius: var(--radius-md); padding: 12px 14px; border: 1px solid var(--border-color); margin-top: 14px; text-align: center;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Возможный выигрыш:</div>
+            <div style="font-size: 18px; font-weight: 900; color: #fff; margin-top: 2px;" id="target-win-payout-val">+$0.00 профит</div>
+          </div>
+        </div>
+
+        <!-- BOTTOM ROW: PROVABLY FAIR SYSTEM BAR -->
+        <div class="provably-fair-bar">
+          <div class="pf-info-item">
+            <span class="pf-tag">🛡️ Provably Fair:</span>
+            <span style="color: var(--success); font-weight: 700;">Активен</span>
+          </div>
+
+          <div class="pf-info-item">
+            <span class="pf-tag">Client Seed:</span>
+            <span class="pf-val" id="pf-bar-client-seed">...</span>
+          </div>
+
+          <div class="pf-info-item">
+            <span class="pf-tag">Server Hash:</span>
+            <span class="pf-val" id="pf-bar-server-hash">...</span>
+          </div>
+
+          <div class="pf-info-item">
+            <span class="pf-tag">Nonce:</span>
+            <span class="pf-val" id="pf-bar-nonce">#1</span>
+          </div>
+
+          <button class="btn-open-pf" id="btn-open-pf-modal">
+            Проверить честность 🔍
+          </button>
+        </div>
+
+      </div>
+
+      <!-- CATALOG OF SKINS (BLOCK 1 CORE) -->
+      <div class="catalog-section">
+        <div class="catalog-header-bar">
+          <div class="catalog-title-row">
+            <div class="catalog-title">
+              Каталог скинов
+              <span class="catalog-count-badge" id="catalog-count-badge">0 скинов</span>
+            </div>
+
+            <!-- Price quick filter pills -->
+            <div class="game-filter-pills" id="price-quick-pills">
+              <button class="game-pill-btn active" data-price-range="all">Все цены</button>
+              <button class="game-pill-btn" data-price-range="budget">До $20</button>
+              <button class="game-pill-btn" data-price-range="mid">$20 - $200</button>
+              <button class="game-pill-btn" data-price-range="high">$200 - $1000</button>
+              <button class="game-pill-btn" data-price-range="knife">$1000+</button>
+            </div>
+          </div>
+
+          <!-- Controls: Search, Game Pills, Rarity & Sort -->
+          <div class="catalog-controls">
+            <!-- Search -->
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="catalog-search" class="catalog-search-input" placeholder="Поиск скина (на русском или английском)...">
+            </div>
+
+            <!-- Game Tabs -->
+            <div class="game-filter-pills" id="game-filter-pills">
+              <button class="game-pill-btn active" data-game="all">Все игры</button>
+              <button class="game-pill-btn" data-game="cs2">🔫 CS2</button>
+              <button class="game-pill-btn" data-game="dota2">🛡️ Dota 2</button>
+              <button class="game-pill-btn" data-game="rust">☢️ Rust</button>
+            </div>
+
+            <!-- Rarity Dropdown -->
+            <select id="rarity-filter" class="filter-select">
+              <option value="all">Все редкости</option>
+              <option value="extraordinary">★ Экстраординарное (Ножи/Arcana)</option>
+              <option value="covert">🔴 Тайное / Immortal</option>
+              <option value="classified">🟣 Засекреченное</option>
+              <option value="restricted">🔷 Запрещенное</option>
+              <option value="milspec">🔹 Армейское</option>
+              <option value="consumer">⚪ Ширпотреб</option>
+            </select>
+
+            <!-- Sort Dropdown -->
+            <select id="sort-filter" class="filter-select">
+              <option value="price-desc">Сначала дорогие ($$$ → $)</option>
+              <option value="price-asc">Сначала дешевые ($ → $$$)</option>
+              <option value="name">По алфавиту (А-Я)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Dynamic Grid of Skins -->
+        <div class="skins-grid" id="skins-grid">
+          <!-- Injected via CatalogController -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: CASES (BLOCK 4 CORE) -->
+    <section class="tab-content" id="tab-cases">
+      <div class="catalog-header-bar" style="margin-top: 24px;">
+        <div class="catalog-title-row">
+          <div class="catalog-title">
+            <span>📦</span> Кейсы CS2, Dota 2 и Rust
+            <span class="catalog-count-badge" id="cases-count-badge">15 кейсов</span>
+          </div>
+
+          <!-- Game Filter Pills -->
+          <div class="game-filter-pills" id="cases-game-pills">
+            <button class="game-pill-btn active" data-cases-game="all">Все игры</button>
+            <button class="game-pill-btn" data-cases-game="cs2">🔫 CS2 (5)</button>
+            <button class="game-pill-btn" data-cases-game="dota2">🛡️ Dota 2 (5)</button>
+            <button class="game-pill-btn" data-cases-game="rust">☢️ Rust (5)</button>
+            <button class="game-pill-btn" data-cases-game="custom" id="pill-custom-cases">⭐ Мои кейсы (0)</button>
+            <button class="btn-deposit" id="btn-open-case-builder" style="padding: 6px 14px; font-size: 12px; margin-left: 8px;">
+              🛠️ Создать кейс
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 15 Cases Grid -->
+      <div class="cases-grid" id="cases-grid">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+    <!-- TAB: TRADE-UP CONTRACTS -->
+    <section class="tab-content" id="tab-contracts">
+      <div class="contracts-desk-box">
+        
+        <!-- Header Row -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;">
+          <div>
+            <div style="font-size: 22px; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 10px;">
+              <span>📜</span> Трейд-ап Контракты обмена
+            </div>
+            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px; max-width: 600px;">
+              Положите от 3 до 10 скинов из инвентаря. Система обменяет их на один редкий скин более высокой категории с окупаемостью до 300%!
+            </div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px 18px; text-align: right;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Сумма контракта:</div>
+            <div style="font-size: 20px; font-weight: 900; color: var(--accent-color); margin-top: 2px;" id="contract-total-val">$0.00</div>
+          </div>
+        </div>
+
+        <!-- 10 Slots Grid -->
+        <div class="contract-slots-grid" id="contract-slots-grid">
+          <!-- 10 slots populated via JS -->
+        </div>
+
+        <!-- Metrics & Sign Button -->
+        <div style="background: rgba(0,0,0,0.35); border-radius: var(--radius-md); padding: 20px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+          <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Предметов вложено</div>
+              <div style="font-size: 16px; font-weight: 800; color: #fff; margin-top: 2px;" id="contract-items-count">0 / 10 (мин. 3)</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Ожидаемый дроп</div>
+              <div style="font-size: 16px; font-weight: 800; color: #ffd700; margin-top: 2px;" id="contract-outcome-range">$0.00 — $0.00</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Шанс апгрейда</div>
+              <div style="font-size: 16px; font-weight: 800; color: #10b981; margin-top: 2px;" id="contract-upgrade-chance">100%</div>
+            </div>
+          </div>
+
+          <button class="btn-sign-contract" id="btn-sign-contract" disabled>
+            <span>✍️ Подписать контракт</span>
+          </button>
+        </div>
+
+        <!-- Inventory Picker for Contract -->
+        <div style="margin-top: 28px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <div style="font-size: 14px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">
+              Выберите скины из инвентаря для контракта:
+            </div>
+            <button id="btn-contract-fill-cheapest" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-muted); padding: 5px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer;">
+              + Добавить дешевые (до 10 шт)
+            </button>
+          </div>
+
+          <div id="contract-inventory-picker" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; max-height: 280px; overflow-y: auto; padding: 4px;">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB: MINES (5x5 GRID MINI-GAME) -->
+    <section class="tab-content" id="tab-mines">
+      <div class="mines-arena-layout">
+        
+        <!-- LEFT CONTROL PANEL -->
+        <div class="mines-controls-box">
+          <div style="font-size: 20px; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <span>💣</span> Сапер: Режим «Мины»
+          </div>
+          <div style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 20px;">
+            Открывайте кристаллы, увеличивайте множитель и забирайте выигрыш до взрыва!
+          </div>
+
+          <!-- Bet Configuration -->
+          <div class="mines-panel-block">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span class="form-label" style="margin-bottom: 0;">Сумма ставки ($)</span>
+              <span style="font-size: 11px; color: var(--accent-color); font-weight: 700;" id="mines-user-balance">Баланс: $0.00</span>
+            </div>
+            <div style="position: relative;">
+              <input type="number" id="mines-bet-input" class="form-input" value="10" min="0.10" max="100000" step="1" style="font-size: 16px; font-weight: 800;">
+            </div>
+
+            <!-- Bet Quick Chips -->
+            <div class="bet-chips-row" style="margin-top: 8px;">
+              <button class="bet-chip" data-mines-chip="1">+$1</button>
+              <button class="bet-chip" data-mines-chip="5">+$5</button>
+              <button class="bet-chip" data-mines-chip="25">+$25</button>
+              <button class="bet-chip" data-mines-chip="100">+$100</button>
+              <button class="bet-chip" data-mines-action="half">1/2</button>
+              <button class="bet-chip" data-mines-action="double">2X</button>
+              <button class="bet-chip" data-mines-action="max">MAX</button>
+            </div>
+          </div>
+
+          <!-- Mines Count Selector (1-24) -->
+          <div class="mines-panel-block" style="margin-top: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span class="form-label" style="margin-bottom: 0;">Количество мин:</span>
+              <span style="font-size: 14px; font-weight: 900; color: #ef4444;" id="mines-count-display">3 мины</span>
+            </div>
+
+            <div class="mines-selector-chips" id="mines-preset-chips">
+              <button class="game-pill-btn" data-preset-mines="1">1</button>
+              <button class="game-pill-btn active" data-preset-mines="3">3</button>
+              <button class="game-pill-btn" data-preset-mines="5">5</button>
+              <button class="game-pill-btn" data-preset-mines="10">10</button>
+              <button class="game-pill-btn" data-preset-mines="24">24</button>
+            </div>
+
+            <input type="range" id="mines-count-slider" min="1" max="24" value="3" style="width: 100%; margin-top: 12px; accent-color: #ef4444; cursor: pointer;">
+          </div>
+
+          <!-- Round Action Button (Start / Cashout) -->
+          <div style="margin-top: 24px;">
+            <button class="btn-submit-action" id="btn-mines-action" style="padding: 16px; font-size: 16px; font-weight: 900; letter-spacing: 0.5px;">
+              🎮 Начать игру ($10.00)
+            </button>
+          </div>
+
+          <!-- Provably Fair Info Bar -->
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-dim);">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span>🔒 Provably Fair SHA-256</span>
+              <span id="mines-pf-status" style="color: #10b981;">Хэш готов</span>
+            </div>
+            <div style="font-family: monospace; font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;" id="mines-pf-hash">
+              Запустите раунд для получения хэша
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT MINES 5x5 BOARD -->
+        <div class="mines-board-box">
+          
+          <!-- Top Multiplier & Payout Live Bar -->
+          <div class="mines-live-stats-bar">
+            <div>
+              <div style="font-size: 10.5px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Текущий множитель</div>
+              <div style="font-size: 22px; font-weight: 900; color: #ffd700;" id="mines-live-multiplier">1.00x</div>
+            </div>
+            <div>
+              <div style="font-size: 10.5px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Следующий алмаз</div>
+              <div style="font-size: 22px; font-weight: 900; color: #10b981;" id="mines-next-multiplier">1.10x</div>
+            </div>
+            <div>
+              <div style="font-size: 10.5px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Текущий выигрыш</div>
+              <div style="font-size: 22px; font-weight: 900; color: var(--accent-color);" id="mines-live-payout">$0.00</div>
+            </div>
+          </div>
+
+          <!-- 5x5 Grid (25 Cells) -->
+          <div class="mines-grid-container" id="mines-grid-container">
+            <!-- 25 cells populated via JS -->
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB: COINFLIP ARENA (1-ON-1 DUELS) -->
+    <section class="tab-content" id="tab-coinflip">
+      <div class="coinflip-arena-layout">
+        
+        <!-- LEFT CONTROL PANEL -->
+        <div class="coinflip-control-card">
+          <div class="panel-header-row">
+            <div class="panel-title">
+              <span>🪙</span> Дуэль Coinflip 1v1
+            </div>
+            <span style="font-size: 12px; color: #ffd700; font-weight: 800;">1.95x Выигрыш</span>
+          </div>
+
+          <!-- SIDE PICKER (T vs CT) -->
+          <div class="coinflip-side-selector" style="margin-top: 14px;">
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+              Выберите сторону:
+            </div>
+            <div class="coin-side-buttons-row">
+              <button class="btn-coin-side active" id="btn-side-t" data-side="T">
+                <div class="coin-badge-icon" style="background: radial-gradient(circle, #f59e0b, #b45309); color: #fff;">T</div>
+                <div class="coin-side-info">
+                  <span class="coin-side-name" style="color: #f59e0b;">Terrorist (Золото)</span>
+                  <span class="coin-side-sub">Шанс: 50.00%</span>
+                </div>
+              </button>
+              <button class="btn-coin-side" id="btn-side-ct" data-side="CT">
+                <div class="coin-badge-icon" style="background: radial-gradient(circle, #38bdf8, #0369a1); color: #fff;">CT</div>
+                <div class="coin-side-info">
+                  <span class="coin-side-name" style="color: #38bdf8;">Counter-T (Серебро)</span>
+                  <span class="coin-side-sub">Шанс: 50.00%</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- BET MODE (BALANCE vs SKIN) TABS -->
+          <div style="margin-top: 18px;">
+            <div class="coinflip-mode-switch">
+              <button class="btn-cf-mode active" id="btn-cf-mode-balance">💵 Ставка с баланса</button>
+              <button class="btn-cf-mode" id="btn-cf-mode-skin">🎒 Ставка скином</button>
+            </div>
+          </div>
+
+          <!-- BALANCE BET SECTION -->
+          <div id="cf-balance-bet-section" style="margin-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span class="form-label" style="margin-bottom: 0;">Сумма ставки ($):</span>
+              <span style="font-size: 11px; color: var(--accent-color); font-weight: 700;" id="cf-user-balance-badge">Баланс: $0.00</span>
+            </div>
+            <div class="bet-chips-row" style="margin-bottom: 10px;">
+              <button class="bet-chip" data-cf-chip="1">+$1</button>
+              <button class="bet-chip" data-cf-chip="5">+$5</button>
+              <button class="bet-chip" data-cf-chip="25">+$25</button>
+              <button class="bet-chip" data-cf-chip="100">+$100</button>
+              <button class="bet-chip" data-cf-action="half">1/2</button>
+              <button class="bet-chip" data-cf-action="double">2x</button>
+              <button class="bet-chip" data-cf-action="max" style="color: var(--accent-color);">МАКС</button>
+            </div>
+            <input type="number" id="cf-bet-input" class="form-input" min="0.5" step="0.5" value="10.00" style="padding: 12px 14px; font-size: 16px; font-weight: 800;">
+          </div>
+
+          <!-- SKIN STAKE SECTION -->
+          <div id="cf-skin-bet-section" style="display: none; margin-top: 14px;">
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">
+              Выберите скин для дуэли:
+            </div>
+            <div id="cf-selected-skin-preview" style="background: rgba(0,0,0,0.3); border: 1px dashed var(--border-color); border-radius: var(--radius-sm); padding: 10px; text-align: center; margin-bottom: 8px;">
+              <span style="font-size: 12px; color: var(--text-dim);">Скин не выбран. Выберите предмет из списка ниже:</span>
+            </div>
+            <div id="cf-inventory-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px; max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 6px; border-radius: var(--radius-sm);">
+              <!-- User inventory skins -->
+            </div>
+          </div>
+
+          <!-- Potential Payout Preview -->
+          <div class="cf-payout-box" style="margin-top: 18px; background: rgba(0,0,0,0.3); border-radius: var(--radius-md); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 10.5px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Возможный выигрыш:</div>
+              <div style="font-size: 20px; font-weight: 900; color: #ffd700;" id="cf-potential-payout">$19.50</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 10.5px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Чистый профит:</div>
+              <div style="font-size: 16px; font-weight: 800; color: #10b981;" id="cf-potential-profit">+$9.50</div>
+            </div>
+          </div>
+
+          <!-- FLIP ACTION BUTTON -->
+          <button class="btn-submit-action" id="btn-fire-coinflip" style="margin-top: 18px; padding: 16px; font-size: 16px; font-weight: 900; letter-spacing: 0.5px; background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff;">
+            🪙 ПОДБРОСИТЬ МОНЕТУ ($10.00)
+          </button>
+
+          <!-- PROVABLY FAIR BAR -->
+          <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-dim);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>🔒 Provably Fair SHA-256</span>
+              <span id="cf-pf-status" style="color: #10b981;">Хэш готов</span>
+            </div>
+            <div style="font-family: monospace; font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;" id="cf-pf-hash">
+              Запустите раунд для просмотра хэша
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT 3D FLIP ARENA -->
+        <div class="coinflip-stage-card">
+          <div class="cf-stage-header">
+            <div class="cf-player-pill" id="cf-player-pill">
+              <span class="cf-player-avatar" id="cf-player-avatar">🗡️</span>
+              <div>
+                <div class="cf-player-name" id="cf-player-name">Вы</div>
+                <div class="cf-player-side-badge side-t" id="cf-player-side-badge">Ставка: T (Золото)</div>
+              </div>
+            </div>
+
+            <div class="cf-vs-badge">VS</div>
+
+            <div class="cf-player-pill" id="cf-bot-pill">
+              <span class="cf-player-avatar">🤖</span>
+              <div>
+                <div class="cf-player-name">House Master</div>
+                <div class="cf-player-side-badge side-ct" id="cf-bot-side-badge">Ставка: CT (Серебро)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D COIN ROTATION STAGE -->
+          <div class="coin-stage-viewport">
+            <div class="coin-3d-wrapper" id="coin-3d-element">
+              <div class="coin-side coin-side-front">
+                <div class="coin-inner-ring">
+                  <div class="coin-logo">T</div>
+                  <div class="coin-label">TERRORIST</div>
+                </div>
+              </div>
+              <div class="coin-side coin-side-back">
+                <div class="coin-inner-ring">
+                  <div class="coin-logo">CT</div>
+                  <div class="coin-label">COUNTER-T</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status & Winner Announcement -->
+          <div class="cf-stage-footer">
+            <div class="cf-status-title" id="cf-status-title">Выберите сторону и сделайте ставку!</div>
+            <div class="cf-status-desc" id="cf-status-desc">Шанс победы ровно 50.00% • Чистая физика броска</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB: CRASH ARENA (MULTIPLIER ROCKET) -->
+    <section class="tab-content" id="tab-crash">
+      <div class="crash-arena-layout">
+        
+        <!-- LEFT CONTROL PANEL -->
+        <div class="crash-control-card">
+          <div class="panel-header-row">
+            <div class="panel-title">
+              <span>🚀</span> Краш-Ракета
+            </div>
+            <span style="font-size: 11px; color: var(--accent-color); font-weight: 700;" id="crash-user-balance">Баланс: $0.00</span>
+          </div>
+
+          <!-- BET INPUT -->
+          <div style="margin-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span class="form-label" style="margin-bottom: 0;">Сумма ставки ($):</span>
+            </div>
+            <div class="bet-chips-row" style="margin-bottom: 10px;">
+              <button class="bet-chip" data-crash-chip="1">+$1</button>
+              <button class="bet-chip" data-crash-chip="5">+$5</button>
+              <button class="bet-chip" data-crash-chip="25">+$25</button>
+              <button class="bet-chip" data-crash-chip="100">+$100</button>
+              <button class="bet-chip" data-crash-action="half">1/2</button>
+              <button class="bet-chip" data-crash-action="double">2x</button>
+              <button class="bet-chip" data-crash-action="max" style="color: var(--accent-color);">МАКС</button>
+            </div>
+            <input type="number" id="crash-bet-input" class="form-input" min="0.5" step="0.5" value="10.00" style="padding: 12px 14px; font-size: 16px; font-weight: 800;">
+          </div>
+
+          <!-- AUTO CASHOUT INPUT -->
+          <div style="margin-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span class="form-label" style="margin-bottom: 0;">Авто-кэшаут (множитель):</span>
+              <span style="font-size: 11px; color: var(--text-dim);">0 = выключен</span>
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+              <button class="game-pill-btn" data-crash-auto="1.5">1.50x</button>
+              <button class="game-pill-btn" data-crash-auto="2.0">2.00x</button>
+              <button class="game-pill-btn" data-crash-auto="5.0">5.00x</button>
+              <button class="game-pill-btn" data-crash-auto="10.0">10.0x</button>
+              <button class="game-pill-btn" data-crash-auto="0">Ручной</button>
+            </div>
+            <input type="number" id="crash-auto-input" class="form-input" min="1.05" step="0.1" placeholder="Например, 2.00x (или пусто)" style="padding: 10px 14px; font-size: 14px;">
+          </div>
+
+          <!-- ACTION BUTTON (START / CASHOUT) -->
+          <div style="margin-top: 20px;">
+            <button class="btn-crash-action btn-start" id="btn-crash-action">
+              <span>🚀 ЗАПУСТИТЬ РАКЕТУ</span>
+              <span id="btn-crash-action-price">($10.00)</span>
+            </button>
+          </div>
+
+          <!-- PROVABLY FAIR BAR -->
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-dim);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>🔒 Provably Fair SHA-256</span>
+              <span id="crash-pf-status" style="color: #10b981;">Хэш готов</span>
+            </div>
+            <div style="font-family: monospace; font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;" id="crash-pf-hash">
+              Запустите раунд для просмотра хэша
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT STAGE CANVAS CARD -->
+        <div class="crash-stage-card">
+          <!-- Recent crash multipliers strip -->
+          <div class="crash-recent-pills" id="crash-recent-pills">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- 60FPS Canvas Wrapper -->
+          <div class="crash-canvas-wrapper">
+            <canvas id="crash-canvas"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 4: LEADERBOARD (BLOCK 5) -->
+    <section class="tab-content" id="tab-leaderboard">
+      <div class="leaderboard-container-box">
+        
+        <!-- Top Metrics Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px;">
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <span>👥</span> Всего игроков
+            </div>
+            <div style="font-size: 22px; font-weight: 900; color: #fff; margin-top: 6px;" id="lb-metric-players">1</div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <span>⚡</span> Общий оборот ставок
+            </div>
+            <div style="font-size: 22px; font-weight: 900; color: var(--accent-color); margin-top: 6px;" id="lb-metric-volume">$0.00</div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <span>🔥</span> Рекордный выигрыш
+            </div>
+            <div style="font-size: 22px; font-weight: 900; color: #ffb703; margin-top: 6px;" id="lb-metric-best-win">0.00x</div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <span>🏦</span> Суммарный долг
+            </div>
+            <div style="font-size: 22px; font-weight: 900; color: #ef4444; margin-top: 6px;" id="lb-metric-debt">$0.00</div>
+          </div>
+        </div>
+
+        <!-- Controls Row: View Switcher and Live Info -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+          <div class="leaderboard-switch-bar">
+            <button class="leaderboard-tab-btn active" id="lb-view-profit" data-lb-view="profit">
+              🏆 Самые богатые (Профит)
+            </button>
+            <button class="leaderboard-tab-btn" id="lb-view-debtors" data-lb-view="debtors">
+              🏦 Главные должники (Кредиты)
+            </button>
+          </div>
+
+          <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+            <span>Реальные игроки • Обновление в реальном времени</span>
+          </div>
+        </div>
+
+        <!-- Leaderboard Table -->
+        <div class="table-responsive">
+          <table class="simup-table" id="leaderboard-table">
+            <thead id="leaderboard-thead">
+              <!-- Dynamically populated based on view -->
+            </thead>
+            <tbody id="leaderboard-tbody">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State Container -->
+        <div id="leaderboard-empty-state" style="display: none; padding: 48px 20px; text-align: center;">
+          <div style="font-size: 40px; margin-bottom: 10px;">📋</div>
+          <div style="font-size: 18px; font-weight: 700; color: #fff;">Пока нет записей</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Ни один игрок еще не соответствует выбранным критериям.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 4: BANK & LOANS (BLOCK 2) -->
+    <section class="tab-content" id="tab-bank">
+      <div class="bank-dashboard-grid">
+        
+        <!-- PANEL 1: CREDIT & LOAN SYSTEM -->
+        <div class="bank-panel-card">
+          <div class="panel-header-row">
+            <div class="panel-title">
+              <span>🏦</span> Банк SIMUP & Кредиты
+            </div>
+            <span class="loan-status-pill loan-status-clean" id="loan-status-badge">Без долгов</span>
+          </div>
+
+          <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 16px;">
+            Вам срочно нужны виртуальные средства для разгона апгрейда? Возьмите виртуальный кредит с фиксированной ставкой <strong>10%</strong>. Сумма долга отображается в лидерборде!
+          </p>
+
+          <div class="loan-metrics-box">
+            <div class="loan-metric-item">
+              <div class="metric-label">Лимит займа</div>
+              <div class="metric-val" id="loan-max-limit" style="color: var(--accent-color);">$1,000.00</div>
+            </div>
+            <div class="loan-metric-item">
+              <div class="metric-label">Текущий долг</div>
+              <div class="metric-val" id="loan-current-debt" style="color: #ef4444;">$0.00</div>
+            </div>
+            <div class="loan-metric-item">
+              <div class="metric-label">Комиссия</div>
+              <div class="metric-val">10%</div>
+            </div>
+          </div>
+
+          <!-- Take Loan Form -->
+          <div style="background: rgba(0,0,0,0.25); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; border: 1px solid var(--border-color);">
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+              Оформить новый заём:
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+              <button class="deposit-chip-btn" data-loan-chip="100">+$100</button>
+              <button class="deposit-chip-btn" data-loan-chip="500">+$500</button>
+              <button class="deposit-chip-btn" data-loan-chip="1000">+$1,000</button>
+              <button class="deposit-chip-btn" data-loan-chip="5000">+$5,000</button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" id="loan-input-amount" class="form-input" placeholder="Сумма займа ($)" min="50" step="50" style="padding: 10px 14px;">
+              <button class="btn-submit-action" id="btn-take-loan" style="margin-top: 0; padding: 10px 18px; width: auto; white-space: nowrap;">
+                Взять кредит
+              </button>
+            </div>
+          </div>
+
+          <!-- Repay Loan Form -->
+          <div style="background: rgba(0,0,0,0.25); border-radius: var(--radius-md); padding: 16px; border: 1px solid var(--border-color);">
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+              Погасить задолженность:
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" id="loan-repay-input" class="form-input" placeholder="Сумма платежа ($)" min="1" step="10" style="padding: 10px 14px;">
+              <button class="btn-submit-action" id="btn-repay-partial" style="margin-top: 0; padding: 10px 14px; width: auto; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); white-space: nowrap;">
+                Оплатить
+              </button>
+              <button class="btn-submit-action" id="btn-repay-full" style="margin-top: 0; padding: 10px 14px; width: auto; background: var(--accent-color); color: #000; white-space: nowrap;">
+                Погасить всё
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 2: FREE FAUCET & EARN FREE COINS -->
+        <div class="bank-panel-card">
+          <div class="panel-header-row">
+            <div class="panel-title">
+              <span>🎁</span> Ежедневный бонус (Daily Streak)
+            </div>
+            <span style="font-size: 11px; font-weight: 700; color: var(--accent-color); background: rgba(var(--accent-rgb), 0.15); padding: 3px 8px; border-radius: 4px;" id="streak-counter-badge">
+              Серия: 0 дн.
+            </span>
+          </div>
+
+          <p style="font-size: 13.5px; color: var(--text-muted);">
+            Заходите каждый день и забирайте бесплатные награды! На 7-й день гарантирован джекпот <strong>$500.00</strong> и секретный скин тайного качества!
+          </p>
+
+          <!-- 7 Day Cards Container -->
+          <div class="streak-cards-container" id="streak-cards-grid">
+            <!-- Injected via JS -->
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 14px;">
+            <div style="font-size: 13px; color: var(--text-muted);" id="streak-timer-text">
+              Награда доступна!
+            </div>
+            <button class="btn-submit-action" id="btn-claim-streak" style="margin-top: 0; width: auto; padding: 10px 22px;">
+              Забрать награду 🎁
+            </button>
+          </div>
+
+          <!-- Free Faucet Instant Button -->
+          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="font-size: 14px; font-weight: 700; color: #fff;">Бесплатный кран монет</div>
+              <div style="font-size: 12px; color: var(--text-muted);">Пополните виртуальный баланс на любую сумму от $10 до $100,000</div>
+            </div>
+            <button class="btn-deposit" id="btn-open-faucet-from-bank" style="padding: 10px 18px; font-size: 14px;">
+              💰 Открыть кран ($10 - $100k)
+            </button>
+          </div>
+
+          <!-- Lucky Wheel Instant Trigger -->
+          <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px;">
+                <span>🎡</span> Колесо Фортуны (Lucky Wheel)
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted);">Крутите колесо раз в сутки: выигрывайте до $500.00 или секретный скин!</div>
+            </div>
+            <button class="btn-submit-action" id="btn-open-lucky-wheel" style="margin-top: 0; width: auto; padding: 10px 20px; font-size: 13.5px; background: linear-gradient(135deg, #ec4899, #8b5cf6);">
+              🎡 Крутить Колесо
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ACHIEVEMENTS SECTION (FULL WIDTH) -->
+      <div class="bank-panel-card" style="margin-top: 24px;">
+        <div class="panel-header-row">
+          <div class="panel-title">
+            <span>🏆</span> Достижения и денежные награды
+          </div>
+          <span style="font-size: 12px; color: var(--text-muted);" id="ach-completed-count">
+            Выполнено: 0 / 6
+          </span>
+        </div>
+
+        <div class="achievements-grid" id="achievements-list-container">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: PROFILE (BLOCK 2 ENHANCED) -->
+    <section class="tab-content" id="tab-profile">
+      <div id="profile-content-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 36px 24px; text-align: center; margin-top: 24px;">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. AUTH MODAL (Login / Register) -->
+  <div class="modal-overlay" id="modal-auth">
+    <div class="modal-window">
+      <button class="modal-close-btn" id="auth-modal-close" title="Закрыть">&times;</button>
+      
+      <div class="modal-header">
+        <h2 class="modal-title" id="auth-modal-title">Добро пожаловать в SIMUP!</h2>
+        <p class="modal-subtitle" id="auth-modal-subtitle">Войдите или создайте профиль игрока со стартовым бонусом <strong>$500.00</strong></p>
+      </div>
+
+      <!-- Mode switcher (Вход / Регистрация) -->
+      <div class="auth-mode-switch">
+        <button class="auth-tab-btn active" id="auth-mode-register">Регистрация</button>
+        <button class="auth-tab-btn" id="auth-mode-login">Вход</button>
+      </div>
+
+      <!-- Avatar Picker (Shown during registration) -->
+      <div id="avatar-picker-section">
+        <div class="avatar-picker-title">Выберите боевую аватарку:</div>
+        <div class="avatar-grid" id="avatar-grid">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="auth-form" onsubmit="return false;">
+        <div class="form-group">
+          <label class="form-label" for="auth-username">Никнейм игрока</label>
+          <input type="text" id="auth-username" class="form-input" placeholder="Например: DragonSlayer" maxlength="18" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="auth-password">Пароль (для защиты профиля)</label>
+          <input type="password" id="auth-password" class="form-input" placeholder="Минимум 4 символа" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn-submit-action" id="auth-submit-btn">
+          Создать аккаунт (+ $500.00)
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. THEME PICKER MODAL -->
+  <div class="modal-overlay" id="modal-theme">
+    <div class="modal-window" style="max-width: 440px;">
+      <button class="modal-close-btn" id="theme-modal-close">&times;</button>
+      <div class="modal-header">
+        <h2 class="modal-title">Темы оформления</h2>
+        <p class="modal-subtitle">Выберите стилистику киберспортивного интерфейса</p>
+      </div>
+
+      <div class="theme-options-grid">
+        <div class="theme-card-option active" data-theme="emerald">
+          <div class="theme-swatch" style="background: #00ff88; color: #00ff88;"></div>
+          <div class="theme-info-name">Emerald Neon (CSGORoll)</div>
+        </div>
+        <div class="theme-card-option" data-theme="violet">
+          <div class="theme-swatch" style="background: #a855f7; color: #a855f7;"></div>
+          <div class="theme-info-name">Cyber Violet</div>
+        </div>
+        <div class="theme-card-option" data-theme="fire">
+          <div class="theme-swatch" style="background: #ff9900; color: #ff9900;"></div>
+          <div class="theme-info-name">Amber Fire</div>
+        </div>
+        <div class="theme-card-option" data-theme="ice">
+          <div class="theme-swatch" style="background: #00d2ff; color: #00d2ff;"></div>
+          <div class="theme-info-name">Ice Sapphire</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. FREE DEPOSIT MODAL ($10 - $100,000) (BLOCK 2) -->
+  <div class="modal-overlay" id="modal-deposit">
+    <div class="modal-window" style="max-width: 480px;">
+      <button class="modal-close-btn" id="deposit-modal-close">&times;</button>
+      
+      <div class="modal-header">
+        <h2 class="modal-title">Бесплатный депозит</h2>
+        <p class="modal-subtitle">Выберите сумму виртуального пополнения от $10 до $100,000</p>
+      </div>
+
+      <!-- Quick Preset Chips -->
+      <div class="deposit-chips-grid">
+        <button class="deposit-chip-btn" data-amount="10">+$10</button>
+        <button class="deposit-chip-btn" data-amount="50">+$50</button>
+        <button class="deposit-chip-btn active" data-amount="100">+$100</button>
+        <button class="deposit-chip-btn" data-amount="500">+$500</button>
+        <button class="deposit-chip-btn" data-amount="1000">+$1,000</button>
+        <button class="deposit-chip-btn" data-amount="5000">+$5,000</button>
+        <button class="deposit-chip-btn" data-amount="10000">+$10,000</button>
+        <button class="deposit-chip-btn" data-amount="50000">+$50,000</button>
+        <button class="deposit-chip-btn" data-amount="100000">+$100,000</button>
+      </div>
+
+      <!-- Slider & Number Input -->
+      <div class="deposit-slider-wrap">
+        <input type="range" id="deposit-slider" class="range-slider" min="10" max="100000" step="10" value="100">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="deposit-custom-input">Точная сумма пополнения ($)</label>
+        <input type="number" id="deposit-custom-input" class="form-input" min="10" max="100000" value="100">
+      </div>
+
+      <button type="button" class="btn-submit-action" id="btn-execute-deposit">
+        Зачислить на баланс 💰
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. SELL ALL INVENTORY CONFIRM MODAL (BLOCK 2) -->
+  <div class="modal-overlay" id="modal-sell-all">
+    <div class="modal-window" style="max-width: 440px; text-align: center;">
+      <button class="modal-close-btn" id="sell-all-modal-close">&times;</button>
+      
+      <div style="font-size: 48px; margin-bottom: 12px;">💸</div>
+      <h2 class="modal-title">Продать весь инвентарь?</h2>
+      <p class="modal-subtitle" id="sell-all-summary-text" style="margin-top: 8px; font-size: 15px;">
+        Все предметы будут мгновенно проданы в баланс сайта.
+      </p>
+
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button class="btn-submit-action" id="btn-cancel-sell-all" style="background: rgba(255,255,255,0.08); color: #fff; box-shadow: none;">
+          Отмена
+        </button>
+        <button class="btn-submit-action" id="btn-confirm-sell-all" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff;">
+          Подтвердить продажу
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. PROVABLY FAIR VERIFIER MODAL (BLOCK 3) -->
+  <div class="modal-overlay" id="modal-provably-fair">
+    <div class="modal-window" style="max-width: 540px;">
+      <button class="modal-close-btn" id="pf-modal-close">&times;</button>
+      
+      <div class="modal-header">
+        <h2 class="modal-title">Доказуемая честность (Provably Fair)</h2>
+        <p class="modal-subtitle">Криптографическая верификация каждого броска через SHA-256</p>
+      </div>
+
+      <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 16px; font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+        Каждый результат апгрейда рассчитывается до начала раунда при помощи комбинации семян: <strong style="color: #fff;">Server Seed + Client Seed + Nonce</strong>. Хэш серверного сида фиксируется заранее, что исключает подтасовку!
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Ваш Client Seed (можно изменить)</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="pf-client-seed-input" class="form-input" style="padding: 10px 14px;">
+          <button class="btn-submit-action" id="btn-save-client-seed" style="margin-top: 0; width: auto; padding: 10px 16px; white-space: nowrap;">
+            Сохранить
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Server Seed Hash текущего раунда (SHA-256)</label>
+        <input type="text" id="pf-server-hash-input" class="form-input" readonly style="font-family: monospace; font-size: 12px; color: var(--accent-color);">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Номер раунда (Nonce)</label>
+        <input type="text" id="pf-nonce-input" class="form-input" readonly style="font-family: monospace;">
+      </div>
+
+      <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 16px;">
+        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+          Данные последнего завершенного раунда:
+        </div>
+        <div id="pf-last-round-details" style="font-size: 12px; font-family: monospace; color: var(--text-dim); background: rgba(0,0,0,0.4); padding: 10px; border-radius: var(--radius-sm); word-break: break-all;">
+          Раунд еще не сыгран. Сделайте первый апгрейд!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. CASE OPENING MODAL (BLOCK 4) -->
+  <div class="modal-overlay" id="modal-case-open">
+    <div class="modal-window" style="max-width: 780px;">
+      <button class="modal-close-btn" id="case-open-modal-close">&times;</button>
+      
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div id="modal-case-icon" style="font-size: 32px;">📦</div>
+          <div>
+            <h2 class="modal-title" id="modal-case-name" style="text-align: left; font-size: 20px;">Название кейса</h2>
+            <div id="modal-case-desc" style="font-size: 12.5px; color: var(--text-muted);">Описание кейса</div>
+          </div>
+        </div>
+        <div style="font-size: 22px; font-weight: 900; color: var(--accent-color);" id="modal-case-price">$0.00</div>
+      </div>
+
+      <!-- Horizontal 60fps Carousel Roulette Viewport -->
+      <div class="case-roulette-viewport" id="case-roulette-box">
+        <div class="case-roulette-pointer"></div>
+        <div class="case-reel-track" id="case-reel-track">
+          <!-- Populated during spin via JS -->
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div style="text-align: center; margin: 18px 0;">
+        <button class="btn-upgrade-fire" id="btn-spin-case" style="margin: 0 auto; max-width: 320px;">
+          <span>📦 ОТКРЫТЬ КЕЙС</span>
+          <span id="btn-spin-case-price">($0.00)</span>
+        </button>
+      </div>
+
+      <!-- Case Content Preview -->
+      <div style="border-top: 1px solid var(--border-color); padding-top: 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+          <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">
+            Содержимое кейса и шансы выпадения:
+          </span>
+          <span style="font-size: 11px; color: var(--text-dim);" id="modal-case-items-count">0 скинов</span>
+        </div>
+        <div class="case-drops-preview-grid" id="modal-case-drops-preview">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. CASE DROP WIN MODAL (BLOCK 4) -->
+  <div class="modal-overlay" id="modal-case-win">
+    <div class="modal-window" style="max-width: 440px; text-align: center;">
+      <button class="modal-close-btn" id="case-win-modal-close">&times;</button>
+      
+      <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--accent-color); letter-spacing: 1px;">
+        ★ ВЫ ВЫИГРАЛИ ПРЕДМЕТ! ★
+      </div>
+
+      <div style="position: relative; margin: 20px auto 14px; width: 170px; height: 130px; display: flex; align-items: center; justify-content: center;">
+        <div id="case-win-glow" style="position: absolute; width: 150px; height: 150px; border-radius: 50%; opacity: 0.35; filter: blur(20px);"></div>
+        <img src="" alt="Выигрыш" id="case-win-img" style="max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.7)); z-index: 2;">
+      </div>
+
+      <div id="case-win-name" style="font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 4px;">Название скина</div>
+      <div id="case-win-wear" style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Качество</div>
+      <div id="case-win-price" style="font-size: 24px; font-weight: 900; color: var(--accent-color); margin-bottom: 24px;">$0.00</div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-inv-sell" id="btn-win-sell" style="padding: 11px; font-size: 13px;">
+            💵 Продать за $0.00
+          </button>
+          <button class="btn-inv-upgrade" id="btn-win-upgrade" style="padding: 11px; font-size: 13px;">
+            🎯 В Апгрейд
+          </button>
+        </div>
+        <button class="btn-submit-action" id="btn-win-open-again" style="margin-top: 2px; padding: 11px; font-size: 14px;">
+          🔄 Открыть еще раз
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. SKIN INSPECTION MODAL (SKINOMETRY) -->
+  <div class="modal-overlay" id="modal-skin-inspect">
+    <div class="modal-window" style="max-width: 460px; text-align: center;">
+      <button class="modal-close-btn" id="inspect-modal-close">&times;</button>
+      
+      <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--accent-color); letter-spacing: 1.5px;">
+        ★ ИНСПЕКТОР СКИНОМЕТРИИ ★
+      </div>
+
+      <div style="position: relative; margin: 18px auto 12px; width: 190px; height: 130px; display: flex; align-items: center; justify-content: center;">
+        <div id="inspect-glow-bg" style="position: absolute; width: 140px; height: 140px; border-radius: 50%; opacity: 0.35; filter: blur(22px);"></div>
+        <img src="" alt="" id="inspect-skin-img" style="max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.7)); z-index: 2;">
+      </div>
+
+      <div id="inspect-skin-name" style="font-size: 19px; font-weight: 900; color: #fff; margin-bottom: 4px;">Название скина</div>
+      <div id="inspect-skin-sub" style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">CS2 • Прямо с завода</div>
+
+      <!-- Specs Box -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-bottom: 20px; text-align: center;">
+        <div>
+          <div style="font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Рыночная цена</div>
+          <div style="font-size: 16px; font-weight: 900; color: var(--accent-color); margin-top: 3px;" id="inspect-skin-price">$0.00</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Float / Износ</div>
+          <div style="font-size: 13.5px; font-weight: 800; color: #fff; margin-top: 5px;" id="inspect-skin-float">0.0214</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Редкость</div>
+          <div style="font-size: 12.5px; font-weight: 800; color: #fff; margin-top: 6px;" id="inspect-skin-rarity">Covert</div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-submit-action" id="btn-inspect-set-target" style="margin-top: 0; padding: 12px; font-size: 14px;">
+          🎯 Поставить целью Апгрейда
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. LUCKY WHEEL OF FORTUNE MODAL -->
+  <div class="modal-overlay" id="modal-lucky-wheel">
+    <div class="modal-window" style="max-width: 440px; text-align: center;">
+      <button class="modal-close-btn" id="lucky-wheel-modal-close" title="Закрыть">&times;</button>
+      <div class="modal-header">
+        <h2 class="modal-title" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>🎡</span> Колесо Фортуны
+        </h2>
+        <p class="modal-subtitle">Крутите раз в 24 часа и выигрывайте деньги или редкие скины!</p>
+      </div>
+
+      <!-- Wheel Visual Container -->
+      <div style="position: relative; width: 320px; height: 320px; margin: 16px auto;">
+        <!-- Top Pointer Needle -->
+        <div style="position: absolute; top: -6px; left: 50%; transform: translateX(-50%); z-index: 10; width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 20px solid #ffd700; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8));"></div>
+        <canvas id="lucky-wheel-canvas" width="320" height="320" style="display: block; border-radius: 50%; box-shadow: 0 0 30px rgba(0,0,0,0.6);"></canvas>
+      </div>
+
+      <!-- Status & Spin Button -->
+      <div style="margin-top: 14px;">
+        <div id="lucky-wheel-timer-text" style="font-size: 13.5px; font-weight: 700; color: #10b981; margin-bottom: 12px;">
+          Бесплатный спин доступен!
+        </div>
+        <button class="btn-submit-action" id="btn-spin-lucky-wheel" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 15px; font-weight: 900; padding: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+          🎡 Крутить Колесо (Бесплатно)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. CUSTOM CASE BUILDER MODAL -->
+  <div class="modal-overlay" id="modal-case-builder">
+    <div class="modal-window" style="max-width: 780px;">
+      <button class="modal-close-btn" id="case-builder-modal-close" title="Закрыть">&times;</button>
+      <div class="modal-header">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>🛠️</span> Конструктор собственных кейсов
+        </h2>
+        <p class="modal-subtitle">Соберите кейс мечты из 3–10 скинов. Шансы и стоимость рассчитываются автоматически!</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div>
+          <label class="form-label" for="builder-case-name">Название кейса</label>
+          <input type="text" id="builder-case-name" class="form-input" placeholder="Например: Ножевой Рай CS2" maxlength="28" value="Мой Кастомный Кейс">
+        </div>
+        <div>
+          <label class="form-label">Игра и иконка</label>
+          <div style="display: flex; gap: 8px;">
+            <select id="builder-case-game" class="filter-select" style="flex: 1;">
+              <option value="cs2">🔫 CS2</option>
+              <option value="dota2">🛡️ Dota 2</option>
+              <option value="rust">☢️ Rust</option>
+            </select>
+            <input type="text" id="builder-case-icon" class="form-input" style="width: 60px; text-align: center; font-size: 18px;" value="⭐" maxlength="2">
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected items in builder (3-10 slots) -->
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 12px; font-weight: 700; color: #fff; text-transform: uppercase;">Скины в кейсе (<span id="builder-items-count">0</span> / 10, мин. 3):</span>
+          <span style="font-size: 12px; color: var(--accent-color); font-weight: 800;" id="builder-calculated-price">Цена кейса: $0.00</span>
+        </div>
+        <div id="builder-slots-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 8px; min-height: 100px; background: rgba(0,0,0,0.25); border: 1px dashed var(--border-color); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 16px;">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <!-- Skin Picker from Catalog -->
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Выберите скины из каталога:</span>
+          <input type="text" id="builder-catalog-search" class="form-input" placeholder="Поиск по скинам..." style="max-width: 220px; padding: 6px 10px; font-size: 12px;">
+        </div>
+        <div id="builder-catalog-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px; background: rgba(0,0,0,0.3); border-radius: var(--radius-sm);">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <div style="margin-top: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Математика 1-в-1: честный расчет вероятностей по обратному весу стоимости предмета.
+        </div>
+        <button class="btn-submit-action" id="btn-save-custom-case" style="margin-top: 0; width: auto; padding: 12px 28px;" disabled>
+          💾 Сохранить и добавить в Кейсы
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. DAILY QUESTS & BATTLE PASS MODAL -->
+  <div class="modal-overlay" id="modal-quests">
+    <div class="modal-window" style="max-width: 680px;">
+      <button class="modal-close-btn" id="quests-modal-close" title="Закрыть">&times;</button>
+      
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="font-size: 32px; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));">🎁</div>
+          <div>
+            <h2 class="modal-title" style="text-align: left; font-size: 20px; margin-bottom: 2px;">Ежедневные задания & Battle Pass</h2>
+            <div style="font-size: 12.5px; color: var(--text-muted);">Выполняйте задания каждые 24 часа и забирайте доллары и опыт!</div>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Обновление через:</div>
+          <div id="quests-reset-timer" style="font-size: 13.5px; font-weight: 800; color: var(--accent-color); font-family: monospace;">24:00:00</div>
+        </div>
+      </div>
+
+      <!-- Quests List Container -->
+      <div class="quests-list-container" id="quests-list-container">
+        <!-- Injected via JS -->
+      </div>
+
+      <!-- Champion Bonus Chest Section -->
+      <div class="champion-bonus-box" id="champion-bonus-box">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="font-size: 42px; animation: pulseBadge 2s infinite ease-in-out;">🏆</div>
+          <div>
+            <div style="font-size: 15px; font-weight: 900; color: #ffd700; letter-spacing: 0.5px;">СУПЕР-БОНУС: СУНДУК ЧЕМПИОНА</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+              Выполните все 5 заданий сегодня и получите <strong style="color: #fff;">+$500.00</strong>, <strong style="color: var(--accent-color);">+500 XP</strong> и <strong style="color: #ffd700;">секретный скин</strong>!
+            </div>
+            <div style="font-size: 11.5px; font-weight: 700; color: var(--text-dim); margin-top: 4px;" id="champion-bonus-status">
+              Прогресс: 0 / 5 заданий
+            </div>
+          </div>
+        </div>
+        <button class="btn-claim-champion" id="btn-claim-champion-bonus" disabled>
+          🎁 Открыть сундук
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== SCRIPTS ==================== -->
+  <script src="js/sound.js"></script>
+  <script src="js/skins-data.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/economy.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/upgrader.js"></script>
+  <script src="js/cases-data.js"></script>
+  <script src="js/cases.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/contracts.js"></script>
+  <script src="js/lucky-wheel.js"></script>
+  <script src="js/case-builder.js"></script>
+  <script src="js/mines.js"></script>
+  <script src="js/quests.js"></script>
+  <script src="js/coinflip.js"></script>
+  <script src="js/crash.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

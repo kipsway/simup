@@ -31,7 +31,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SIMUP">
-  <link rel="stylesheet" href="css/style.css?v=3.7">
+  <link rel="stylesheet" href="css/style.css?v=3.8">
 
   <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
   <script type="application/ld+json">
@@ -63,39 +63,60 @@
         <span class="badge-sim">Simulator</span>
       </div>
 
-      <!-- MAIN NAVIGATION (Desktop) -->
-      <nav class="nav-tabs desktop-nav-tabs" aria-label="Навигация сайта">
-        <button class="nav-tab-btn active" data-tab="upgrader">
-          <span>🎯</span> Апгрейд
-        </button>
-        <button class="nav-tab-btn" data-tab="cases">
-          <span>📦</span> Кейсы
-        </button>
-        <button class="nav-tab-btn" data-tab="contracts">
-          <span>📜</span> Контракты
-        </button>
-        <button class="nav-tab-btn" data-tab="mines">
-          <span>💣</span> Мины
-        </button>
-        <button class="nav-tab-btn" data-tab="coinflip">
-          <span>🪙</span> Коинфлип
-        </button>
-        <button class="nav-tab-btn" data-tab="crash">
-          <span>🚀</span> Краш
-        </button>
-        <button class="nav-tab-btn" data-tab="leaderboard">
-          <span>🏆</span> Топ
-        </button>
-        <button class="nav-tab-btn" data-tab="bank">
-          <span>🏦</span> Банк
-        </button>
-        <button class="nav-tab-btn" data-tab="profile">
-          <span>👤</span> Профиль
-        </button>
-      </nav>
+      <!-- MAIN NAVIGATION (Desktop with Scroll Chevrons) -->
+      <div class="desktop-nav-wrapper">
+        <button class="nav-scroll-arrow nav-arrow-left" id="nav-arrow-left" aria-label="Прокрутить вкладки влево" title="Влево">‹</button>
+        <nav class="nav-tabs desktop-nav-tabs" id="desktop-nav-scroller" aria-label="Навигация сайта">
+          <button class="nav-tab-btn active" data-tab="upgrader">
+            <span>🎯</span> Апгрейд
+          </button>
+          <button class="nav-tab-btn" data-tab="catalog">
+            <span>🛒</span> Каталог
+          </button>
+          <button class="nav-tab-btn" data-tab="cases">
+            <span>📦</span> Кейсы
+          </button>
+          <button class="nav-tab-btn" data-tab="contracts">
+            <span>📜</span> Контракты
+          </button>
+          <button class="nav-tab-btn" data-tab="mines">
+            <span>💣</span> Мины
+          </button>
+          <button class="nav-tab-btn" data-tab="coinflip">
+            <span>🪙</span> Коинфлип
+          </button>
+          <button class="nav-tab-btn" data-tab="crash">
+            <span>🚀</span> Краш
+          </button>
+          <button class="nav-tab-btn" data-tab="leaderboard">
+            <span>🏆</span> Топ
+          </button>
+          <button class="nav-tab-btn" data-tab="bank">
+            <span>🏦</span> Банк
+          </button>
+          <button class="nav-tab-btn" data-tab="profile">
+            <span>👤</span> Профиль
+          </button>
+        </nav>
+        <button class="nav-scroll-arrow nav-arrow-right" id="nav-arrow-right" aria-label="Прокрутить вкладки вправо" title="Вправо">›</button>
+      </div>
 
       <!-- USER & SYSTEM CONTROLS -->
       <div class="header-actions">
+        <!-- Daily Quests Button -->
+        <button class="btn-header-action" id="btn-header-quests" title="Ежедневные квесты и батлпасс" aria-label="Квесты">
+          <span class="action-icon">🎯</span>
+          <span class="action-label">Квесты</span>
+          <span class="action-badge" id="quests-badge-count" style="display:none;">0</span>
+        </button>
+
+        <!-- Shopping Cart Button -->
+        <button class="btn-header-action" id="btn-header-cart" title="Корзина покупок скинов" aria-label="Корзина">
+          <span class="action-icon">🛒</span>
+          <span class="action-label">Корзина</span>
+          <span class="action-badge" id="cart-badge-count" style="display:none;">0</span>
+        </button>
+
         <!-- Cross-Device Sync Button -->
         <button class="btn-sync-pill" id="btn-open-sync-modal" title="Синхронизация аккаунта (ПК ↔ Смартфон)" aria-label="Синхронизация">
           <span class="sync-icon">📱</span>
@@ -133,6 +154,7 @@
     <div class="mobile-subnav-bar">
       <div class="mobile-subnav-scroller">
         <button class="mobile-subnav-btn active" data-tab="upgrader">🎯 Апгрейд</button>
+        <button class="mobile-subnav-btn" data-tab="catalog">🛒 Каталог</button>
         <button class="mobile-subnav-btn" data-tab="cases">📦 Кейсы</button>
         <button class="mobile-subnav-btn" data-tab="contracts">📜 Контракты</button>
         <button class="mobile-subnav-btn" data-tab="mines">💣 Мины</button>
@@ -141,6 +163,7 @@
         <button class="mobile-subnav-btn" data-tab="leaderboard">🏆 Рейтинг</button>
         <button class="mobile-subnav-btn" data-tab="bank">🏦 Банк</button>
         <button class="mobile-subnav-btn" data-tab="profile">👤 Профиль</button>
+        <button class="mobile-subnav-btn btn-open-quests-trigger" id="btn-subnav-quests">🎯 Квесты</button>
       </div>
     </div>
   </header>
@@ -299,13 +322,16 @@
         </div>
 
       </div>
+    </section>
 
+    <!-- TAB: CATALOG OF SKINS & LIVE MARKET (STANDALONE SECTION) -->
+    <section class="tab-content" id="tab-catalog">
       <!-- CATALOG OF SKINS (BLOCK 1 CORE) -->
-      <div class="catalog-section">
+      <div class="catalog-section" style="margin-top: 10px;">
         <div class="catalog-header-bar">
           <div class="catalog-title-row">
             <div class="catalog-title">
-              Каталог скинов
+              <span>🛒</span> Каталог скинов & Биржа
               <span class="catalog-count-badge" id="catalog-count-badge">0 скинов</span>
             </div>
 
@@ -358,6 +384,28 @@
         <!-- Dynamic Grid of Skins -->
         <div class="skins-grid" id="skins-grid">
           <!-- Injected via CatalogController -->
+        </div>
+
+        <!-- FLOATING BOTTOM DOCK FOR SHOPPING CART -->
+        <div class="catalog-cart-dock" id="catalog-cart-dock">
+          <div class="cart-dock-left">
+            <span class="cart-dock-icon">🛒</span>
+            <div class="cart-dock-info-col">
+              <div class="cart-dock-headline">
+                <span class="cart-dock-count" id="cart-dock-count">0 предметов</span>
+                <span class="cart-dock-dot">•</span>
+                <span class="cart-dock-sum" id="cart-dock-total">$0.00</span>
+              </div>
+              <div class="cart-dock-sub">Цены на бирже колеблются в реальном времени (±20%)</div>
+            </div>
+          </div>
+          <div class="cart-dock-right">
+            <button class="btn-dock-clear" id="btn-dock-cart-clear" title="Очистить корзину">Очистить</button>
+            <button class="btn-dock-checkout" id="btn-dock-cart-open">
+              <span>Оформить покупку</span>
+              <span class="dock-arrow">→</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -1490,11 +1538,53 @@
     </div>
   </div>
 
+  <!-- 12. SHOPPING CART MODAL (BATCH BUY WITH DYNAMIC MARKET PRICES) -->
+  <div class="modal-overlay" id="modal-cart">
+    <div class="modal-window cart-modal-window" style="max-width: 650px; width: 95%; max-height: 85vh; display: flex; flex-direction: column;">
+      <button class="modal-close-btn" id="cart-modal-close" title="Закрыть">&times;</button>
+      <div class="modal-header" style="text-align: left; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>🛒</span> Корзина покупок скинов
+        </h2>
+        <p class="modal-subtitle">Цены на скины колеблются в реальном времени (рыночная динамика ±20%). Оформление спишет средства с баланса и добавит скины в инвентарь.</p>
+      </div>
+      
+      <!-- Cart Items Body -->
+      <div class="cart-modal-body" id="cart-modal-items" style="flex: 1; overflow-y: auto; padding: 12px 2px; max-height: 50vh;">
+        <!-- Injected via CatalogCart.renderModal() -->
+      </div>
+
+      <!-- Cart Summary Footer -->
+      <div class="cart-modal-footer" style="padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;">
+        <div class="cart-summary-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 14px;">
+          <span style="color: var(--text-muted);">Количество скинов:</span>
+          <strong id="cart-modal-count" style="color: #fff; font-size: 15px;">0 шт.</strong>
+        </div>
+        <div class="cart-summary-line cart-total-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 17px; font-weight: 900;">
+          <span style="color: #fff;">Итого к оплате:</span>
+          <strong id="cart-modal-total" style="color: var(--accent-color); font-size: 20px;">$0.00</strong>
+        </div>
+        <div class="cart-footer-actions" style="display: flex; gap: 10px; margin-top: 4px;">
+          <button class="btn-cart-clear-modal" id="btn-cart-clear-modal" style="flex: 1; padding: 12px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; border-radius: 8px; font-weight: 700; cursor: pointer;">
+            Очистить корзину
+          </button>
+          <button class="btn-cart-checkout-modal" id="btn-cart-checkout-modal" style="flex: 2; padding: 12px; background: var(--accent-gradient, linear-gradient(135deg, #10b981, #059669)); border: none; color: #fff; border-radius: 8px; font-weight: 900; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);">
+            ⚡ Оформить покупку
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MOBILE BOTTOM NAVIGATION (50/50 Mobile UX) ==================== -->
   <nav class="mobile-bottom-nav" aria-label="Мобильная навигация">
     <button class="mobile-bottom-tab active" data-tab="upgrader">
       <span class="mobile-bottom-icon">🎯</span>
       <span class="mobile-bottom-label">Апгрейд</span>
+    </button>
+    <button class="mobile-bottom-tab" data-tab="catalog">
+      <span class="mobile-bottom-icon">🛒</span>
+      <span class="mobile-bottom-label">Каталог</span>
     </button>
     <button class="mobile-bottom-tab" data-tab="cases">
       <span class="mobile-bottom-icon">📦</span>
@@ -1531,28 +1621,29 @@
   </nav>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="js/sound.js?v=3.7"></script>
-  <script src="js/skins-data.js?v=3.7"></script>
-  <script src="js/notifications.js?v=3.7"></script>
-  <script src="js/auth.js?v=3.7"></script>
-  <script src="js/economy.js?v=3.7"></script>
-  <script src="js/catalog.js?v=3.7"></script>
-  <script src="js/upgrader.js?v=3.7"></script>
-  <script src="js/cases-data.js?v=3.7"></script>
-  <script src="js/cases.js?v=3.7"></script>
-  <script src="js/leaderboard.js?v=3.7"></script>
-  <script src="js/contracts.js?v=3.7"></script>
-  <script src="js/lucky-wheel.js?v=3.7"></script>
-  <script src="js/case-builder.js?v=3.7"></script>
-  <script src="js/mines.js?v=3.7"></script>
-  <script src="js/quests.js?v=3.7"></script>
-  <script src="js/coinflip.js?v=3.7"></script>
-  <script src="js/crash.js?v=3.7"></script>
-  <script src="js/app.js?v=3.7"></script>
+  <script src="js/sound.js?v=3.8"></script>
+  <script src="js/skins-data.js?v=3.8"></script>
+  <script src="js/notifications.js?v=3.8"></script>
+  <script src="js/auth.js?v=3.8"></script>
+  <script src="js/economy.js?v=3.8"></script>
+  <script src="js/market-economy.js?v=3.8"></script>
+  <script src="js/catalog.js?v=3.8"></script>
+  <script src="js/upgrader.js?v=3.8"></script>
+  <script src="js/cases-data.js?v=3.8"></script>
+  <script src="js/cases.js?v=3.8"></script>
+  <script src="js/leaderboard.js?v=3.8"></script>
+  <script src="js/contracts.js?v=3.8"></script>
+  <script src="js/lucky-wheel.js?v=3.8"></script>
+  <script src="js/case-builder.js?v=3.8"></script>
+  <script src="js/mines.js?v=3.8"></script>
+  <script src="js/quests.js?v=3.8"></script>
+  <script src="js/coinflip.js?v=3.8"></script>
+  <script src="js/crash.js?v=3.8"></script>
+  <script src="js/app.js?v=3.8"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=3.7').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=3.8').then(reg => {
           reg.update();
         }).catch(() => {});
       });

@@ -103,9 +103,13 @@ class CatalogController {
 
       const gameBadge = skin.game.toUpperCase();
       const wearBadge = skin.wear !== 'STANDARD' ? `<span class="wear-pill">${skin.wear}</span>` : '';
+      const inCart = window.catalogCart ? window.catalogCart.hasSkin(skin.id) : false;
+      const trendPct = skin.priceChangePct || 0;
+      const trendClass = trendPct >= 0 ? 'trend-up' : 'trend-down';
+      const trendSign = trendPct >= 0 ? '▲ +' : '▼ ';
 
       html += `
-        <div class="skin-card skin-rarity-${skin.rarity}" data-skin-id="${skin.id}" style="--rarity-clr: ${skin.rarityColor};">
+        <div class="skin-card skin-rarity-${skin.rarity}" data-skin-id="${skin.id}" style="--rarity-clr: ${skin.rarityColor}; cursor: pointer;">
           <div class="card-glow-bg"></div>
           <div class="skin-card-header">
             <span class="game-badge game-${skin.game}">${gameBadge}</span>
@@ -118,15 +122,13 @@ class CatalogController {
           <div class="skin-info">
             <div class="skin-name" title="${skin.name}">${skin.name}</div>
             <div class="skin-price-row">
-              <span class="skin-price">$${formattedPrice}</span>
-              <div style="display: flex; gap: 4px;">
-                <button type="button" class="btn-buy-catalog-skin" data-buy-id="${skin.id}" title="Купить скин в инвентарь за баланс" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; padding: 4px 8px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.2s ease;">
-                  Купить
-                </button>
-                <button type="button" class="btn-select-target" data-target-id="${skin.id}" title="Выбрать целью апгрейда">
-                  Выбрать
-                </button>
+              <div class="skin-price-box">
+                <span class="skin-price">$${formattedPrice}</span>
+                <span class="price-trend ${trendClass}">${trendSign}${Math.abs(trendPct).toFixed(1)}%</span>
               </div>
+              <button type="button" class="btn-catalog-cart ${inCart ? 'in-cart' : ''}" data-cart-toggle-id="${skin.id}" title="${inCart ? 'Убрать из корзины' : 'Добавить в корзину'}">
+                ${inCart ? '✓ В корзине' : '🛒 В корзину'}
+              </button>
             </div>
           </div>
         </div>
@@ -151,71 +153,37 @@ class CatalogController {
           return;
         }
 
-        // 2. Buy button (Fast purchase with balance)
-        const buyBtn = e.target.closest('[data-buy-id]');
-        if (buyBtn) {
+        // 2. Shopping Cart Toggle (Add or remove from batch cart)
+        const cartBtn = e.target.closest('[data-cart-toggle-id]');
+        if (cartBtn) {
           e.stopPropagation();
-          const skinId = buyBtn.dataset.buyId;
+          const skinId = cartBtn.dataset.cartToggleId;
           const skin = this.skins.find(s => s.id === skinId);
-          if (!skin) return;
+          if (!skin || !window.catalogCart) return;
 
-          const user = window.authManager?.currentUser;
-          if (!user) {
-            if (typeof window.showAuthModal === 'function') {
-              window.showAuthModal('login');
-            }
-            return;
+          if (window.catalogCart.hasSkin(skin.id)) {
+            const existing = window.catalogCart.items.find(i => i.id === skin.id);
+            if (existing) window.catalogCart.removeItem(existing.cartId);
+          } else {
+            window.catalogCart.addItem(skin);
           }
-
-          if (user.balance < skin.price) {
-            window.notify?.error?.(
-              'Недостаточно средств',
-              `Для покупки ${skin.name} требуется $${skin.price.toFixed(2)}, ваш баланс: $${user.balance.toFixed(2)}.`
-            );
-            return;
-          }
-
-          // Deduct balance
-          user.balance = Number((user.balance - skin.price).toFixed(2));
-
-          // Add skin to inventory
-          const newInstance = {
-            instanceId: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-            skinId: skin.id,
-            name: skin.name,
-            wear: skin.wear || 'STANDARD',
-            wearName: skin.wearName || 'Базовое качество',
-            game: skin.game,
-            rarity: skin.rarity,
-            rarityColor: skin.rarityColor,
-            price: skin.price,
-            image: skin.image,
-            fallbackSvg: skin.fallbackSvg,
-            acquiredAt: Date.now()
-          };
-          user.inventory.push(newInstance);
-
-          window.authManager.saveCurrentUser();
-          if (window.soundManager?.playCoin) {
-            window.soundManager.playCoin();
-          }
-          window.notify?.success?.(
-            'Скин куплен!',
-            `${skin.name} ($${skin.price.toFixed(2)}) успешно добавлен в ваш инвентарь!`
-          );
-          if (typeof window.updateUpgraderUI === 'function') {
-            window.updateUpgraderUI();
-          }
+          this.render();
           return;
         }
 
-        // 3. Select card target
+        // 3. Card click (Select as upgrade target directly)
         const card = e.target.closest('.skin-card');
         if (card) {
           const skinId = card.dataset.skinId;
           const skin = this.skins.find(s => s.id === skinId);
-          if (skin && this.onSelectTargetCallback) {
-            this.onSelectTargetCallback(skin);
+          if (skin) {
+            if (this.onSelectTargetCallback) {
+              this.onSelectTargetCallback(skin);
+            } else if (typeof window.selectTargetSkin === 'function') {
+              window.selectTargetSkin(skin);
+            }
+            window.SoundManager?.playClick();
+            window.notify?.info('Цель выбрана 🎯', `Скин "${skin.name}" выбран для апгрейда!`);
           }
         }
       });

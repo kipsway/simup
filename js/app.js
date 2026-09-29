@@ -202,6 +202,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Desktop Nav horizontal scroll support (chevrons + mouse wheel)
+  const desktopNavScroller = document.getElementById('desktop-nav-scroller');
+  const navArrowLeft = document.getElementById('nav-arrow-left');
+  const navArrowRight = document.getElementById('nav-arrow-right');
+
+  if (desktopNavScroller) {
+    desktopNavScroller.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        desktopNavScroller.scrollLeft += e.deltaY;
+      }
+    }, { passive: false });
+
+    navArrowLeft?.addEventListener('click', () => {
+      desktopNavScroller.scrollBy({ left: -180, behavior: 'smooth' });
+    });
+
+    navArrowRight?.addEventListener('click', () => {
+      desktopNavScroller.scrollBy({ left: 180, behavior: 'smooth' });
+    });
+  }
+
   brandLogoBtn?.addEventListener('click', () => {
     switchTab('upgrader');
   });
@@ -216,6 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
       renderProfilePage();
     } else if (tabId === 'leaderboard') {
       if (typeof renderLeaderboard === 'function') renderLeaderboard();
+    } else if (tabId === 'catalog') {
+      if (window.CatalogController?.renderGrid) window.CatalogController.renderGrid();
+      if (window.CatalogCart?.updateUI) window.CatalogCart.updateUI();
     }
   }
 
@@ -3061,14 +3086,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnClaimChampionBonus = document.getElementById('btn-claim-champion-bonus');
 
   function updateQuestsBadge() {
-    if (!questsBadge || !window.questsManager) return;
+    if (!window.questsManager) return;
     const count = window.questsManager.getUnclaimedCount();
-    if (count > 0) {
-      questsBadge.style.display = 'block';
-      questsBadge.textContent = count;
-    } else {
-      questsBadge.style.display = 'none';
-    }
+    const badges = document.querySelectorAll('#quests-badge, #quests-badge-count');
+    badges.forEach(b => {
+      if (count > 0) {
+        b.style.display = 'block';
+        b.textContent = count;
+      } else {
+        b.style.display = 'none';
+      }
+    });
   }
   window.updateQuestsBadge = updateQuestsBadge;
 
@@ -3169,13 +3197,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  btnOpenQuests?.addEventListener('click', () => {
-    if (!window.authManager.currentUser) {
-      window.showAuthModal('login');
-      return;
-    }
-    renderQuestsModal();
-    modalQuests?.classList.add('active');
+  // Quests modal triggers (Header, Desktop nav, Mobile subnav, etc.)
+  document.querySelectorAll('#btn-open-quests, #btn-header-quests, #btn-subnav-quests, .btn-open-quests-trigger').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!window.authManager.currentUser) {
+        window.showAuthModal('login');
+        return;
+      }
+      renderQuestsModal();
+      modalQuests?.classList.add('active');
+    });
+  });
+
+  // Header Cart trigger
+  const btnHeaderCart = document.getElementById('btn-header-cart');
+  btnHeaderCart?.addEventListener('click', () => {
+    window.CatalogCart?.openModal();
   });
 
   questsModalClose?.addEventListener('click', () => {
@@ -3808,6 +3845,9 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       if (tabId === 'bank') {
         renderBankPage();
+      } else if (tabId === 'catalog') {
+        window.CatalogController?.renderGrid();
+        window.CatalogCart?.updateUI();
       } else if (tabId === 'upgrader') {
         updateUpgraderUI();
       } else if (tabId === 'cases') {

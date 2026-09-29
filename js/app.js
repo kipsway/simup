@@ -813,7 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   ${item.wear && item.wear !== 'STANDARD' ? `<span class="wear-pill">${item.wear}</span>` : ''}
                 </div>
                 <div class="skin-img-wrap">
-                  <img src="${item.image}" alt="${item.name}" class="skin-img" onerror="this.src='https://placehold.co/150x100/111827/ffffff?text=${encodeURIComponent(item.name)}'">
+                  <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="skin-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
                 </div>
                 <div class="skin-info">
                   <div class="skin-name" title="${item.name}">${item.name}</div>
@@ -1866,7 +1866,7 @@ document.addEventListener('DOMContentLoaded', () => {
     caseReelTrack.innerHTML = items.slice(0, 8).map(item => `
       <div class="reel-item-card skin-rarity-${item.rarity}" style="--rarity-clr: ${item.rarityColor};">
         <span class="reel-item-wear">${item.wear && item.wear !== 'STANDARD' ? item.wear : ''}</span>
-        <img src="${item.image}" alt="${item.name}" class="reel-item-img" onerror="this.src='https://placehold.co/100x70/111827/ffffff?text=${encodeURIComponent(item.name)}'">
+        <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="reel-item-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
         <div class="reel-item-name">${item.name}</div>
         <div class="reel-item-price">$${item.price.toFixed(2)}</div>
       </div>
@@ -1876,7 +1876,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modalCaseDropsPreview.innerHTML = items.map(item => `
       <div class="case-drop-preview-card skin-rarity-${item.rarity}" style="--rarity-clr: ${item.rarityColor};">
         <span class="case-drop-chance-pill">${item.percent}%</span>
-        <img src="${item.image}" alt="${item.name}" class="drop-preview-img" onerror="this.src='https://placehold.co/80x50/111827/ffffff?text=${encodeURIComponent(item.name)}'">
+        <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="drop-preview-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
         <div class="drop-preview-name">${item.name}</div>
         <div class="drop-preview-price">$${item.price.toFixed(2)}</div>
       </div>
@@ -2177,7 +2177,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     card.innerHTML = `
       <div class="live-drop-user-avatar" title="${username}">${avatar || '🗡️'}</div>
-      <img src="${item.image}" alt="" class="live-drop-img" onerror="this.src='https://placehold.co/44x32/111827/ffffff?text=Skin'">
+      <img src="${item.image || item.fallbackSvg}" alt="" class="live-drop-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${(item.name || 'Skin').replace(/'/g, '')}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
       <div class="live-drop-info">
         <div class="live-drop-name">${item.name}</div>
         <div class="live-drop-price">$${item.price.toFixed(2)}</div>
@@ -2441,7 +2441,7 @@ document.addEventListener('DOMContentLoaded', () => {
         slotEl.style.setProperty('--slot-clr', item.rarityColor || '#888');
         slotEl.innerHTML = `
           <button class="contract-slot-remove" data-remove-id="${item.instanceId}" title="Убрать из контракта">&times;</button>
-          <img src="${item.image}" alt="${item.name}" class="contract-slot-img" onerror="this.src='https://placehold.co/100x70/111827/ffffff?text=Skin'">
+          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="contract-slot-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
           <div class="contract-slot-name" title="${item.name}">${item.name}</div>
           <div class="contract-slot-price">$${item.price.toFixed(2)}</div>
         `;
@@ -2491,7 +2491,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ${item.wear && item.wear !== 'STANDARD' ? `<span class="wear-pill">${item.wear}</span>` : ''}
         </div>
         <div class="skin-img-wrap" style="height: 60px;">
-          <img src="${item.image}" alt="${item.name}" class="skin-img" style="max-height: 55px;" onerror="this.src='https://placehold.co/100x60/111827/ffffff?text=Skin'">
+          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="skin-img" style="max-height: 55px;" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
         </div>
         <div class="skin-info" style="margin-top: 4px;">
           <div class="skin-name" style="font-size: 11px;" title="${item.name}">${item.name}</div>

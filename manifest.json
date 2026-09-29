@@ -1,0 +1,25 @@
+{
+  "name": "SIMUP 2.0 - Simulator Upgrade",
+  "short_name": "SIMUP",
+  "description": "Киберспортивный симулятор апгрейда скинов CS2, Dota 2 и Rust с математикой 1:1, кейсами и кредитным банком.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0e17",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230a0e17'/><circle cx='50' cy='50' r='38' stroke='%2310b981' stroke-width='6' fill='none'/><polygon points='50,22 62,56 50,48 38,56' fill='%2310b981'/><circle cx='50' cy='50' r='8' fill='%23ffd700'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230a0e17'/><circle cx='50' cy='50' r='38' stroke='%2310b981' stroke-width='6' fill='none'/><polygon points='50,22 62,56 50,48 38,56' fill='%2310b981'/><circle cx='50' cy='50' r='8' fill='%23ffd700'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"]
+}

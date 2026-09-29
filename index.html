@@ -31,7 +31,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SIMUP">
-  <link rel="stylesheet" href="css/style.css?v=3.4">
+  <link rel="stylesheet" href="css/style.css?v=3.6">
 
   <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
   <script type="application/ld+json">
@@ -98,7 +98,8 @@
       <div class="header-actions">
         <!-- Cross-Device Sync Button -->
         <button class="btn-sync-pill" id="btn-open-sync-modal" title="Синхронизация аккаунта (ПК ↔ Смартфон)" aria-label="Синхронизация">
-          <span>📱 Синхронизация</span>
+          <span class="sync-icon">📱</span>
+          <span class="sync-label">Синхронизация</span>
         </button>
 
         <!-- Simple Audio Toggle -->
@@ -1530,28 +1531,28 @@
   </nav>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="js/sound.js?v=3.4"></script>
-  <script src="js/skins-data.js?v=3.4"></script>
-  <script src="js/notifications.js?v=3.4"></script>
-  <script src="js/auth.js?v=3.4"></script>
-  <script src="js/economy.js?v=3.4"></script>
-  <script src="js/catalog.js?v=3.4"></script>
-  <script src="js/upgrader.js?v=3.4"></script>
-  <script src="js/cases-data.js?v=3.4"></script>
-  <script src="js/cases.js?v=3.4"></script>
-  <script src="js/leaderboard.js?v=3.4"></script>
-  <script src="js/contracts.js?v=3.4"></script>
-  <script src="js/lucky-wheel.js?v=3.4"></script>
-  <script src="js/case-builder.js?v=3.4"></script>
-  <script src="js/mines.js?v=3.4"></script>
-  <script src="js/quests.js?v=3.4"></script>
-  <script src="js/coinflip.js?v=3.4"></script>
-  <script src="js/crash.js?v=3.4"></script>
-  <script src="js/app.js?v=3.4"></script>
+  <script src="js/sound.js?v=3.6"></script>
+  <script src="js/skins-data.js?v=3.6"></script>
+  <script src="js/notifications.js?v=3.6"></script>
+  <script src="js/auth.js?v=3.6"></script>
+  <script src="js/economy.js?v=3.6"></script>
+  <script src="js/catalog.js?v=3.6"></script>
+  <script src="js/upgrader.js?v=3.6"></script>
+  <script src="js/cases-data.js?v=3.6"></script>
+  <script src="js/cases.js?v=3.6"></script>
+  <script src="js/leaderboard.js?v=3.6"></script>
+  <script src="js/contracts.js?v=3.6"></script>
+  <script src="js/lucky-wheel.js?v=3.6"></script>
+  <script src="js/case-builder.js?v=3.6"></script>
+  <script src="js/mines.js?v=3.6"></script>
+  <script src="js/quests.js?v=3.6"></script>
+  <script src="js/coinflip.js?v=3.6"></script>
+  <script src="js/crash.js?v=3.6"></script>
+  <script src="js/app.js?v=3.6"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=3.4').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=3.6').then(reg => {
           reg.update();
         }).catch(() => {});
       });

@@ -345,7 +345,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       headerBalanceEl.textContent = '$0.00';
       userHeaderContainer.innerHTML = `
-        <button class="btn-login-trigger" id="btn-header-login">Вход / Регистрация</button>
+        <button class="btn-login-trigger" id="btn-header-login">
+          <span class="btn-login-full">Вход / Регистрация</span>
+          <span class="btn-login-compact">Войти</span>
+        </button>
       `;
       document.getElementById('btn-header-login')?.addEventListener('click', () => {
         openAuthModal('login');
@@ -3778,37 +3781,57 @@ document.addEventListener('DOMContentLoaded', () => {
   switchTab = function(tabId) {
     originalSwitchTab(tabId);
 
-    // Smoothly scroll active tab into view on mobile
-    const activeBottomTab = document.querySelector(`.mobile-bottom-tab[data-tab="${tabId}"]`);
-    if (activeBottomTab) {
-      try { activeBottomTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch (e) {}
-    }
-    const activeSubnavBtn = document.querySelector(`.mobile-subnav-btn[data-tab="${tabId}"]`);
-    if (activeSubnavBtn) {
-      try { activeSubnavBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch (e) {}
+    // Scroll main window to top smoothly on tab switch so new tab opens at the top
+    try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch(e) {}
+
+    // Safely center active tab in horizontal scrollers without scrolling the window
+    function centerItemInScroller(scrollerEl, targetItem) {
+      if (!scrollerEl || !targetItem) return;
+      try {
+        const scrollerRect = scrollerEl.getBoundingClientRect();
+        const itemRect = targetItem.getBoundingClientRect();
+        const scrollDelta = (itemRect.left - scrollerRect.left) - (scrollerRect.width / 2) + (itemRect.width / 2);
+        scrollerEl.scrollBy({ left: scrollDelta, behavior: 'smooth' });
+      } catch (e) {}
     }
 
-    if (tabId === 'bank') {
-      renderBankPage();
-    } else if (tabId === 'upgrader') {
-      updateUpgraderUI();
-    } else if (tabId === 'cases') {
-      renderCasesGrid();
-    } else if (tabId === 'contracts') {
-      renderContractsDesk();
-    } else if (tabId === 'mines') {
-      renderMinesBoard();
-    } else if (tabId === 'coinflip') {
-      renderCoinflipUI();
-    } else if (tabId === 'crash') {
-      renderCrashUI();
-      window.crashEngine?.resizeCanvas();
-    } else if (tabId === 'leaderboard') {
-      renderLeaderboard();
-    } else if (tabId === 'profile') {
-      renderProfilePage();
+    const activeBottomTab = document.querySelector(`.mobile-bottom-tab[data-tab="${tabId}"]`);
+    const bottomNav = document.querySelector('.mobile-bottom-nav');
+    if (activeBottomTab && bottomNav) {
+      centerItemInScroller(bottomNav, activeBottomTab);
+    }
+    const activeSubnavBtn = document.querySelector(`.mobile-subnav-btn[data-tab="${tabId}"]`);
+    const subnavScroller = document.querySelector('.mobile-subnav-scroller, .mobile-subnav-track');
+    if (activeSubnavBtn && subnavScroller) {
+      centerItemInScroller(subnavScroller, activeSubnavBtn);
+    }
+
+    try {
+      if (tabId === 'bank') {
+        renderBankPage();
+      } else if (tabId === 'upgrader') {
+        updateUpgraderUI();
+      } else if (tabId === 'cases') {
+        renderCasesGrid();
+      } else if (tabId === 'contracts') {
+        renderContractsDesk();
+      } else if (tabId === 'mines') {
+        renderMinesBoard();
+      } else if (tabId === 'coinflip') {
+        renderCoinflipUI();
+      } else if (tabId === 'crash') {
+        renderCrashUI();
+        window.crashEngine?.resizeCanvas();
+      } else if (tabId === 'leaderboard') {
+        renderLeaderboard();
+      } else if (tabId === 'profile') {
+        renderProfilePage();
+      }
+    } catch (err) {
+      console.error('Error rendering tab', tabId, err);
     }
   };
+  window.switchTab = switchTab;
 
   // Responsive dynamic re-scaler for PC & Smartphones
   let resizeTimer = null;

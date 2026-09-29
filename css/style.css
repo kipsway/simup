@@ -112,12 +112,18 @@ button, a, input, select, textarea,
   transform: translateZ(0);
 }
 
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden !important;
+  position: relative;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-main);
   min-height: 100vh;
-  overflow-x: hidden;
   background-image: 
     radial-gradient(circle at 15% 10%, rgba(var(--accent-rgb), 0.08) 0%, transparent 40%),
     radial-gradient(circle at 85% 85%, rgba(var(--accent-rgb), 0.05) 0%, transparent 45%),
@@ -3794,22 +3800,29 @@ html, body {
 .mobile-subnav-bar {
   display: none;
   width: 100%;
+  max-width: 100vw;
   overflow: hidden;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 8px 0 6px;
+  padding: 6px 0;
+  box-sizing: border-box;
 }
 
-.mobile-subnav-scroller {
+.mobile-subnav-scroller,
+.mobile-subnav-track {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding: 0 4px;
+  padding: 2px 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.mobile-subnav-scroller::-webkit-scrollbar {
+.mobile-subnav-scroller::-webkit-scrollbar,
+.mobile-subnav-track::-webkit-scrollbar {
   display: none;
 }
 
@@ -3818,7 +3831,7 @@ html, body {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-muted);
-  padding: 7px 14px;
+  padding: 6px 12px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
@@ -3848,32 +3861,45 @@ html, body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background: rgba(10, 14, 22, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border-color);
+  width: 100%;
+  max-width: 100vw;
+  height: calc(58px + env(safe-area-inset-bottom, 0px));
+  background: rgba(8, 12, 20, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 1000;
-  padding: 0 4px env(safe-area-inset-bottom, 0px) 4px;
-  justify-content: space-around;
+  padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)) 6px;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   align-items: center;
-  box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.6);
+  justify-content: flex-start;
+  gap: 2px;
+  box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.7);
+}
+
+.mobile-bottom-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .mobile-bottom-tab {
-  flex: 1;
-  display: flex;
+  flex: 0 0 auto;
+  min-width: 64px;
+  height: 50px;
+  display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
   color: var(--text-dim);
-  padding: 6px 2px;
+  padding: 4px 6px;
   cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s ease;
-  min-width: 0;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   touch-action: manipulation;
   -webkit-user-select: none;
   user-select: none;
@@ -3913,6 +3939,14 @@ html, body {
     display: none !important;
   }
 
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+
+  .mobile-subnav-bar {
+    display: block !important;
+  }
+
   .site-header {
     padding: 10px 14px 6px 14px;
   }
@@ -3921,10 +3955,6 @@ html, body {
     flex-wrap: nowrap !important;
     gap: 12px;
     padding-bottom: 4px;
-  }
-
-  .mobile-subnav-bar {
-    display: block;
   }
 
   .brand-logo-text {
@@ -3938,7 +3968,15 @@ html, body {
   }
 
   .badge-sim {
-    display: none;
+    display: none !important;
+  }
+
+  .app-container {
+    padding: 10px 10px calc(80px + env(safe-area-inset-bottom, 14px)) !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
   }
 
   .upgrader-arena-grid {
@@ -3947,21 +3985,27 @@ html, body {
   }
 }
 
-/* ── SMARTPHONES (≤ 768px: 50% OF USERBASE) ── */
+/* ── SMARTPHONES (≤ 768px) ── */
 @media (max-width: 768px) {
   .site-header {
     padding: 8px 10px 4px 10px;
     position: sticky;
     top: 0;
     z-index: 100;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
   }
 
   .header-inner {
     gap: 8px;
+    width: 100%;
+    justify-content: space-between;
   }
 
   .brand-section {
     gap: 6px;
+    flex-shrink: 0;
   }
 
   .brand-logo-text {
@@ -3976,28 +4020,33 @@ html, body {
   }
 
   .header-actions {
-    gap: 6px;
+    gap: 5px;
+    flex-shrink: 1;
+    min-width: 0;
   }
 
-  .audio-toggle-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
+  .audio-toggle-btn,
+  .theme-toggle-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
     border-radius: 6px;
+    flex-shrink: 0;
   }
 
   .balance-card {
-    padding: 4px 6px 4px 10px;
+    padding: 4px 8px;
     gap: 6px;
     border-radius: 8px;
+    flex-shrink: 0;
   }
 
   .balance-amount {
-    font-size: 13.5px;
+    font-size: 13px;
   }
 
   .btn-deposit {
-    font-size: 11px;
+    font-size: 10.5px;
     padding: 4px 7px;
     border-radius: 6px;
   }
@@ -4005,11 +4054,12 @@ html, body {
   .user-profile-btn {
     padding: 4px 8px;
     gap: 6px;
+    flex-shrink: 0;
   }
 
   .user-name-label {
     font-size: 12px !important;
-    max-width: 90px;
+    max-width: 80px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -4020,16 +4070,20 @@ html, body {
     padding: 1px 5px !important;
   }
 
-  /* Show Bottom App Nav & adjust page bottom padding */
+  /* Bottom app dock and container safe padding */
   .mobile-bottom-nav {
-    display: flex;
+    display: flex !important;
   }
 
   .app-container {
-    padding: 10px 10px 84px !important;
+    padding: 8px 8px calc(84px + env(safe-area-inset-bottom, 16px)) !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
   }
 
-  /* Upgrader Mobile Arena Layout */
+  /* Upgrader Arena */
   .upgrader-arena-grid {
     grid-template-columns: 1fr !important;
     gap: 14px !important;
@@ -4050,7 +4104,6 @@ html, body {
     font-size: 11px !important;
   }
 
-  /* Center Wheel Arena */
   .upgrader-col-center {
     padding: 18px 12px !important;
   }
@@ -4097,10 +4150,14 @@ html, body {
     max-height: 65px !important;
   }
 
-  /* Mines 5x5 Grid on Mobile */
+  /* Mines 5x5 Grid on Mobile - Board on Top */
   .mines-arena-layout {
     grid-template-columns: 1fr !important;
     gap: 14px !important;
+  }
+
+  .mines-board-box {
+    order: -1 !important;
   }
 
   .mines-grid-5x5 {
@@ -4116,16 +4173,24 @@ html, body {
     border-radius: 8px !important;
   }
 
-  /* Coinflip on Mobile */
+  /* Coinflip on Mobile - Coin on Top */
   .coinflip-arena-layout {
     grid-template-columns: 1fr !important;
     gap: 14px !important;
   }
 
-  /* Crash Canvas on Mobile */
+  .coinflip-stage-card {
+    order: -1 !important;
+  }
+
+  /* Crash Canvas on Mobile - Rocket on Top */
   .crash-arena-layout {
     grid-template-columns: 1fr !important;
     gap: 14px !important;
+  }
+
+  .crash-stage-card {
+    order: -1 !important;
   }
 
   .crash-canvas-wrap {
@@ -4153,9 +4218,13 @@ html, body {
   }
 
   .table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    width: 100%;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+  }
+
+  .simup-table {
+    min-width: 480px !important;
   }
 
   .leaderboard-table th,
@@ -4172,37 +4241,93 @@ html, body {
 
   /* Modals on Mobile */
   .modal-window {
-    width: 94vw !important;
-    max-width: 94vw !important;
+    width: 95vw !important;
+    max-width: 95vw !important;
     max-height: 90vh !important;
-    padding: 18px 14px !important;
+    padding: 16px 12px !important;
     border-radius: var(--radius-lg) !important;
+    box-sizing: border-box !important;
   }
 }
 
-/* ── SMALL PHONES (≤ 420px: iPhone SE, Compact Androids) ── */
-@media (max-width: 420px) {
+/* ── COMPACT SMARTPHONES (≤ 480px: iPhone 13/14/15, Androids) ── */
+@media (max-width: 480px) {
   .site-header {
-    padding: 6px 8px 3px 8px;
+    padding: 6px 8px 3px 8px !important;
+  }
+
+  .header-inner {
+    gap: 4px !important;
   }
 
   .brand-logo-text {
-    font-size: 16px;
+    font-size: 16px !important;
   }
 
   .brand-logo-icon {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 13px !important;
+  }
+
+  .header-actions {
+    gap: 4px !important;
+  }
+
+  .sync-label {
+    display: none !important;
+  }
+
+  .btn-sync-pill {
+    padding: 5px 6px !important;
+    font-size: 13px !important;
+    line-height: 1 !important;
+  }
+
+  .btn-login-full {
+    display: none !important;
+  }
+
+  .btn-login-compact {
+    display: inline-block !important;
+  }
+
+  .audio-toggle-btn,
+  .theme-toggle-btn {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 12px !important;
+    min-width: 26px !important;
+  }
+
+  .balance-card {
+    padding: 3px 6px !important;
+    gap: 4px !important;
   }
 
   .balance-amount {
-    font-size: 12px;
+    font-size: 11.5px !important;
+  }
+
+  .btn-deposit {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+  }
+
+  .user-profile-btn {
+    padding: 3px 6px !important;
+    gap: 4px !important;
   }
 
   .user-name-label {
-    max-width: 65px;
+    max-width: 55px !important;
     font-size: 11px !important;
+  }
+
+  .app-container {
+    padding: 6px 6px calc(88px + env(safe-area-inset-bottom, 18px)) !important;
+    overflow-x: hidden !important;
   }
 
   #upgrader-canvas,
@@ -4240,19 +4365,14 @@ html, body {
     top: -17px !important;
   }
 
-  .app-container {
-    padding: 0 10px 40px !important;
-    overflow-x: hidden !important;
-  }
-
   .mines-cell {
-    width: 42px !important;
-    height: 42px !important;
-    font-size: 15px !important;
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 16px !important;
   }
 
   .mines-grid-5x5 {
-    max-width: 250px !important;
+    max-width: 255px !important;
     gap: 3px !important;
   }
 }
@@ -4268,7 +4388,7 @@ html, body {
   }
 
   .mobile-bottom-tab {
-    min-height: 52px;
+    min-height: 50px;
   }
 }
 
@@ -4978,8 +5098,18 @@ body {
   .header-actions {
     gap: 4px !important;
   }
+  .sync-label {
+    display: none !important;
+  }
   .btn-sync-pill {
-    padding: 5px 7px;
+    padding: 5px 6px !important;
+    font-size: 13px !important;
+  }
+  .btn-login-full {
+    display: none !important;
+  }
+  .btn-login-compact {
+    display: inline-block !important;
   }
   .balance-card {
     padding: 3px 6px !important;

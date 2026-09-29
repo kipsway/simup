@@ -6,15 +6,14 @@
 
 class UpgraderEngine {
   constructor() {
-    this.houseEdge = 0.08; // 8% realistic edge (toggleable to 0.00)
+    this.houseEdge = 0.08; // 8% realistic esports house edge (fixed, standard)
     this.direction = 'under'; // 'under' or 'over'
     this.sectorOffset = 0; // rotation angle of sector
     this.isSpinning = false;
     this.isTurbo = false;
 
-    // Bet configuration
-    this.balanceBet = 10.00;
-    this.selectedItems = []; // items from inventory sacrificed for multi-upgrade
+    // Bet configuration: SKINS ONLY
+    this.selectedItems = []; // items from inventory sacrificed for upgrade
     this.targetSkin = null; // target skin to win
 
     // Provably Fair state
@@ -42,22 +41,31 @@ class UpgraderEngine {
   }
 
   async sha256(str) {
-    const enc = new TextEncoder();
-    const data = enc.encode(str);
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  setHouseEdge(edge) {
-    this.houseEdge = Math.max(0, Math.min(0.25, edge));
+    if (typeof window !== 'undefined' && window.authManager && typeof window.authManager.sha256 === 'function') {
+      return await window.authManager.sha256(str);
+    }
+    if (typeof TextEncoder !== 'undefined' && typeof crypto !== 'undefined' && crypto.subtle) {
+      try {
+        const enc = new TextEncoder();
+        const data = enc.encode(str);
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
+      } catch (e) {}
+    }
+    // Safe deterministic fallback hash
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return ((h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0')).repeat(4);
   }
 
   setDirection(dir) {
     this.direction = dir === 'over' ? 'over' : 'under';
-  }
-
-  setBalanceBet(val) {
-    this.balanceBet = Math.max(0, Number(val) || 0);
   }
 
   toggleItemSelection(item) {
@@ -73,13 +81,17 @@ class UpgraderEngine {
     this.selectedItems = [];
   }
 
+  selectAllItems(items = []) {
+    this.selectedItems = [...items];
+  }
+
   setTargetSkin(skin) {
     this.targetSkin = skin;
   }
 
   getTotalBetAmount() {
     const itemsVal = this.selectedItems.reduce((s, it) => s + (it.price || 0), 0);
-    return Number((this.balanceBet + itemsVal).toFixed(2));
+    return Number(itemsVal.toFixed(2));
   }
 
   // Exact 1-to-1 Mathematical Chance calculation
@@ -89,6 +101,7 @@ class UpgraderEngine {
       return 0;
     }
 
+    // Pure 1:1 odds formula: chance = (totalBetSkins / targetSkinPrice) * (1 - 0.08) * 100
     const rawChance = (totalBet / this.targetSkin.price) * (1 - this.houseEdge) * 100;
     const clamped = Math.min(90.00, Math.max(0.05, rawChance));
     return Number(clamped.toFixed(2));
@@ -147,19 +160,19 @@ class UpgraderEngine {
       return;
     }
 
+    if (this.selectedItems.length === 0) {
+      window.notify.warning('Выберите скин для ставки', 'В апгрейдере ставки делаются только скинами! Выберите один или несколько скинов из инвентаря слева.');
+      return;
+    }
+
     const totalBet = this.getTotalBetAmount();
     if (totalBet <= 0) {
-      window.notify.warning('Сделайте ставку', 'Укажите сумму ставки с баланса или выберите скин из инвентаря.');
+      window.notify.warning('Сделайте ставку', 'Сумма выбранных скинов должна быть больше $0.00.');
       return;
     }
 
     if (!this.targetSkin) {
-      window.notify.warning('Выберите скин', 'Выберите целевой скин в каталоге ниже.');
-      return;
-    }
-
-    if (this.balanceBet > user.balance) {
-      window.notify.error('Недостаточно средств', `Ваш баланс $${user.balance.toFixed(2)}, ставка $${this.balanceBet.toFixed(2)}.`);
+      window.notify.warning('Выберите скин', 'Выберите целевой скин в каталоге справа или выберите множитель.');
       return;
     }
 
@@ -168,21 +181,16 @@ class UpgraderEngine {
       const exists = user.inventory.some(invItem => invItem.instanceId === it.instanceId);
       if (!exists) {
         window.notify.error('Ошибка предметов', `Предмет ${it.name} отсутствует в инвентаре.`);
+        this.clearSelectedItems();
         return;
       }
     }
 
     this.isSpinning = true;
 
-    // 1. Deduct wager immediately
-    if (this.balanceBet > 0) {
-      user.balance = Number((user.balance - this.balanceBet).toFixed(2));
-    }
-    // Remove sacrificed items from inventory
-    if (this.selectedItems.length > 0) {
-      const sacrificedIds = this.selectedItems.map(it => it.instanceId);
-      user.inventory = user.inventory.filter(it => !sacrificedIds.includes(it.instanceId));
-    }
+    // 1. Remove sacrificed skins from user inventory immediately upon spin start
+    const sacrificedIds = this.selectedItems.map(it => it.instanceId);
+    user.inventory = user.inventory.filter(it => !sacrificedIds.includes(it.instanceId));
 
     user.stats.totalUpgrades = (user.stats.totalUpgrades || 0) + 1;
     user.stats.totalWagered = Number(((user.stats.totalWagered || 0) + totalBet).toFixed(2));
@@ -214,6 +222,8 @@ class UpgraderEngine {
     this.nonce += 1;
     this.serverSeed = this.generateRandomHex(32);
     this.serverSeedHash = await this.sha256(this.serverSeed);
+
+    window.SoundManager?.playLaserSweep();
 
     if (onStart) {
       onStart({ chance, roll, isWin });
@@ -335,6 +345,12 @@ class UpgraderEngine {
         'ПОБЕДА В АПГРЕЙДЕ! 🗡️★',
         `Вы выиграли ${targetSkin.name} ($${targetSkin.price.toFixed(2)}) с шансом ${chance}% (Roll: ${roll})!`
       );
+
+      // Auto-repay bank debt from win profit
+      const profit = Math.max(0, targetSkin.price - totalBet);
+      if (profit > 0 && window.economyManager?.autoDeductDebtFromWin) {
+        window.economyManager.autoDeductDebtFromWin(user, profit);
+      }
     } else {
       user.stats.lostUpgrades = (user.stats.lostUpgrades || 0) + 1;
       user.stats.netProfit = Number(((user.stats.netProfit || 0) - totalBet).toFixed(2));

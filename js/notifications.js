@@ -21,7 +21,8 @@ class NotificationManager {
   }
 
   show({ title, message, type = 'info', duration = 3800, icon = null }) {
-    if (!this.container) this.init();
+    // Notifications disabled
+    return;
 
     const icons = {
       success: '✓',

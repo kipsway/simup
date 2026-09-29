@@ -72,13 +72,13 @@ class CrashEngine {
     const sub = parseInt(hash.substring(0, 13), 16);
     const e = Math.pow(2, 52);
 
-    // 4% House edge
-    if (sub % 25 === 0) {
-      return 1.00; // Instant crash at 1.00x on 4% of games
+    // 20% House edge — instant crash very common
+    if (sub % 5 === 0) {
+      return 1.00; // Instant crash at 1.00x on 20% of games
     }
 
     const raw = Math.floor((100 * e - sub) / (e - sub)) / 100;
-    return Math.max(1.01, Math.min(250.00, Number(raw.toFixed(2))));
+    return Math.max(1.01, Math.min(50.00, Number(raw.toFixed(2))));
   }
 
   getLogicalDimensions() {
@@ -192,6 +192,7 @@ class CrashEngine {
     if (this.onTick) {
       this.onTick(this.currentMultiplier);
     }
+    window.SoundManager?.startCrashHum(this.currentMultiplier);
 
     this.animationFrame = requestAnimationFrame(() => this.runGameLoop());
   }
@@ -202,6 +203,7 @@ class CrashEngine {
     }
 
     this.hasCashedOut = true;
+    window.SoundManager?.stopCrashHum();
     this.cashedOutMultiplier = this.currentMultiplier;
     this.cashedOutPayout = Number((this.betAmount * this.cashedOutMultiplier).toFixed(2));
     const profit = Number((this.cashedOutPayout - this.betAmount).toFixed(2));
@@ -211,6 +213,10 @@ class CrashEngine {
       user.balance = Number((user.balance + this.cashedOutPayout).toFixed(2));
       user.stats.netProfit = Number(((user.stats.netProfit || 0) + profit).toFixed(2));
       user.stats.upgradesWon = (user.stats.upgradesWon || 0) + 1;
+
+      if (profit > 0 && window.economyManager?.autoDeductDebtFromWin) {
+        window.economyManager.autoDeductDebtFromWin(user, profit);
+      }
 
       if (!user.history) user.history = [];
       user.history.unshift({
@@ -255,6 +261,7 @@ class CrashEngine {
     this.gameState = 'crashed';
     if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
 
+    window.SoundManager?.stopCrashHum();
     window.SoundManager?.playExplosion();
 
     const user = window.authManager?.currentUser;

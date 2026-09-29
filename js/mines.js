@@ -33,7 +33,7 @@ class MinesEngine {
     const safeCount = this.gridSize - minesCount;
     if (gemsRevealed > safeCount) return 0;
 
-    let mult = 0.97; // 3% House Edge
+    let mult = 0.82; // 18% House Edge — hard to win
     for (let i = 0; i < gemsRevealed; i++) {
       mult *= (this.gridSize - i) / (safeCount - i);
     }
@@ -215,6 +215,10 @@ class MinesEngine {
     if (user) {
       user.balance = Number((user.balance + payout).toFixed(2));
       user.stats.netProfit = Number(((user.stats.netProfit || 0) + profit).toFixed(2));
+
+      if (profit > 0 && window.economyManager?.autoDeductDebtFromWin) {
+        window.economyManager.autoDeductDebtFromWin(user, profit);
+      }
 
       if (!user.history) user.history = [];
       user.history.unshift({

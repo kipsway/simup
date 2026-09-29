@@ -20,8 +20,8 @@
         <span class="badge-sim">Simulator</span>
       </div>
 
-      <!-- MAIN NAVIGATION -->
-      <nav class="nav-tabs" aria-label="Навигация сайта">
+      <!-- MAIN NAVIGATION (Desktop) -->
+      <nav class="nav-tabs desktop-nav-tabs" aria-label="Навигация сайта">
         <button class="nav-tab-btn active" data-tab="upgrader">
           <span>🎯</span> Апгрейдер
         </button>
@@ -44,7 +44,7 @@
           <span>🏆</span> Лидерборд
         </button>
         <button class="nav-tab-btn" data-tab="bank">
-          <span>🏦</span> Кредиты & Банк
+          <span>🏦</span> Кредиты
         </button>
         <button class="nav-tab-btn" data-tab="profile">
           <span>👤</span> Профиль
@@ -53,48 +53,23 @@
 
       <!-- USER & SYSTEM CONTROLS -->
       <div class="header-actions">
-        <!-- Daily Quests & Battle Pass Trigger -->
-        <button class="btn-header-action" id="btn-open-quests" title="Ежедневные задания и Боевой Пропуск" aria-label="Задания">
-          <span>🎁</span>
-          <span class="header-action-label">Задания</span>
-          <span class="action-count-badge" id="quests-badge" style="display: none;">0</span>
+        <!-- Simple Audio Toggle -->
+        <button class="audio-toggle-btn" id="audio-toggle-btn" title="Звук вкл/выкл" aria-label="Звук">
+          🔊
         </button>
 
-        <!-- Audio Control Popover -->
-        <div class="audio-control-wrapper" id="audio-control-wrapper">
-          <button class="audio-toggle-btn" id="audio-toggle-btn" title="Настройки звука" aria-label="Звук">
-            🔊
-          </button>
-          <div class="audio-popover" id="audio-popover">
-            <div class="audio-popover-header">
-              <span>Громкость звука</span>
-              <span id="audio-volume-text" class="audio-volume-text">80%</span>
-            </div>
-            <div class="audio-slider-wrap">
-              <input type="range" min="0" max="100" value="80" class="audio-volume-slider" id="audio-volume-slider" aria-label="Громкость">
-            </div>
-            <div class="audio-presets-row">
-              <button class="audio-preset-btn" data-vol="0">🔇 0%</button>
-              <button class="audio-preset-btn" data-vol="30">30%</button>
-              <button class="audio-preset-btn" data-vol="70">70%</button>
-              <button class="audio-preset-btn" data-vol="100">100%</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Theme Picker Button -->
-        <button class="theme-toggle-btn" id="theme-toggle-btn" title="Сменить тему оформления" aria-label="Тема">
+        <!-- Theme & Style Settings Toggle -->
+        <button class="theme-toggle-btn" id="theme-toggle-btn" title="Темы и кастомизация апгрейда" aria-label="Темы">
           🎨
         </button>
 
         <!-- Balance Card -->
         <div class="balance-card">
           <div class="balance-info">
-            <span class="balance-title">Баланс</span>
             <span class="balance-amount" id="header-balance">$0.00</span>
           </div>
-          <button class="btn-deposit" id="btn-quick-deposit" title="Пополнить виртуальный баланс">
-            <span>+</span> Пополнить
+          <button class="btn-deposit" id="btn-quick-deposit" title="Банк и кредитная система">
+            🏦 Кредит
           </button>
         </div>
 
@@ -104,18 +79,23 @@
         </div>
       </div>
     </div>
+
+    <!-- MOBILE SUBNAV (Touch-scrollable pill bar on mobile/tablets) -->
+    <div class="mobile-subnav-bar">
+      <div class="mobile-subnav-scroller">
+        <button class="mobile-subnav-btn active" data-tab="upgrader">🎯 Апгрейдер</button>
+        <button class="mobile-subnav-btn" data-tab="cases">📦 Кейсы</button>
+        <button class="mobile-subnav-btn" data-tab="contracts">📜 Контракты</button>
+        <button class="mobile-subnav-btn" data-tab="mines">💣 Мины</button>
+        <button class="mobile-subnav-btn" data-tab="coinflip">🪙 Коинфлип</button>
+        <button class="mobile-subnav-btn" data-tab="crash">🚀 Краш</button>
+        <button class="mobile-subnav-btn" data-tab="leaderboard">🏆 Рейтинг</button>
+        <button class="mobile-subnav-btn" data-tab="bank">🏦 Кредиты</button>
+        <button class="mobile-subnav-btn" data-tab="profile">👤 Профиль</button>
+      </div>
+    </div>
   </header>
 
-  <!-- ==================== LIVE DROPS TICKER ==================== -->
-  <div class="live-drops-bar" id="live-drops-bar">
-    <div class="live-drops-header">
-      <span class="live-pulse-dot"></span>
-      <span class="live-drops-title">LIVE ДРОПЫ</span>
-    </div>
-    <div class="live-drops-scroller" id="live-drops-track">
-      <!-- Injected via JavaScript -->
-    </div>
-  </div>
 
   <!-- ==================== MAIN CONTAINER ==================== -->
   <main class="app-container">
@@ -127,56 +107,61 @@
       <div class="upgrader-arena-grid" id="upgrader-arena">
         
         <!-- LEFT COLUMN: BET CONFIGURATION & MULTI-UPGRADE -->
+        <!-- LEFT COLUMN: SKINS-ONLY BET SELECTION -->
         <div class="upgrader-panel-box">
           <div>
             <div class="upgrader-box-title">
-              <span>Ваша ставка</span>
-              <span style="font-size: 11px; color: var(--accent-color); font-weight: 700;" id="arena-user-balance">Баланс: $0.00</span>
+              <span>Ваша ставка (Скины)</span>
+              <button id="btn-arena-buy-skins" style="background: rgba(var(--accent-rgb), 0.12); border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; cursor: pointer; transition: all var(--transition-fast);">
+                + Купить в каталоге
+              </button>
             </div>
 
-            <!-- Chips for quick balance adjustment -->
-            <div class="bet-chips-row">
-              <button class="bet-chip" data-bet-add="1">+$1</button>
-              <button class="bet-chip" data-bet-add="5">+$5</button>
-              <button class="bet-chip" data-bet-add="25">+$25</button>
-              <button class="bet-chip" data-bet-add="100">+$100</button>
-              <button class="bet-chip" data-bet-action="half">1/2</button>
-              <button class="bet-chip" data-bet-action="double">2x</button>
-              <button class="bet-chip" data-bet-action="clear">Сброс</button>
-              <button class="bet-chip" data-bet-action="max" style="color: var(--accent-color);">МАКС</button>
+            <!-- Quick Inventory Action Chips -->
+            <div class="inv-filter-chips-row" style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+              <button class="bet-chip" id="btn-select-cheapest" style="flex: 1;" title="Выбрать самый дешевый скин">Дешевый</button>
+              <button class="bet-chip" id="btn-select-all-inv" style="flex: 1;" title="Выбрать все предметы инвентаря">Все</button>
+              <button class="bet-chip" id="btn-clear-inv-selection" style="flex: 1;" title="Снять выбор">Сброс</button>
             </div>
 
-            <!-- Manual input field -->
-            <div class="form-group" style="margin-bottom: 12px;">
-              <label class="form-label" for="arena-balance-input">Сумма с баланса ($)</label>
-              <input type="number" id="arena-balance-input" class="form-input" min="0" step="0.5" value="10.00" style="padding: 10px 14px; font-weight: 800;">
+            <!-- Search & Sort in Inventory -->
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <input type="text" id="arena-inv-search" class="form-input" placeholder="🔍 Поиск в инвентаре..." style="padding: 7px 10px; font-size: 11.5px; flex: 1;">
+              <select id="arena-inv-sort" class="filter-select" style="padding: 7px 8px; font-size: 11px; width: 105px;">
+                <option value="cheap">Дешевые ↓</option>
+                <option value="expensive">Дорогие ↑</option>
+              </select>
             </div>
 
-            <!-- Multi-upgrade Inventory Drawer -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px;">
-              <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">
-                Скины из инвентаря
+            <!-- Selected Count Bar -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; padding: 0 2px;">
+              <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">
+                Предметы ставки
               </span>
-              <span style="font-size: 11px; color: var(--text-dim);" id="drawer-selected-count">
-                Выбрано: 0
+              <span style="font-size: 11.5px; color: var(--accent-color); font-weight: 700;" id="drawer-selected-count">
+                Выбрано: 0 шт.
               </span>
             </div>
 
-            <div class="inventory-drawer-scroll" id="arena-inventory-drawer">
+            <!-- Inventory Drawer Scroll -->
+            <div class="inventory-drawer-scroll" id="arena-inventory-drawer" style="max-height: 280px;">
               <!-- Injected via JS -->
             </div>
           </div>
 
           <!-- Total Bet Footer -->
           <div style="background: rgba(0,0,0,0.35); border-radius: var(--radius-md); padding: 12px 14px; border: 1px solid var(--border-color); margin-top: 14px; display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Итого ставка:</span>
-            <span style="font-size: 19px; font-weight: 900; color: var(--accent-color);" id="arena-total-bet-val">$10.00</span>
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Сумма ставки:</div>
+              <div style="font-size: 11px; color: var(--text-dim);" id="arena-selected-items-summary">0 предм.</div>
+            </div>
+            <span style="font-size: 20px; font-weight: 900; color: var(--accent-color);" id="arena-total-bet-val">$0.00</span>
           </div>
         </div>
 
         <!-- CENTER COLUMN: INTERACTIVE WHEEL & FIRE BUTTON -->
         <div class="upgrader-col-center">
-          <!-- Top row: Direction switch (Over / Under) & House Edge toggle -->
+          <!-- Top row: Direction switch (Over / Under) & Arrow Style toggle -->
           <div class="wheel-top-controls">
             <div class="over-under-pill-wrap">
               <button class="btn-direction-pill active" id="btn-dir-under">UNDER (0 → X)</button>
@@ -188,11 +173,9 @@
                 <span>⚡ Турбо</span>
               </button>
 
-              <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Комиссия:</span>
-              <select id="house-edge-select" class="filter-select" style="padding: 4px 8px; font-size: 11px;">
-                <option value="0.08">8% (Реалистично)</option>
-                <option value="0.00">0% (Честный симулятор)</option>
-              </select>
+              <button class="btn-turbo-pill" id="btn-quick-arrow-style" title="Сменить стиль стрелки" style="color: #ffd700; border-color: rgba(255, 215, 0, 0.3);">
+                <span id="label-arrow-style-name">🎯 Лазер</span>
+              </button>
             </div>
           </div>
 
@@ -868,10 +851,10 @@
           </div>
 
           <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 16px;">
-            Вам срочно нужны виртуальные средства для разгона апгрейда? Возьмите виртуальный кредит с фиксированной ставкой <strong>10%</strong>. Сумма долга отображается в лидерборде!
+            Вам срочно нужны виртуальные средства для разгона апгрейда? Возьмите виртуальный кредит с фиксированной ставкой <strong>10%</strong>. Сумма долга отображается в лидерборде и напрямую снижает ваш рейтинг!
           </p>
 
-          <div class="loan-metrics-box">
+          <div class="loan-metrics-box" style="grid-template-columns: repeat(4, 1fr);">
             <div class="loan-metric-item">
               <div class="metric-label">Лимит займа</div>
               <div class="metric-val" id="loan-max-limit" style="color: var(--accent-color);">$1,000.00</div>
@@ -881,8 +864,12 @@
               <div class="metric-val" id="loan-current-debt" style="color: #ef4444;">$0.00</div>
             </div>
             <div class="loan-metric-item">
-              <div class="metric-label">Комиссия</div>
-              <div class="metric-val">10%</div>
+              <div class="metric-label">Ставка банка</div>
+              <div class="metric-val" style="color: #fbbf24;">10%</div>
+            </div>
+            <div class="loan-metric-item">
+              <div class="metric-label">Штраф к рейтингу</div>
+              <div class="metric-val" id="loan-rating-penalty" style="color: #f87171;">-$0.00</div>
             </div>
           </div>
 
@@ -891,16 +878,17 @@
             <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
               Оформить новый заём:
             </div>
-            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
               <button class="deposit-chip-btn" data-loan-chip="100">+$100</button>
+              <button class="deposit-chip-btn" data-loan-chip="250">+$250</button>
               <button class="deposit-chip-btn" data-loan-chip="500">+$500</button>
               <button class="deposit-chip-btn" data-loan-chip="1000">+$1,000</button>
-              <button class="deposit-chip-btn" data-loan-chip="5000">+$5,000</button>
+              <button class="deposit-chip-btn" data-loan-chip="max" style="color: var(--accent-color);">МАКС</button>
             </div>
             <div style="display: flex; gap: 8px;">
               <input type="number" id="loan-input-amount" class="form-input" placeholder="Сумма займа ($)" min="50" step="50" style="padding: 10px 14px;">
               <button class="btn-submit-action" id="btn-take-loan" style="margin-top: 0; padding: 10px 18px; width: auto; white-space: nowrap;">
-                Взять кредит
+                Взять кредит (+10%)
               </button>
             </div>
           </div>
@@ -920,9 +908,20 @@
               </button>
             </div>
           </div>
+
+          <!-- Auto-repay toggle -->
+          <div style="background: rgba(0,0,0,0.25); border-radius: var(--radius-md); padding: 12px 14px; margin-top: 14px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #fff;">Автопогашение кредита из побед</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Автоматически направлять 20% чистой прибыли с побед на списание долга</div>
+            </div>
+            <label style="position: relative; display: inline-flex; align-items: center; cursor: pointer;">
+              <input type="checkbox" id="loan-auto-repay-toggle" checked style="accent-color: var(--accent-color); width: 18px; height: 18px;">
+            </label>
+          </div>
         </div>
 
-        <!-- PANEL 2: FREE FAUCET & EARN FREE COINS -->
+        <!-- PANEL 2: FREE FAUCET REMOVED & EARN BY DAILY STREAK -->
         <div class="bank-panel-card">
           <div class="panel-header-row">
             <div class="panel-title">
@@ -951,15 +950,16 @@
             </button>
           </div>
 
-          <!-- Free Faucet Instant Button -->
-          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-            <div>
-              <div style="font-size: 14px; font-weight: 700; color: #fff;">Бесплатный кран монет</div>
-              <div style="font-size: 12px; color: var(--text-muted);">Пополните виртуальный баланс на любую сумму от $10 до $100,000</div>
+          <!-- Bank & Leaderboard Rules (Replaces Free Faucet) -->
+          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+            <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <span>🏛️</span> Кредитная политика & Влияние на рейтинг
             </div>
-            <button class="btn-deposit" id="btn-open-faucet-from-bank" style="padding: 10px 18px; font-size: 14px;">
-              💰 Открыть кран ($10 - $100k)
-            </button>
+            <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+              • <strong>Честная экономика</strong>: бесплатные накрутки баланса отключены. Средства зарабатываются победами, продажей скинов и займами.<br>
+              • <strong>Штраф к рейтингу 1.5x</strong>: долг по кредиту уменьшает ваш рейтинг в таблице лидеров в полуторном размере (долг $500 снижает позицию на -$750).<br>
+              • <strong>Метка должника</strong>: игроки с долгами получают предупреждающий бейдж ⚠️ в общем лидерборде.
+            </div>
           </div>
 
           <!-- Lucky Wheel Instant Trigger -->
@@ -1022,14 +1022,6 @@
         <button class="auth-tab-btn" id="auth-mode-login">Вход</button>
       </div>
 
-      <!-- Avatar Picker (Shown during registration) -->
-      <div id="avatar-picker-section">
-        <div class="avatar-picker-title">Выберите боевую аватарку:</div>
-        <div class="avatar-grid" id="avatar-grid">
-          <!-- Injected via JS -->
-        </div>
-      </div>
-
       <!-- Auth Form -->
       <form id="auth-form" onsubmit="return false;">
         <div class="form-group">
@@ -1045,19 +1037,27 @@
         <button type="submit" class="btn-submit-action" id="auth-submit-btn">
           Создать аккаунт (+ $500.00)
         </button>
+
+        <div style="text-align: center; margin-top: 14px; font-size: 13px; color: var(--text-muted);" id="auth-toggle-hint">
+          Уже зарегистрированы? <a href="#" id="auth-link-switch" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Войти в аккаунт</a>
+        </div>
       </form>
     </div>
   </div>
 
-  <!-- 2. THEME PICKER MODAL -->
+  <!-- 2. THEME & CUSTOMIZATION MODAL (BLOCK 3) -->
   <div class="modal-overlay" id="modal-theme">
-    <div class="modal-window" style="max-width: 440px;">
+    <div class="modal-window" style="max-width: 480px;">
       <button class="modal-close-btn" id="theme-modal-close">&times;</button>
       <div class="modal-header">
-        <h2 class="modal-title">Темы оформления</h2>
-        <p class="modal-subtitle">Выберите стилистику киберспортивного интерфейса</p>
+        <h2 class="modal-title">Настройки оформления</h2>
+        <p class="modal-subtitle">Кастомизация цветовой темы сайта, стиля стрелки и арены</p>
       </div>
 
+      <!-- Section 1: Site Colors -->
+      <div style="font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 10px;">
+        🎨 Цветовая тема сайта
+      </div>
       <div class="theme-options-grid">
         <div class="theme-card-option active" data-theme="emerald">
           <div class="theme-swatch" style="background: #00ff88; color: #00ff88;"></div>
@@ -1075,48 +1075,49 @@
           <div class="theme-swatch" style="background: #00d2ff; color: #00d2ff;"></div>
           <div class="theme-info-name">Ice Sapphire</div>
         </div>
+        <div class="theme-card-option" data-theme="gold">
+          <div class="theme-swatch" style="background: #ffd700; color: #ffd700;"></div>
+          <div class="theme-info-name">Gold Luxury</div>
+        </div>
+      </div>
+
+      <!-- Section 2: Arrow Pointer Style -->
+      <div style="font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 10px;">
+        🏹 Стиль стрелки Апгрейдера
+      </div>
+      <div class="arrow-options-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <button type="button" class="arrow-choice-btn active" data-arrow="arrow-laser" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 700; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px;">
+          <span>⚡</span> Неоновый луч
+        </button>
+        <button type="button" class="arrow-choice-btn" data-arrow="arrow-blade" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 700; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px;">
+          <span>🗡️</span> Кибер-клинок
+        </button>
+        <button type="button" class="arrow-choice-btn" data-arrow="arrow-needle" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 700; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px;">
+          <span>📍</span> Прецизионная игла
+        </button>
+        <button type="button" class="arrow-choice-btn" data-arrow="arrow-classic" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 700; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px;">
+          <span>🔺</span> Классический указатель
+        </button>
+      </div>
+
+      <!-- Section 3: Arena Style -->
+      <div style="font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 10px;">
+        🪐 Стиль арены круга
+      </div>
+      <div class="arena-options-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        <button type="button" class="arena-choice-btn active" data-wheel-style="wheel-style-dark" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); color: #fff; padding: 9px 6px; border-radius: var(--radius-sm); font-size: 11.5px; font-weight: 700; cursor: pointer; text-align: center;">
+          Cyber Dark
+        </button>
+        <button type="button" class="arena-choice-btn" data-wheel-style="wheel-style-neon" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); color: #fff; padding: 9px 6px; border-radius: var(--radius-sm); font-size: 11.5px; font-weight: 700; cursor: pointer; text-align: center;">
+          Neon Glow
+        </button>
+        <button type="button" class="arena-choice-btn" data-wheel-style="wheel-style-gold" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); color: #fff; padding: 9px 6px; border-radius: var(--radius-sm); font-size: 11.5px; font-weight: 700; cursor: pointer; text-align: center;">
+          Gold Arena
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- 3. FREE DEPOSIT MODAL ($10 - $100,000) (BLOCK 2) -->
-  <div class="modal-overlay" id="modal-deposit">
-    <div class="modal-window" style="max-width: 480px;">
-      <button class="modal-close-btn" id="deposit-modal-close">&times;</button>
-      
-      <div class="modal-header">
-        <h2 class="modal-title">Бесплатный депозит</h2>
-        <p class="modal-subtitle">Выберите сумму виртуального пополнения от $10 до $100,000</p>
-      </div>
-
-      <!-- Quick Preset Chips -->
-      <div class="deposit-chips-grid">
-        <button class="deposit-chip-btn" data-amount="10">+$10</button>
-        <button class="deposit-chip-btn" data-amount="50">+$50</button>
-        <button class="deposit-chip-btn active" data-amount="100">+$100</button>
-        <button class="deposit-chip-btn" data-amount="500">+$500</button>
-        <button class="deposit-chip-btn" data-amount="1000">+$1,000</button>
-        <button class="deposit-chip-btn" data-amount="5000">+$5,000</button>
-        <button class="deposit-chip-btn" data-amount="10000">+$10,000</button>
-        <button class="deposit-chip-btn" data-amount="50000">+$50,000</button>
-        <button class="deposit-chip-btn" data-amount="100000">+$100,000</button>
-      </div>
-
-      <!-- Slider & Number Input -->
-      <div class="deposit-slider-wrap">
-        <input type="range" id="deposit-slider" class="range-slider" min="10" max="100000" step="10" value="100">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="deposit-custom-input">Точная сумма пополнения ($)</label>
-        <input type="number" id="deposit-custom-input" class="form-input" min="10" max="100000" value="100">
-      </div>
-
-      <button type="button" class="btn-submit-action" id="btn-execute-deposit">
-        Зачислить на баланс 💰
-      </button>
-    </div>
-  </div>
 
   <!-- 4. SELL ALL INVENTORY CONFIRM MODAL (BLOCK 2) -->
   <div class="modal-overlay" id="modal-sell-all">
@@ -1444,6 +1445,34 @@
 
     </div>
   </div>
+
+  <!-- ==================== MOBILE BOTTOM NAVIGATION (50/50 Mobile UX) ==================== -->
+  <nav class="mobile-bottom-nav" aria-label="Мобильная навигация">
+    <button class="mobile-bottom-tab active" data-tab="upgrader">
+      <span class="mobile-bottom-icon">🎯</span>
+      <span class="mobile-bottom-label">Апгрейд</span>
+    </button>
+    <button class="mobile-bottom-tab" data-tab="cases">
+      <span class="mobile-bottom-icon">📦</span>
+      <span class="mobile-bottom-label">Кейсы</span>
+    </button>
+    <button class="mobile-bottom-tab" data-tab="mines">
+      <span class="mobile-bottom-icon">💣</span>
+      <span class="mobile-bottom-label">Мины</span>
+    </button>
+    <button class="mobile-bottom-tab" data-tab="leaderboard">
+      <span class="mobile-bottom-icon">🏆</span>
+      <span class="mobile-bottom-label">Рейтинг</span>
+    </button>
+    <button class="mobile-bottom-tab" data-tab="bank">
+      <span class="mobile-bottom-icon">🏦</span>
+      <span class="mobile-bottom-label">Кредиты</span>
+    </button>
+    <button class="mobile-bottom-tab" data-tab="profile">
+      <span class="mobile-bottom-icon">👤</span>
+      <span class="mobile-bottom-label">Профиль</span>
+    </button>
+  </nav>
 
   <!-- ==================== SCRIPTS ==================== -->
   <script src="js/sound.js"></script>

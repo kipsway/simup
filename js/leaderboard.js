@@ -17,23 +17,29 @@ class LeaderboardManager {
     return users.map(user => {
       const invValue = (user.inventory || []).reduce((s, it) => s + (it.price || 0), 0);
       const totalBalance = user.balance || 0;
-      const netWorth = totalBalance + invValue;
-      const netProfit = user.stats?.netProfit !== undefined ? user.stats.netProfit : (netWorth - (user.stats?.totalDeposited || 500));
+      const grossWorth = totalBalance + invValue;
+      const currentDebt = user.loans?.currentDebt || 0;
+      const totalBorrowed = user.loans?.totalBorrowed || 0;
+      const totalWagered = user.stats?.totalWagered || 0;
+
+      // Realistic Debt Penalty: Unpaid bank debt penalizes leaderboard standing with 1.5x multiplier
+      const debtPenalty = Number((currentDebt * 1.5).toFixed(2));
+      const netWorth = Number((grossWorth - debtPenalty).toFixed(2));
+      const baseProfit = user.stats?.netProfit !== undefined ? user.stats.netProfit : (grossWorth - 500);
+      const netProfit = Number((baseProfit - debtPenalty).toFixed(2));
       
       const totalUpgrades = user.stats?.totalUpgrades || 0;
       const wonUpgrades = user.stats?.wonUpgrades || 0;
       const winrate = totalUpgrades > 0 ? ((wonUpgrades / totalUpgrades) * 100).toFixed(1) : '0.0';
 
-      const currentDebt = user.loans?.currentDebt || 0;
-      const totalBorrowed = user.loans?.totalBorrowed || 0;
-      const totalWagered = user.stats?.totalWagered || 0;
-
       return {
         id: user.id,
         username: user.username,
-        avatar: user.avatar || '🗡️',
-        netWorth: Number(netWorth.toFixed(2)),
-        netProfit: Number(netProfit.toFixed(2)),
+        initials: (user.username || '?').substring(0, 2).toUpperCase(),
+        grossWorth: Number(grossWorth.toFixed(2)),
+        netWorth,
+        netProfit,
+        debtPenalty,
         balance: Number(totalBalance.toFixed(2)),
         invValue: Number(invValue.toFixed(2)),
         invCount: (user.inventory || []).length,

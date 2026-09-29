@@ -6,7 +6,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Initialize State
   let currentAuthMode = 'register'; // 'register' or 'login'
-  let selectedAvatar = '🗡️';
   let isSoundMuted = localStorage.getItem('simup_sound_muted') === 'true';
 
   // 2. DOM Elements
@@ -21,8 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const authModalClose = document.getElementById('auth-modal-close');
   const authModeRegisterBtn = document.getElementById('auth-mode-register');
   const authModeLoginBtn = document.getElementById('auth-mode-login');
-  const avatarPickerSection = document.getElementById('avatar-picker-section');
-  const avatarGrid = document.getElementById('avatar-grid');
   const authForm = document.getElementById('auth-form');
   const authUsernameInput = document.getElementById('auth-username');
   const authPasswordInput = document.getElementById('auth-password');
@@ -52,10 +49,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const profileContainer = document.getElementById('profile-content-container');
 
   // =========================================================================
-  // THEME MANAGEMENT
+  // THEME & UPGRADER CUSTOMIZATION (BLOCK 3)
   // =========================================================================
+  const arrowOptions = document.querySelectorAll('.arrow-choice-btn');
+  const arenaOptions = document.querySelectorAll('.arena-choice-btn');
+  const wheelNeedleEl = document.getElementById('wheel-needle');
+  const upgraderWheelBox = document.querySelector('.upgrader-wheel-box');
+
   const savedTheme = localStorage.getItem('simup_theme') || 'emerald';
+  const savedArrow = localStorage.getItem('simup_arrow_style') || 'arrow-laser';
+  const savedWheelStyle = localStorage.getItem('simup_wheel_style') || 'wheel-style-dark';
+
   applyTheme(savedTheme);
+  applyArrowStyle(savedArrow);
+  applyWheelStyle(savedWheelStyle);
 
   function applyTheme(themeName) {
     document.body.setAttribute('data-theme', themeName);
@@ -63,22 +70,75 @@ document.addEventListener('DOMContentLoaded', () => {
     themeOptions.forEach(opt => {
       opt.classList.toggle('active', opt.dataset.theme === themeName);
     });
+    // Trigger wheel re-draw with updated CSS variables
+    if (typeof updateUpgraderUI === 'function') {
+      try { updateUpgraderUI(); } catch (e) {}
+    }
   }
 
-  themeToggleBtn.addEventListener('click', () => {
-    modalTheme.classList.add('active');
-  });
+  const ARROW_NAMES_MAP = {
+    'arrow-laser': '🎯 Лазер',
+    'arrow-blade': '⚔️ Лезвие',
+    'arrow-needle': '📍 Игла',
+    'arrow-classic': '🔺 Классик'
+  };
 
-  themeModalClose.addEventListener('click', () => {
-    modalTheme.classList.remove('active');
-  });
+  function applyArrowStyle(arrowClass) {
+    if (wheelNeedleEl) {
+      wheelNeedleEl.classList.remove('arrow-laser', 'arrow-blade', 'arrow-needle', 'arrow-classic');
+      wheelNeedleEl.classList.add(arrowClass);
+    }
+    localStorage.setItem('simup_arrow_style', arrowClass);
+    arrowOptions.forEach(opt => {
+      opt.classList.toggle('active', opt.dataset.arrow === arrowClass);
+    });
+    const label = document.getElementById('label-arrow-style-name');
+    if (label) {
+      label.textContent = ARROW_NAMES_MAP[arrowClass] || '🎯 Стрелка';
+    }
+  }
+
+  function applyWheelStyle(styleClass) {
+    if (upgraderWheelBox) {
+      upgraderWheelBox.classList.remove('wheel-style-dark', 'wheel-style-neon', 'wheel-style-gold');
+      upgraderWheelBox.classList.add(styleClass);
+    }
+    localStorage.setItem('simup_wheel_style', styleClass);
+    arenaOptions.forEach(opt => {
+      opt.classList.toggle('active', opt.dataset.wheelStyle === styleClass);
+    });
+  }
+
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      modalTheme?.classList.add('active');
+    });
+  }
+
+  if (themeModalClose) {
+    themeModalClose.addEventListener('click', () => {
+      modalTheme?.classList.remove('active');
+    });
+  }
 
   themeOptions.forEach(opt => {
     opt.addEventListener('click', () => {
       const theme = opt.dataset.theme;
       applyTheme(theme);
-      modalTheme.classList.remove('active');
-      window.notify.info('Тема оформления', `Установлена тема: ${opt.querySelector('.theme-info-name').textContent}`);
+    });
+  });
+
+  arrowOptions.forEach(opt => {
+    opt.addEventListener('click', () => {
+      const arrow = opt.dataset.arrow;
+      applyArrowStyle(arrow);
+    });
+  });
+
+  arenaOptions.forEach(opt => {
+    opt.addEventListener('click', () => {
+      const style = opt.dataset.wheelStyle;
+      applyWheelStyle(style);
     });
   });
 
@@ -95,12 +155,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateAudioIcon();
 
-  audioToggleBtn.addEventListener('click', () => {
-    isSoundMuted = !isSoundMuted;
-    window.SoundManager?.setMuted(isSoundMuted);
-    updateAudioIcon();
-    window.notify.info('Звук', isSoundMuted ? 'Звуковые эффекты выключены' : 'Звуковые эффекты включены');
-  });
+  if (audioToggleBtn) {
+    audioToggleBtn.addEventListener('click', () => {
+      isSoundMuted = !isSoundMuted;
+      window.SoundManager?.setMuted(isSoundMuted);
+      updateAudioIcon();
+    });
+  }
 
   audioVolumeSlider?.addEventListener('input', (e) => {
     const val = parseInt(e.target.value, 10);
@@ -132,49 +193,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // NAVIGATION ROUTING
+  // NAVIGATION ROUTING (DESKTOP & MOBILE BOTTOM BAR)
   // =========================================================================
-  navTabButtons.forEach(btn => {
+  document.querySelectorAll('.nav-tab-btn, .mobile-subnav-btn, .mobile-bottom-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       const targetTab = btn.dataset.tab;
-      switchTab(targetTab);
+      if (targetTab) switchTab(targetTab);
     });
   });
 
-  brandLogoBtn.addEventListener('click', () => {
+  brandLogoBtn?.addEventListener('click', () => {
     switchTab('upgrader');
   });
 
   function switchTab(tabId) {
-    navTabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+    document.querySelectorAll('.nav-tab-btn, .mobile-subnav-btn, .mobile-bottom-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === tabId);
+    });
     tabContents.forEach(c => c.classList.toggle('active', c.id === `tab-${tabId}`));
 
     if (tabId === 'profile') {
       renderProfilePage();
+    } else if (tabId === 'leaderboard') {
+      if (typeof renderLeaderboard === 'function') renderLeaderboard();
     }
   }
 
   // =========================================================================
-  // AUTHENTICATION MODAL & AVATARS
+  // AUTHENTICATION MODAL (BLOCK 1: RELIABLE LOGIN & NO AVATARS)
   // =========================================================================
-  renderAvatarGrid();
-
-  function renderAvatarGrid() {
-    avatarGrid.innerHTML = '';
-    window.authManager.defaultAvatars.forEach(av => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = `avatar-choice-btn ${av.icon === selectedAvatar ? 'selected' : ''}`;
-      btn.innerHTML = av.icon;
-      btn.title = av.name;
-      btn.addEventListener('click', () => {
-        selectedAvatar = av.icon;
-        document.querySelectorAll('.avatar-choice-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-      });
-      avatarGrid.appendChild(btn);
-    });
-  }
+  const authToggleHint = document.getElementById('auth-toggle-hint');
+  const authLinkSwitch = document.getElementById('auth-link-switch');
 
   function openAuthModal(mode = 'register') {
     setAuthMode(mode);
@@ -191,41 +240,58 @@ document.addEventListener('DOMContentLoaded', () => {
     modalAuth.classList.remove('active');
   }
 
-  authModalClose.addEventListener('click', closeAuthModal);
+  authModalClose?.addEventListener('click', closeAuthModal);
 
   function setAuthMode(mode) {
     currentAuthMode = mode;
     if (mode === 'register') {
-      authModeRegisterBtn.classList.add('active');
-      authModeLoginBtn.classList.remove('active');
-      avatarPickerSection.style.display = 'block';
-      authModalTitle.textContent = 'Создание профиля SIMUP';
-      authModalSubtitle.innerHTML = 'Зарегистрируйтесь и получите стартовый баланс <strong>$500.00</strong>!';
-      authSubmitBtn.textContent = 'Создать аккаунт (+ $500.00)';
+      authModeRegisterBtn?.classList.add('active');
+      authModeLoginBtn?.classList.remove('active');
+      if (authModalTitle) authModalTitle.textContent = 'Регистрация в SIMUP';
+      if (authModalSubtitle) authModalSubtitle.innerHTML = 'Создайте профиль со стартовым балансом <strong>$500.00</strong> и скином!';
+      if (authSubmitBtn) authSubmitBtn.textContent = 'Создать аккаунт (+ $500.00)';
+      if (authToggleHint) {
+        authToggleHint.innerHTML = 'Уже есть аккаунт? <a href="#" id="auth-link-switch" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Войти в профиль</a>';
+        document.getElementById('auth-link-switch')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          setAuthMode('login');
+        });
+      }
     } else {
-      authModeLoginBtn.classList.add('active');
-      authModeRegisterBtn.classList.remove('active');
-      avatarPickerSection.style.display = 'none';
-      authModalTitle.textContent = 'Вход в аккаунт';
-      authModalSubtitle.textContent = 'Введите ваш никнейм и пароль для продолжения';
-      authSubmitBtn.textContent = 'Войти в профиль';
+      authModeLoginBtn?.classList.add('active');
+      authModeRegisterBtn?.classList.remove('active');
+      if (authModalTitle) authModalTitle.textContent = 'Вход в аккаунт';
+      if (authModalSubtitle) authModalSubtitle.textContent = 'Введите ваш никнейм и пароль для продолжения';
+      if (authSubmitBtn) authSubmitBtn.textContent = 'Войти в аккаунт';
+      if (authToggleHint) {
+        authToggleHint.innerHTML = 'Впервые на сайте? <a href="#" id="auth-link-switch" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Зарегистрироваться (+ $500)</a>';
+        document.getElementById('auth-link-switch')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          setAuthMode('register');
+        });
+      }
     }
   }
 
-  authModeRegisterBtn.addEventListener('click', () => setAuthMode('register'));
-  authModeLoginBtn.addEventListener('click', () => setAuthMode('login'));
+  authModeRegisterBtn?.addEventListener('click', () => setAuthMode('register'));
+  authModeLoginBtn?.addEventListener('click', () => setAuthMode('login'));
 
-  authForm.addEventListener('submit', async (e) => {
+  authForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = authUsernameInput.value.trim();
     const password = authPasswordInput.value.trim();
 
+    if (!username || !password) {
+      window.notify.warning('Внимание', 'Пожалуйста, введите никнейм и пароль.');
+      return;
+    }
+
     if (currentAuthMode === 'register') {
-      const res = await window.authManager.register(username, password, selectedAvatar);
+      const res = await window.authManager.register(username, password);
       if (res.success) {
         modalAuth.classList.remove('active');
         authForm.reset();
-        window.notify.bigWin('Добро пожаловать!', `Аккаунт ${res.user.username} создан! Стартовый бонус $500.00 зачислен.`);
+        window.notify.bigWin('Добро пожаловать!', `Аккаунт ${res.user.username} создан! Стартовый бонус $500.00 и скин зачислены.`);
       } else {
         window.notify.error('Ошибка регистрации', res.error);
       }
@@ -249,6 +315,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (user && profileContainer) {
       renderProfilePage();
     }
+    // Re-render inventory drawer & arena
+    try {
+      if (typeof renderInventoryDrawer === 'function') {
+        renderInventoryDrawer();
+      }
+      if (typeof updateUpgraderUI === 'function') {
+        updateUpgraderUI();
+      }
+      if (typeof renderLeaderboard === 'function') {
+        renderLeaderboard();
+      }
+    } catch (e) {
+      console.warn('UI update on user change notice:', e);
+    }
   });
 
   function updateHeaderUserUI(user) {
@@ -258,8 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       headerBalanceEl.textContent = `$${user.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       userHeaderContainer.innerHTML = `
-        <div class="user-profile-btn" id="header-user-btn" title="Открыть профиль ${user.username} (Уровень ${level})">
-          <div class="user-avatar-badge">${user.avatar || '🗡️'}</div>
+        <div class="user-profile-btn" id="header-user-btn" title="Профиль ${user.username}">
           <span class="user-name-label">${user.username}</span>
           <span class="user-level-pill">LVL ${level}</span>
         </div>
@@ -364,93 +443,41 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =========================================================================
-  // BLOCK 2: DEPOSIT MODAL LOGIC ($10 - $100,000)
-  // =========================================================================
-  const modalDeposit = document.getElementById('modal-deposit');
-  const depositModalClose = document.getElementById('deposit-modal-close');
-  const depositChips = document.querySelectorAll('.deposit-chip-btn');
-  const depositSlider = document.getElementById('deposit-slider');
-  const depositCustomInput = document.getElementById('deposit-custom-input');
-  const btnExecuteDeposit = document.getElementById('btn-execute-deposit');
-
-  function openDepositModal(initialAmount = 100) {
-    if (!window.authManager.currentUser) {
-      openAuthModal('register');
-      return;
-    }
-    setDepositAmount(initialAmount);
-    modalDeposit.classList.add('active');
-  }
-
-  function closeDepositModal() {
-    modalDeposit.classList.remove('active');
-  }
-
-  depositModalClose.addEventListener('click', closeDepositModal);
-
-  document.getElementById('btn-quick-deposit')?.addEventListener('click', () => {
-    openDepositModal(100);
-  });
-
-  document.getElementById('btn-open-faucet-from-bank')?.addEventListener('click', () => {
-    openDepositModal(500);
-  });
-
-  function setDepositAmount(amount) {
-    const val = Math.min(100000, Math.max(10, Number(amount) || 10));
-    depositSlider.value = val;
-    depositCustomInput.value = val;
-
-    depositChips.forEach(chip => {
-      chip.classList.toggle('active', Number(chip.dataset.amount) === val);
-    });
-  }
-
-  depositChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      setDepositAmount(chip.dataset.amount);
-    });
-  });
-
-  depositSlider.addEventListener('input', (e) => {
-    setDepositAmount(e.target.value);
-  });
-
-  depositCustomInput.addEventListener('input', (e) => {
-    setDepositAmount(e.target.value);
-  });
-
-  btnExecuteDeposit.addEventListener('click', () => {
-    const amount = parseFloat(depositCustomInput.value);
-    const ok = window.economyManager.depositFunds(amount);
-    if (ok) {
-      closeDepositModal();
-      if (document.getElementById('tab-bank').classList.contains('active')) {
-        renderBankPage();
-      }
-    }
-  });
-
-  // =========================================================================
-  // BLOCK 2: BANK & CREDIT CONTROLLER
+  // BLOCK 2: BANK & CREDIT CONTROLLER (FAUCETS REMOVED)
   // =========================================================================
   const loanStatusBadge = document.getElementById('loan-status-badge');
   const loanMaxLimitEl = document.getElementById('loan-max-limit');
   const loanCurrentDebtEl = document.getElementById('loan-current-debt');
+  const loanRatingPenaltyEl = document.getElementById('loan-rating-penalty');
   const loanInputAmount = document.getElementById('loan-input-amount');
   const btnTakeLoan = document.getElementById('btn-take-loan');
   const loanRepayInput = document.getElementById('loan-repay-input');
   const btnRepayPartial = document.getElementById('btn-repay-partial');
   const btnRepayFull = document.getElementById('btn-repay-full');
   const loanChips = document.querySelectorAll('[data-loan-chip]');
+  const loanAutoRepayToggle = document.getElementById('loan-auto-repay-toggle');
+
+  // Quick header & profile buttons redirect directly to Bank
+  document.getElementById('btn-quick-deposit')?.addEventListener('click', () => {
+    switchTab('bank');
+  });
 
   loanChips.forEach(btn => {
     btn.addEventListener('click', () => {
-      loanInputAmount.value = btn.dataset.loanChip;
+      const chipVal = btn.dataset.loanChip;
+      const user = window.authManager.currentUser;
+      if (chipVal === 'max') {
+        const maxLimit = window.economyManager.getMaxLoanLimit(user);
+        const debt = user?.loans?.currentDebt || 0;
+        const available = Math.max(50, Math.floor(maxLimit - debt));
+        loanInputAmount.value = available;
+      } else {
+        loanInputAmount.value = chipVal;
+      }
     });
   });
 
-  btnTakeLoan.addEventListener('click', () => {
+  btnTakeLoan?.addEventListener('click', () => {
     const val = parseFloat(loanInputAmount.value);
     const res = window.economyManager.takeLoan(val);
     if (res.success) {
@@ -461,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  btnRepayPartial.addEventListener('click', () => {
+  btnRepayPartial?.addEventListener('click', () => {
     const val = parseFloat(loanRepayInput.value);
     const res = window.economyManager.repayLoan(val);
     if (res.success) {
@@ -472,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  btnRepayFull.addEventListener('click', () => {
+  btnRepayFull?.addEventListener('click', () => {
     const user = window.authManager.currentUser;
     if (!user) return;
     const debt = user.loans?.currentDebt || 0;
@@ -485,22 +512,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  loanAutoRepayToggle?.addEventListener('change', (e) => {
+    window.economyManager.toggleAutoRepay(e.target.checked);
+    window.notify.info(
+      'Автопогашение',
+      e.target.checked
+        ? 'Автопогашение включено (20% с чистых выигрышей пойдет в счет долга)'
+        : 'Автопогашение кредита отключено'
+    );
+  });
+
   function renderBankPage() {
     const user = window.authManager.currentUser;
     if (!user) return;
 
     const maxLimit = window.economyManager.getMaxLoanLimit(user);
     const debt = user.loans?.currentDebt || 0;
+    const debtPenalty = debt * 1.5;
 
-    loanMaxLimitEl.textContent = `$${maxLimit.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-    loanCurrentDebtEl.textContent = `$${debt.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    if (loanMaxLimitEl) {
+      loanMaxLimitEl.textContent = `$${maxLimit.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    }
+    if (loanCurrentDebtEl) {
+      loanCurrentDebtEl.textContent = `$${debt.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    }
+    if (loanRatingPenaltyEl) {
+      loanRatingPenaltyEl.textContent = `-$${debtPenalty.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    }
+    if (loanAutoRepayToggle) {
+      loanAutoRepayToggle.checked = user.loans?.autoRepay !== false;
+    }
 
     if (debt <= 0) {
       loanStatusBadge.className = 'loan-status-pill loan-status-clean';
       loanStatusBadge.textContent = 'Без долгов';
-    } else if (debt > 5000) {
+    } else if (debt > user.balance || debt > 3000) {
       loanStatusBadge.className = 'loan-status-pill loan-status-danger';
-      loanStatusBadge.textContent = 'Высокий долг';
+      loanStatusBadge.textContent = 'Критический долг';
     } else {
       loanStatusBadge.className = 'loan-status-pill loan-status-active';
       loanStatusBadge.textContent = 'Активный кредит';
@@ -688,9 +736,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Profile Header -->
         <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
           <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 64px; height: 64px; border-radius: var(--radius-md); background: rgba(var(--accent-rgb), 0.2); border: 2px solid var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 0 16px var(--accent-glow);">
-              ${user.avatar || '🗡️'}
-            </div>
             <div>
               <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <h2 style="font-size: 24px; font-weight: 800; color: #fff;">${user.username}</h2>
@@ -714,7 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
             <input type="file" id="input-import-backup" accept=".json" style="display: none;">
             <button id="btn-profile-deposit" class="btn-deposit" style="padding: 9px 16px;">
-              + Пополнить
+              🏦 Кредит в Банке
             </button>
             <button id="btn-logout" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 9px 16px; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; transition: all var(--transition-fast);">
               Выйти
@@ -1136,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('btn-profile-deposit')?.addEventListener('click', () => {
-      openDepositModal(100);
+      switchTab('bank');
     });
 
     document.getElementById('btn-trigger-sell-all')?.addEventListener('click', openSellAllModal);
@@ -1166,7 +1211,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = user.inventory.find(it => it.instanceId === instanceId);
         if (item) {
           window.upgraderEngine.selectedItems = [item];
-          window.upgraderEngine.balanceBet = 0;
           switchTab('upgrader');
           updateUpgraderUI();
           window.notify.info('Скин выбран для ставки', `${item.name} ($${item.price.toFixed(2)}) отправлен на арену!`);
@@ -1187,15 +1231,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnFireUpgrade = document.getElementById('btn-fire-upgrade');
   const btnUpgradePriceTag = document.getElementById('btn-upgrade-price-tag');
 
-  const arenaBalanceInput = document.getElementById('arena-balance-input');
   const arenaTotalBetVal = document.getElementById('arena-total-bet-val');
+  const arenaSelectedItemsSummary = document.getElementById('arena-selected-items-summary');
   const arenaInventoryDrawer = document.getElementById('arena-inventory-drawer');
   const drawerSelectedCount = document.getElementById('drawer-selected-count');
-  const arenaUserBalance = document.getElementById('arena-user-balance');
+  const btnSelectCheapest = document.getElementById('btn-select-cheapest');
+  const btnSelectAllInv = document.getElementById('btn-select-all-inv');
+  const btnClearInvSelection = document.getElementById('btn-clear-inv-selection');
+  const arenaInvSearch = document.getElementById('arena-inv-search');
+  const arenaInvSort = document.getElementById('arena-inv-sort');
+  const btnArenaBuySkins = document.getElementById('btn-arena-buy-skins');
+  const btnQuickArrowStyle = document.getElementById('btn-quick-arrow-style');
 
   const btnDirUnder = document.getElementById('btn-dir-under');
   const btnDirOver = document.getElementById('btn-dir-over');
-  const houseEdgeSelect = document.getElementById('house-edge-select');
 
   const targetSkinShowcase = document.getElementById('target-skin-showcase');
   const targetSkinImg = document.getElementById('target-skin-img');
@@ -1296,42 +1345,51 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateUpgraderUI() {
-    const user = window.authManager.currentUser;
     const totalBet = window.upgraderEngine.getTotalBetAmount();
     const chance = window.upgraderEngine.calculateChance();
     const multiplier = window.upgraderEngine.calculateMultiplier();
     const target = window.upgraderEngine.targetSkin;
+    const selectedCount = window.upgraderEngine.selectedItems.length;
 
-    if (user) {
-      arenaUserBalance.textContent = `Баланс: $${user.balance.toFixed(2)}`;
+    if (arenaTotalBetVal) {
+      arenaTotalBetVal.textContent = `$${totalBet.toFixed(2)}`;
+    }
+    if (arenaSelectedItemsSummary) {
+      arenaSelectedItemsSummary.textContent = `${selectedCount} ${getNoun(selectedCount, 'предмет', 'предмета', 'предметов')}`;
+    }
+    if (btnUpgradePriceTag) {
+      btnUpgradePriceTag.textContent = totalBet > 0 ? `($${totalBet.toFixed(2)})` : '(Выберите скин)';
     }
 
-    arenaTotalBetVal.textContent = `$${totalBet.toFixed(2)}`;
-    btnUpgradePriceTag.textContent = `($${totalBet.toFixed(2)})`;
-
-    wheelChanceVal.textContent = `${chance.toFixed(2)}%`;
-    wheelMultVal.textContent = multiplier > 0 ? `${multiplier.toFixed(2)}x` : '0.00x';
+    if (wheelChanceVal) wheelChanceVal.textContent = `${chance.toFixed(2)}%`;
+    if (wheelMultVal) wheelMultVal.textContent = multiplier > 0 ? `${multiplier.toFixed(2)}x` : '0.00x';
 
     // Target skin showcase
     if (target) {
-      targetSkinImg.src = target.image;
-      targetSkinImg.alt = target.name;
-      targetSkinName.textContent = `${target.name} ${target.wear && target.wear !== 'STANDARD' ? `(${target.wear})` : ''}`;
-      targetSkinPrice.textContent = `$${target.price.toFixed(2)}`;
-      targetGlowBack.style.setProperty('--target-clr', target.rarityColor || '#00ff88');
+      if (targetSkinImg) {
+        targetSkinImg.src = target.image;
+        targetSkinImg.alt = target.name;
+      }
+      if (targetSkinName) {
+        targetSkinName.textContent = `${target.name} ${target.wear && target.wear !== 'STANDARD' ? `(${target.wear})` : ''}`;
+      }
+      if (targetSkinPrice) targetSkinPrice.textContent = `$${target.price.toFixed(2)}`;
+      if (targetGlowBack) targetGlowBack.style.setProperty('--target-clr', target.rarityColor || '#00ff88');
 
-      const profit = Math.max(0, target.price - totalBet);
-      targetWinPayoutVal.textContent = `+$${profit.toFixed(2)} профит`;
+      if (targetWinPayoutVal) {
+        const profit = Math.max(0, target.price - totalBet);
+        targetWinPayoutVal.textContent = totalBet > 0 ? `+$${profit.toFixed(2)} профит` : `+$${target.price.toFixed(2)}`;
+      }
     }
 
     // Direction pills
-    btnDirUnder.classList.toggle('active', window.upgraderEngine.direction === 'under');
-    btnDirOver.classList.toggle('active', window.upgraderEngine.direction === 'over');
+    if (btnDirUnder) btnDirUnder.classList.toggle('active', window.upgraderEngine.direction === 'under');
+    if (btnDirOver) btnDirOver.classList.toggle('active', window.upgraderEngine.direction === 'over');
 
     // Provably fair bar
-    pfBarClientSeed.textContent = window.upgraderEngine.clientSeed;
-    pfBarServerHash.textContent = window.upgraderEngine.serverSeedHash.substring(0, 16) + '...';
-    pfBarNonce.textContent = `#${window.upgraderEngine.nonce}`;
+    if (pfBarClientSeed) pfBarClientSeed.textContent = window.upgraderEngine.clientSeed;
+    if (pfBarServerHash) pfBarServerHash.textContent = window.upgraderEngine.serverSeedHash.substring(0, 16) + '...';
+    if (pfBarNonce) pfBarNonce.textContent = `#${window.upgraderEngine.nonce}`;
 
     // Draw Wheel
     drawWheel(chance, window.upgraderEngine.direction);
@@ -1343,27 +1401,61 @@ document.addEventListener('DOMContentLoaded', () => {
   window.updateUpgraderUI = updateUpgraderUI;
 
   function renderInventoryDrawer() {
+    if (!arenaInventoryDrawer) return;
     const user = window.authManager.currentUser;
     if (!user || !user.inventory || user.inventory.length === 0) {
       arenaInventoryDrawer.innerHTML = `
-        <div style="font-size: 11.5px; color: var(--text-dim); text-align: center; padding: 20px 0;">
-          Инвентарь пуст. Используйте баланс!
+        <div style="font-size: 11.5px; color: var(--text-dim); text-align: center; padding: 28px 12px;">
+          <div style="font-size: 26px; margin-bottom: 6px;">🎒</div>
+          <div style="color: #fff; font-weight: 700; margin-bottom: 4px;">Инвентарь пуст</div>
+          <p style="margin-bottom: 12px; font-size: 11px;">Ставки делаются только скинами. Купите скины в каталоге за баланс!</p>
+          <button id="btn-empty-buy-skins" class="btn-sm-action" style="background: var(--accent-color); color: #000; font-weight: 800; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer;">
+            Купить скины
+          </button>
         </div>
       `;
-      drawerSelectedCount.textContent = 'Выбрано: 0';
+      document.getElementById('btn-empty-buy-skins')?.addEventListener('click', () => {
+        document.querySelector('.catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+      });
+      if (drawerSelectedCount) drawerSelectedCount.textContent = 'Выбрано: 0 шт.';
       return;
     }
 
-    const selectedIds = window.upgraderEngine.selectedItems.map(it => it.instanceId);
-    drawerSelectedCount.textContent = `Выбрано: ${selectedIds.length}`;
+    let items = [...user.inventory];
+    const query = (arenaInvSearch?.value || '').trim().toLowerCase();
+    if (query) {
+      items = items.filter(it => it.name.toLowerCase().includes(query) || (it.wearName && it.wearName.toLowerCase().includes(query)));
+    }
 
-    arenaInventoryDrawer.innerHTML = user.inventory.map(item => {
+    const sortType = arenaInvSort?.value || 'cheap';
+    if (sortType === 'cheap') {
+      items.sort((a, b) => a.price - b.price);
+    } else {
+      items.sort((a, b) => b.price - a.price);
+    }
+
+    const selectedIds = window.upgraderEngine.selectedItems.map(it => it.instanceId);
+    if (drawerSelectedCount) drawerSelectedCount.textContent = `Выбрано: ${selectedIds.length} шт.`;
+
+    if (items.length === 0) {
+      arenaInventoryDrawer.innerHTML = `
+        <div style="font-size: 11.5px; color: var(--text-dim); text-align: center; padding: 20px 0;">
+          По запросу «${query}» ничего не найдено.
+        </div>
+      `;
+      return;
+    }
+
+    arenaInventoryDrawer.innerHTML = items.map(item => {
       const isSel = selectedIds.includes(item.instanceId);
       return `
         <div class="drawer-item-row ${isSel ? 'selected' : ''}" data-drawer-id="${item.instanceId}">
-          <input type="checkbox" ${isSel ? 'checked' : ''} style="accent-color: var(--accent-color); pointer-events: none;">
+          <input type="checkbox" ${isSel ? 'checked' : ''} style="accent-color: var(--accent-color); pointer-events: none; margin-right: 6px;">
           <img src="${item.image}" alt="${item.name}" class="drawer-item-img">
-          <span class="drawer-item-name">${item.name}</span>
+          <div style="flex: 1; min-width: 0; margin: 0 8px;">
+            <div class="drawer-item-name" title="${item.name}">${item.name}</div>
+            <div style="font-size: 9.5px; color: var(--text-dim);">${item.wear && item.wear !== 'STANDARD' ? item.wear : (item.game || 'CS2').toUpperCase()}</div>
+          </div>
           <span class="drawer-item-price">$${item.price.toFixed(2)}</span>
         </div>
       `;
@@ -1381,64 +1473,69 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Bet input listener
-  arenaBalanceInput.addEventListener('input', (e) => {
-    window.upgraderEngine.setBalanceBet(e.target.value);
+  // Inventory Quick Action buttons
+  btnSelectCheapest?.addEventListener('click', () => {
+    const user = window.authManager.currentUser;
+    if (!user || !user.inventory || user.inventory.length === 0) {
+      window.notify.warning('Инвентарь пуст', 'Сначала приобретите скины в каталоге за баланс.');
+      return;
+    }
+    const cheapest = [...user.inventory].sort((a, b) => a.price - b.price)[0];
+    if (cheapest) {
+      window.upgraderEngine.selectedItems = [cheapest];
+      updateUpgraderUI();
+      window.notify.info('Выбран скин', `${cheapest.name} ($${cheapest.price.toFixed(2)}) выбран для ставки.`);
+    }
+  });
+
+  btnSelectAllInv?.addEventListener('click', () => {
+    const user = window.authManager.currentUser;
+    if (!user || !user.inventory || user.inventory.length === 0) {
+      window.notify.warning('Инвентарь пуст', 'Сначала приобретите скины в каталоге за баланс.');
+      return;
+    }
+    window.upgraderEngine.selectAllItems(user.inventory);
+    updateUpgraderUI();
+    window.notify.info('Выбраны все скины', `Все ${user.inventory.length} предметов выбраны для ставки.`);
+  });
+
+  btnClearInvSelection?.addEventListener('click', () => {
+    window.upgraderEngine.clearSelectedItems();
     updateUpgraderUI();
   });
 
-  // Bet quick chips
-  document.querySelectorAll('[data-bet-add]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const add = parseFloat(btn.dataset.betAdd) || 0;
-      const current = parseFloat(arenaBalanceInput.value) || 0;
-      const next = current + add;
-      arenaBalanceInput.value = next.toFixed(2);
-      window.upgraderEngine.setBalanceBet(next);
-      updateUpgraderUI();
-    });
+  arenaInvSearch?.addEventListener('input', () => {
+    renderInventoryDrawer();
   });
 
-  document.querySelectorAll('[data-bet-action]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const action = btn.dataset.betAction;
-      const current = parseFloat(arenaBalanceInput.value) || 0;
-      const user = window.authManager.currentUser;
-      let next = current;
+  arenaInvSort?.addEventListener('change', () => {
+    renderInventoryDrawer();
+  });
 
-      if (action === 'half') {
-        next = Math.max(0.1, current / 2);
-      } else if (action === 'double') {
-        next = current * 2;
-      } else if (action === 'clear') {
-        next = 0;
-        window.upgraderEngine.clearSelectedItems();
-      } else if (action === 'max') {
-        next = user ? user.balance : 100;
-      }
+  btnArenaBuySkins?.addEventListener('click', () => {
+    document.querySelector('.catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+  });
 
-      arenaBalanceInput.value = next.toFixed(2);
-      window.upgraderEngine.setBalanceBet(next);
-      updateUpgraderUI();
-    });
+  // Quick arrow style cycle button
+  const ARROW_STYLES_ARRAY = ['arrow-laser', 'arrow-blade', 'arrow-needle', 'arrow-classic'];
+  btnQuickArrowStyle?.addEventListener('click', () => {
+    const current = localStorage.getItem('simup_arrow_style') || 'arrow-laser';
+    let idx = ARROW_STYLES_ARRAY.indexOf(current);
+    if (idx === -1) idx = 0;
+    const nextStyle = ARROW_STYLES_ARRAY[(idx + 1) % ARROW_STYLES_ARRAY.length];
+    applyArrowStyle(nextStyle);
+    window.notify.info('Стиль стрелки', `Установлен стиль: ${ARROW_NAMES_MAP[nextStyle]}`);
   });
 
   // Direction toggle
-  btnDirUnder.addEventListener('click', () => {
+  btnDirUnder?.addEventListener('click', () => {
     window.upgraderEngine.setDirection('under');
     updateUpgraderUI();
   });
 
-  btnDirOver.addEventListener('click', () => {
+  btnDirOver?.addEventListener('click', () => {
     window.upgraderEngine.setDirection('over');
     updateUpgraderUI();
-  });
-
-  // House edge select
-  houseEdgeSelect.addEventListener('change', (e) => {
-    window.upgraderEngine.setHouseEdge(parseFloat(e.target.value));
-    updateUpgraderUI();
-    window.notify.info('Комиссия сайта', `Установлена комиссия: ${e.target.options[e.target.selectedIndex].text}`);
   });
 
   // Quick multipliers
@@ -1450,7 +1547,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUpgraderUI();
         window.notify.info(`Множитель ${mult}x`, `Подобран скин: ${matched.name} ($${matched.price.toFixed(2)})`);
       } else {
-        window.notify.warning('Множитель', 'Укажите сумму ставки, чтобы подобрать скин под множитель.');
+        window.notify.warning('Множитель', 'Выберите скины из инвентаря для ставки, чтобы рассчитать множитель.');
       }
     });
   });
@@ -1473,6 +1570,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================================
   btnFireUpgrade.addEventListener('click', async () => {
     if (window.upgraderEngine.isSpinning) return;
+
+    if (!window.authManager.currentUser) {
+      window.notify.warning('Вход в аккаунт', 'Пожалуйста, авторизуйтесь для игры в апгрейдер.');
+      openAuthModal('login');
+      return;
+    }
+
+    if (window.upgraderEngine.selectedItems.length === 0) {
+      window.notify.warning('Выберите скин для ставки', 'В апгрейдере ставки делаются только скинами! Выберите один или несколько скинов из инвентаря слева.');
+      return;
+    }
+
+    if (!window.upgraderEngine.targetSkin) {
+      window.notify.warning('Выберите цель', 'Выберите целевой скин для апгрейда в каталоге справа или выберите множитель.');
+      return;
+    }
 
     btnFireUpgrade.disabled = true;
     wheelCenterStatus.textContent = 'КРУТИМ...';
@@ -1828,7 +1941,6 @@ document.addEventListener('DOMContentLoaded', () => {
   btnWinUpgrade.addEventListener('click', () => {
     if (!lastDroppedItem) return;
     window.upgraderEngine.selectedItems = [lastDroppedItem];
-    window.upgraderEngine.balanceBet = 0;
     modalCaseWin.classList.remove('active');
     switchTab('upgrader');
     updateUpgraderUI();
@@ -1925,10 +2037,13 @@ document.addEventListener('DOMContentLoaded', () => {
               <td>${rankBadge}</td>
               <td>
                 <div class="player-info-cell">
-                  <div class="player-avatar-sm">${p.avatar}</div>
+                  <div class="player-avatar-sm" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); font-weight: 800; font-size: 11px; color: var(--accent-color);">${(p.username || '?').substring(0, 2).toUpperCase()}</div>
                   <div class="player-name-wrap">
-                    <span style="font-weight: 800; color: #fff;">${p.username}</span>
-                    ${isCurrent ? '<span class="you-badge">★ ВЫ</span>' : ''}
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                      <span style="font-weight: 800; color: #fff;">${p.username}</span>
+                      ${isCurrent ? '<span class="you-badge">★ ВЫ</span>' : ''}
+                      ${p.currentDebt > 0 ? `<span class="loan-status-pill loan-status-danger" style="padding: 1px 6px; font-size: 9.5px;">⚠️ Долг: -$${p.currentDebt.toFixed(2)}</span>` : ''}
+                    </div>
                   </div>
                 </div>
               </td>
@@ -1936,9 +2051,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span style="font-weight: 900; font-size: 14.5px; color: ${profitColor};">
                   ${profitSign}$${p.netProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
+                ${p.currentDebt > 0 ? `<div style="font-size: 10px; color: #f87171;">Штраф 1.5x: -$${p.debtPenalty.toFixed(2)}</div>` : ''}
               </td>
               <td>
-                <div style="font-weight: 800; color: #fff;">$${p.netWorth.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                <div style="font-weight: 800; color: ${p.netWorth >= 0 ? '#fff' : '#ef4444'};">$${p.netWorth.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
                 <div style="font-size: 11px; color: var(--text-muted);">$${p.balance.toFixed(2)} баланс • ${p.invCount} скинов</div>
               </td>
               <td>
@@ -2002,7 +2118,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <td>${rankBadge}</td>
               <td>
                 <div class="player-info-cell">
-                  <div class="player-avatar-sm">${p.avatar}</div>
+                  <div class="player-avatar-sm" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); font-weight: 800; font-size: 11px; color: var(--accent-color);">${(p.username || '?').substring(0, 2).toUpperCase()}</div>
                   <div class="player-name-wrap">
                     <span style="font-weight: 800; color: #fff;">${p.username}</span>
                     ${isCurrent ? '<span class="you-badge">★ ВЫ</span>' : ''}
@@ -3460,11 +3576,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Global haptic & click sound for buttons, tabs, and chips
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button, .mobile-bottom-tab, .game-pill-btn, .bet-chip, .theme-card-option, .arrow-choice-btn, .arena-choice-btn');
+    if (btn) {
+      window.SoundManager?.playClick();
+    }
+  }, { passive: true });
+
   // Initial draw
   updateUpgraderUI();
   renderCasesGrid();
   renderLeaderboard('profit');
-  initLiveDrops();
   renderContractsDesk();
   renderMinesBoard();
   renderCoinflipUI();

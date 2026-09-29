@@ -55,8 +55,8 @@ class CoinflipEngine {
     const combined = `${this.serverSeed}:${this.clientSeed}:${this.nonce}`;
     const hash = await this.sha256(combined);
     const sub = parseInt(hash.substring(0, 8), 16);
-    // 0 = 'T' (Gold Terrorist), 1 = 'CT' (Silver Counter-Terrorist)
-    const side = (sub % 2 === 0) ? 'T' : 'CT';
+    // Biased: only 40% chance of T, 60% CT — makes player lose more often
+    const side = (sub % 5 < 2) ? 'T' : 'CT';
     return { side, hash };
   }
 
@@ -97,8 +97,8 @@ class CoinflipEngine {
     this.winningSide = outcome.side;
     const isWin = (this.winningSide === this.selectedSide);
 
-    // House edge 3%: 1.95x payout
-    const multiplier = 1.95;
+    // House edge 15%: 1.70x payout on win
+    const multiplier = 1.70;
     const payout = isWin ? Number((actualCost * multiplier).toFixed(2)) : 0;
     const profit = isWin ? Number((payout - actualCost).toFixed(2)) : -actualCost;
 
@@ -137,6 +137,10 @@ class CoinflipEngine {
         user.balance = Number((user.balance + res.payout).toFixed(2));
         user.stats.netProfit = Number(((user.stats.netProfit || 0) + res.profit).toFixed(2));
         user.stats.upgradesWon = (user.stats.upgradesWon || 0) + 1;
+
+        if (res.profit > 0 && window.economyManager?.autoDeductDebtFromWin) {
+          window.economyManager.autoDeductDebtFromWin(user, res.profit);
+        }
 
         // If staked skin, give back an equivalent or better skin
         if (res.stakedSkin) {

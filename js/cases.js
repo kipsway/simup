@@ -195,9 +195,14 @@ class CasesManager {
           acquiredAt: Date.now()
         };
 
+        const profit = Number((winner.price - caseData.price).toFixed(2));
         user.inventory.unshift(wonItem);
-        user.stats.netProfit = Number(((user.stats.netProfit || 0) + (winner.price - caseData.price)).toFixed(2));
-        user.stats.casesOpened = (user.stats.casesOpened || 0) + 1;
+        user.stats.netProfit = Number(((user.stats.netProfit || 0) + profit).toFixed(2));
+        
+        // Auto-repay bank debt from profitable drop
+        if (profit > 0 && window.economyManager?.autoDeductDebtFromWin) {
+          window.economyManager.autoDeductDebtFromWin(user, profit);
+        }
         
         if (!user.stats.bestWinSkin || winner.price > (user.stats.bestWinSkin.price || 0)) {
           user.stats.bestWinSkin = wonItem;

@@ -1,271 +1,315 @@
 /* ==========================================================================
-   SIMUP - 15 CASES DATABASE (5 FOR CS2, 5 FOR DOTA 2, 5 FOR RUST)
+   SIMUP - 15 CASES DATABASE (5 FOR CS2, 5 FOR DOTA 2, 5 FOR RUST) - BLOCK 7
    Realistic drop tables with precise mathematical weights (probabilities)
+   - Every single skinId matches SKINS_DATABASE 100%
+   - Every case strictly contains loss skins cheaper than the case price
+   - Realistic house edge and return-to-player (~75% - 88% EV)
    ========================================================================== */
 
 const CASES_DATABASE = [
   // ==========================================
-  // CS2 CASES (5 Unique Cases)
+  // CS2 CASES (5 Balanced Cases)
   // ==========================================
   {
-    id: 'case_cs2_knife_dream',
+    id: 'case_cs2_budget_rush',
     game: 'cs2',
-    name: 'Knife Dream ★',
-    nameEn: 'Knife Dream Case',
-    price: 150.00,
-    icon: '🗡️',
-    color: '#ffd700',
-    description: 'Легендарный кейс исключительно с ножами и топовыми перчатками!',
+    name: 'Бюджетный раш',
+    nameEn: 'Budget Rush Case',
+    price: 2.50,
+    icon: '⚡',
+    color: '#10b981',
+    description: 'Доступный кейс с шансом выбить AK-47 Redline и AWP Asiimov.',
     items: [
-      { skinId: 'cs2_gloves_vice_FT', weight: 3 },       // Sport Gloves Vice ($1,450) -> 0.3%
-      { skinId: 'cs2_butterfly_fade_FN', weight: 8 },    // Butterfly Fade ($3,450) -> 0.8%
-      { skinId: 'cs2_karambit_doppler_p2_FN', weight: 14 }, // Karambit Doppler ($2,150) -> 1.4%
-      { skinId: 'cs2_m9_bayonet_lore_FT', weight: 35 },  // M9 Bayonet Lore ($680) -> 3.5%
-      { skinId: 'cs2_skeleton_crimson_web_FT', weight: 50 }, // Skeleton Crimson ($740) -> 5.0%
-      { skinId: 'cs2_gloves_snow_leopard_FT', weight: 190 }, // Gloves Snow Leopard ($440) -> 19.0%
-      { skinId: 'cs2_m9_bayonet_lore_BS', weight: 320 },  // M9 Lore BS ($390) -> 32.0%
-      { skinId: 'cs2_gloves_snow_leopard_BS', weight: 380 } // Snow Leopard BS ($230) -> 38.0%
-    ]
-  },
-  {
-    id: 'case_cs2_covert_beast',
-    game: 'cs2',
-    name: 'Covert Beast',
-    nameEn: 'Covert Beast Case',
-    price: 45.00,
-    icon: '🐉',
-    color: '#eb4b4b',
-    description: 'Тайные винтовки и снайперки высшего калибра.',
-    items: [
-      { skinId: 'cs2_ak47_wild_lotus_FT', weight: 4 },     // Wild Lotus ($4,200) -> 0.4%
-      { skinId: 'cs2_awp_desert_hydra_FT', weight: 16 },   // Desert Hydra ($1,450) -> 1.6%
-      { skinId: 'cs2_m4a1s_printstream_FN', weight: 40 },  // M4A1-S Printstream ($540) -> 4.0%
-      { skinId: 'cs2_ak47_printstream_FN', weight: 80 },   // AK-47 Printstream ($280) -> 8.0%
-      { skinId: 'cs2_awp_asiimov_FT', weight: 260 },       // AWP Asiimov ($145) -> 26.0%
-      { skinId: 'cs2_usps_kill_confirmed_FT', weight: 280 }, // USP-S Kill Confirmed ($54) -> 28.0%
-      { skinId: 'cs2_ak47_printstream_BS', weight: 320 }   // AK-47 Printstream BS ($65) -> 32.0%
+      { skinId: 'cs2_g3sg1_safari_mesh_BS', weight: 280 }, // $0.12 (28.0%)
+      { skinId: 'cs2_p250_sand_dune_FT', weight: 260 },   // $0.20 (26.0%)
+      { skinId: 'cs2_usps_ticket_to_hell_BS', weight: 160 }, // $0.65 (16.0%)
+      { skinId: 'cs2_m4a1s_night_terror_FT', weight: 130 }, // $1.10 (13.0%)
+      { skinId: 'cs2_ak47_slate_FT', weight: 95 },         // $2.50 (9.5%)
+      { skinId: 'cs2_awp_atheris_FT', weight: 45 },        // $3.40 (4.5%)
+      { skinId: 'cs2_ak47_redline_FT', weight: 25 },       // $18.50 (2.5%)
+      { skinId: 'cs2_awp_asiimov_FT', weight: 5 }          // $135.00 (0.5%)
     ]
   },
   {
     id: 'case_cs2_sniper_elite',
     game: 'cs2',
-    name: 'Sniper Elite',
+    name: 'Снайперская элита',
     nameEn: 'Sniper Elite Case',
-    price: 25.00,
+    price: 15.00,
     icon: '🎯',
     color: '#00d2ff',
-    description: 'Всё для любителей AWP: от Dragon Lore до Asiimov.',
+    description: 'Всё для снайперов: от Atheris и Hyper Beast до легендарного Dragon Lore.',
     items: [
-      { skinId: 'cs2_awp_dragon_lore_FT', weight: 2 },    // Dragon Lore ($5,800) -> 0.2%
-      { skinId: 'cs2_awp_gungnir_FT', weight: 3 },        // Gungnir ($6,200) -> 0.3%
-      { skinId: 'cs2_awp_desert_hydra_BS', weight: 25 },  // Desert Hydra BS ($950) -> 2.5%
-      { skinId: 'cs2_awp_asiimov_FT', weight: 120 },      // AWP Asiimov FT ($145) -> 12.0%
-      { skinId: 'cs2_awp_asiimov_BS', weight: 250 },      // AWP Asiimov BS ($85) -> 25.0%
-      { skinId: 'cs2_ak47_redline_FT', weight: 600 }      // AK-47 Redline ($18.5) -> 60.0%
+      { skinId: 'cs2_g3sg1_safari_mesh_BS', weight: 120 }, // $0.12 (12.0%)
+      { skinId: 'cs2_awp_atheris_BS', weight: 320 },       // $2.10 (32.0%)
+      { skinId: 'cs2_awp_atheris_FT', weight: 260 },       // $3.40 (26.0%)
+      { skinId: 'cs2_awp_atheris_MW', weight: 160 },       // $6.80 (16.0%)
+      { skinId: 'cs2_awp_atheris_FN', weight: 70 },        // $14.50 (7.0%)
+      { skinId: 'cs2_awp_hyper_beast_BS', weight: 40 },    // $21.00 (4.0%)
+      { skinId: 'cs2_awp_hyper_beast_FT', weight: 20 },    // $32.00 (2.0%)
+      { skinId: 'cs2_awp_asiimov_FT', weight: 9 },         // $135.00 (0.9%)
+      { skinId: 'cs2_awp_dragon_lore_BS', weight: 1 }      // $3200.00 (0.1%)
+    ]
+  },
+  {
+    id: 'case_cs2_covert_beast',
+    game: 'cs2',
+    name: 'Тайный зверь',
+    nameEn: 'Covert Beast Case',
+    price: 40.00,
+    icon: '🐉',
+    color: '#eb4b4b',
+    description: 'Тайные штурмовые винтовки и пистолеты высшего ранга.',
+    items: [
+      { skinId: 'cs2_ak47_slate_BS', weight: 110 },        // $1.80 (11.0%)
+      { skinId: 'cs2_m4a4_the_emperor_BS', weight: 310 },  // $9.80 (31.0%)
+      { skinId: 'cs2_ak47_redline_FT', weight: 260 },      // $18.50 (26.0%)
+      { skinId: 'cs2_awp_hyper_beast_BS', weight: 150 },   // $21.00 (15.0%)
+      { skinId: 'cs2_deagle_printstream_FT', weight: 90 }, // $48.00 (9.0%)
+      { skinId: 'cs2_gut_knife_safari_mesh_BS', weight: 50 }, // $74.00 (5.0%)
+      { skinId: 'cs2_m4a1s_printstream_FT', weight: 23 },  // $125.00 (2.3%)
+      { skinId: 'cs2_ak47_fire_serpent_FT', weight: 5 },   // $740.00 (0.5%)
+      { skinId: 'cs2_ak47_wild_lotus_FT', weight: 2 }      // $3800.00 (0.2%)
     ]
   },
   {
     id: 'case_cs2_vintage_legends',
     game: 'cs2',
-    name: 'Vintage Legends',
+    name: 'Винтажные легенды',
     nameEn: 'Vintage Legends Case',
-    price: 80.00,
+    price: 75.00,
     icon: '👑',
     color: '#e4ae39',
-    description: 'Классические скины первой эры: Howl, Fire Serpent и Deagle Blaze.',
+    description: 'Легендарные классические раритеты первой эры CS: Howl, Fire Serpent и Dragon Lore.',
     items: [
-      { skinId: 'cs2_m4a4_howl_FT', weight: 8 },          // Howl ($3,400) -> 0.8%
-      { skinId: 'cs2_ak47_fire_serpent_FT', weight: 32 }, // Fire Serpent ($780) -> 3.2%
-      { skinId: 'cs2_deagle_blaze_FN', weight: 120 },     // Deagle Blaze ($820) -> 12.0%
-      { skinId: 'cs2_ak47_case_hardened_FT', weight: 240 }, // Case Hardened ($290) -> 24.0%
-      { skinId: 'cs2_ak47_redline_MW', weight: 600 }      // AK-47 Redline MW ($95) -> 60.0%
+      { skinId: 'cs2_deagle_conspiracy_FT', weight: 140 }, // $4.80 (14.0%)
+      { skinId: 'cs2_ak47_redline_BS', weight: 310 },      // $13.50 (31.0%)
+      { skinId: 'cs2_awp_hyper_beast_BS', weight: 240 },   // $21.00 (24.0%)
+      { skinId: 'cs2_deagle_printstream_FT', weight: 160 },// $48.00 (16.0%)
+      { skinId: 'cs2_gut_knife_safari_mesh_FT', weight: 85 }, // $78.00 (8.5%)
+      { skinId: 'cs2_m4a1s_printstream_FT', weight: 45 },  // $125.00 (4.5%)
+      { skinId: 'cs2_ak47_fire_serpent_FT', weight: 16 },  // $740.00 (1.6%)
+      { skinId: 'cs2_m4a4_howl_FT', weight: 3 },           // $3950.00 (0.3%)
+      { skinId: 'cs2_awp_dragon_lore_FT', weight: 1 }      // $5400.00 (0.1%)
     ]
   },
   {
-    id: 'case_cs2_budget_rush',
+    id: 'case_cs2_knife_dream',
     game: 'cs2',
-    name: 'Budget Rush',
-    nameEn: 'Budget Rush Case',
-    price: 2.50,
-    icon: '⚡',
-    color: '#10b981',
-    description: 'Бюджетный кейс всего за $2.50 с шансом окупа в 50 раз!',
+    name: 'Мечта о ноже ★',
+    nameEn: 'Knife Dream Case',
+    price: 130.00,
+    icon: '🗡️',
+    color: '#ffd700',
+    description: 'Охота за редкими ножами Karambit, Butterfly Fade и перчатками Vice.',
     items: [
-      { skinId: 'cs2_awp_asiimov_FT', weight: 10 },        // AWP Asiimov ($145) -> 1.0%
-      { skinId: 'cs2_usps_kill_confirmed_FT', weight: 35 }, // USP-S Kill Confirmed ($54) -> 3.5%
-      { skinId: 'cs2_ak47_redline_FT', weight: 155 },      // AK-47 Redline ($18.5) -> 15.5%
-      { skinId: 'cs2_glock18_water_elemental_FT', weight: 300 }, // Glock Water ($6.8) -> 30.0%
-      { skinId: 'cs2_p250_sand_dune_FN', weight: 500 }     // P250 Sand Dune ($2.1) -> 50.0%
+      { skinId: 'cs2_m4a4_the_emperor_BS', weight: 1600 },     // $9.80 (16.0%)
+      { skinId: 'cs2_deagle_printstream_FT', weight: 3200 },   // $48.00 (32.0%)
+      { skinId: 'cs2_gut_knife_safari_mesh_BS', weight: 2950 },// $74.00 (29.5%)
+      { skinId: 'cs2_m4a1s_printstream_FT', weight: 1350 },    // $125.00 (13.5%)
+      { skinId: 'cs2_m4a1s_printstream_FN', weight: 550 },     // $320.00 (5.5%)
+      { skinId: 'cs2_m9_bayonet_lore_FT', weight: 250 },       // $680.00 (2.5%)
+      { skinId: 'cs2_skeleton_crimson_web_FT', weight: 80 },   // $740.00 (0.8%)
+      { skinId: 'cs2_karambit_doppler_p2_FN', weight: 15 },    // $2150.00 (0.15%)
+      { skinId: 'cs2_butterfly_fade_FN', weight: 5 }          // $3450.00 (0.05%)
     ]
   },
 
   // ==========================================
-  // DOTA 2 CASES (5 Unique Cases)
+  // DOTA 2 CASES (5 Balanced Cases)
   // ==========================================
   {
-    id: 'case_dota2_roshan_treasure',
+    id: 'case_dota2_support_soul',
     game: 'dota2',
-    name: "Roshan's Treasure",
-    nameEn: "Roshan's Treasure Case",
-    price: 95.00,
-    icon: '💎',
-    color: '#ffd700',
-    description: 'Золотой малыш Рошан, Драгонклав Хук и другие сокровища Доты.',
+    name: 'Душа саппорта',
+    nameEn: 'Support Soul Case',
+    price: 2.00,
+    icon: '🕊️',
+    color: '#34d399',
+    description: 'Бюджетное сокровище с шансом на Драгонклав Хук и Аркану.',
     items: [
-      { skinId: 'dota2_golden_baby_roshan_STANDARD', weight: 15 }, // Golden Roshan ($2,850) -> 1.5%
-      { skinId: 'dota2_mace_of_aeons_STANDARD', weight: 85 },      // Mace of Aeons ($340) -> 8.5%
-      { skinId: 'dota2_dragonclaw_hook_STANDARD', weight: 200 },   // DC Hook ($185) -> 20.0%
-      { skinId: 'dota2_vigil_triumph_STANDARD', weight: 700 }      // Vigil Triumph ($62) -> 70.0%
-    ]
-  },
-  {
-    id: 'case_dota2_arcana_vault',
-    game: 'dota2',
-    name: 'Arcana Vault',
-    nameEn: 'Arcana Vault Case',
-    price: 32.00,
-    icon: '🔮',
-    color: '#a855f7',
-    description: 'Кейс легендарных Аркан: Phantom Assassin, Juggernaut и Pudge.',
-    items: [
-      { skinId: 'dota2_dragonclaw_hook_STANDARD', weight: 40 },      // DC Hook ($185) -> 4.0%
-      { skinId: 'dota2_bladeform_legacy_STANDARD', weight: 300 },    // Juggernaut Arcana ($35) -> 30.0%
-      { skinId: 'dota2_manifold_paradox_STANDARD', weight: 330 },    // PA Arcana ($34.5) -> 33.0%
-      { skinId: 'dota2_feast_of_abscession_STANDARD', weight: 330 }  // Pudge Arcana ($32) -> 33.0%
-    ]
-  },
-  {
-    id: 'case_dota2_immortal_dominion',
-    game: 'dota2',
-    name: 'Immortal Dominion',
-    nameEn: 'Immortal Dominion Case',
-    price: 18.00,
-    icon: '🛡️',
-    color: '#eb4b4b',
-    description: 'Оружие Immortal качества для Sven, Void и Invoker.',
-    items: [
-      { skinId: 'dota2_mace_of_aeons_STANDARD', weight: 25 },     // Mace of Aeons ($340) -> 2.5%
-      { skinId: 'dota2_vigil_triumph_STANDARD', weight: 200 },    // Vigil Triumph ($62) -> 20.0%
-      { skinId: 'dota2_feast_of_abscession_STANDARD', weight: 275 }, // Pudge Arcana ($32) -> 27.5%
-      { skinId: 'dota2_magus_apex_STANDARD', weight: 500 }        // Magus Apex ($6.8) -> 50.0%
+      { skinId: 'dota2_belt_iron_surge', weight: 500 },       // $0.22 (50.0%)
+      { skinId: 'dota2_bracers_cavern_luminar', weight: 320 },// $0.65 (32.0%)
+      { skinId: 'dota2_fin_kings_charm', weight: 110 },       // $1.45 (11.0%)
+      { skinId: 'dota2_arms_of_desolation', weight: 50 },     // $5.40 (5.0%)
+      { skinId: 'dota2_arcana_pa', weight: 19 },              // $34.00 (1.9%)
+      { skinId: 'dota2_dragonclaw_hook', weight: 1 }          // $185.00 (0.1%)
     ]
   },
   {
     id: 'case_dota2_midlane_glory',
     game: 'dota2',
-    name: 'Midlane Glory',
+    name: 'Триумф мидера',
     nameEn: 'Midlane Glory Case',
-    price: 12.00,
+    price: 6.00,
     icon: '🔥',
     color: '#ff9900',
-    description: 'Скины для легендарных мидеров: Invoker, SF и Storm.',
+    description: 'Снаряжение для хардлайнеров и мидеров с Immortal скинами.',
     items: [
-      { skinId: 'dota2_manifold_paradox_STANDARD', weight: 80 },  // PA Arcana ($34.5) -> 8.0%
-      { skinId: 'dota2_magus_apex_STANDARD', weight: 420 },       // Magus Apex ($6.8) -> 42.0%
-      { skinId: 'dota2_solar_forge_STANDARD', weight: 500 }       // Solar Forge ($1.4) -> 50.0%
+      { skinId: 'dota2_bracers_cavern_luminar', weight: 250 },// $0.65 (25.0%)
+      { skinId: 'dota2_fin_kings_charm', weight: 320 },       // $1.45 (32.0%)
+      { skinId: 'dota2_muh_keen_gun', weight: 240 },          // $2.10 (24.0%)
+      { skinId: 'dota2_arms_of_desolation', weight: 135 },    // $5.40 (13.5%)
+      { skinId: 'dota2_arcana_pudge', weight: 42 },           // $36.50 (4.2%)
+      { skinId: 'dota2_vigil_triumph', weight: 11 },          // $55.00 (1.1%)
+      { skinId: 'dota2_dragonclaw_hook', weight: 2 }          // $185.00 (0.2%)
     ]
   },
   {
-    id: 'case_dota2_support_soul',
+    id: 'case_dota2_immortal_dominion',
     game: 'dota2',
-    name: 'Support Soul',
-    nameEn: 'Support Soul Case',
-    price: 4.50,
-    icon: '🕊️',
-    color: '#34d399',
-    description: 'Доступный кейс для саппортов с шансом сорвать джекпот!',
+    name: 'Владения Immortal',
+    nameEn: 'Immortal Dominion Case',
+    price: 15.00,
+    icon: '🛡️',
+    color: '#eb4b4b',
+    description: 'Immortal предметы для Sven, Void, Lion и снайпера.',
     items: [
-      { skinId: 'dota2_dragonclaw_hook_STANDARD', weight: 5 },    // DC Hook ($185) -> 0.5%
-      { skinId: 'dota2_feast_of_abscession_STANDARD', weight: 45 }, // Pudge Arcana ($32) -> 4.5%
-      { skinId: 'dota2_magus_apex_STANDARD', weight: 250 },       // Magus Apex ($6.8) -> 25.0%
-      { skinId: 'dota2_solar_forge_STANDARD', weight: 700 }       // Solar Forge ($1.4) -> 70.0%
+      { skinId: 'dota2_fin_kings_charm', weight: 180 },       // $1.45 (18.0%)
+      { skinId: 'dota2_muh_keen_gun', weight: 280 },          // $2.10 (28.0%)
+      { skinId: 'dota2_arms_of_desolation', weight: 320 },    // $5.40 (32.0%)
+      { skinId: 'dota2_arcana_pa', weight: 130 },             // $34.00 (13.0%)
+      { skinId: 'dota2_arcana_juggernaut', weight: 55 },      // $35.00 (5.5%)
+      { skinId: 'dota2_vigil_triumph', weight: 28 },          // $55.00 (2.8%)
+      { skinId: 'dota2_mace_of_aeons', weight: 7 }            // $295.00 (0.7%)
+    ]
+  },
+  {
+    id: 'case_dota2_arcana_vault',
+    game: 'dota2',
+    name: 'Хранилище Аркан',
+    nameEn: 'Arcana Vault Case',
+    price: 32.00,
+    icon: '🔮',
+    color: '#a855f7',
+    description: 'Собрание Аркан высшего ранга: Phantom Assassin, Juggernaut и Pudge.',
+    items: [
+      { skinId: 'dota2_muh_keen_gun', weight: 90 },           // $2.10 (9.0%)
+      { skinId: 'dota2_arms_of_desolation', weight: 310 },    // $5.40 (31.0%)
+      { skinId: 'dota2_arcana_pa', weight: 300 },             // $34.00 (30.0%)
+      { skinId: 'dota2_arcana_juggernaut', weight: 190 },     // $35.00 (19.0%)
+      { skinId: 'dota2_arcana_pudge', weight: 75 },           // $36.50 (7.5%)
+      { skinId: 'dota2_vigil_triumph', weight: 28 },          // $55.00 (2.8%)
+      { skinId: 'dota2_dragonclaw_hook', weight: 7 }          // $185.00 (0.7%)
+    ]
+  },
+  {
+    id: 'case_dota2_roshan_treasure',
+    game: 'dota2',
+    name: 'Сокровищница Рошана',
+    nameEn: 'Roshan Treasure Case',
+    price: 85.00,
+    icon: '💎',
+    color: '#ffd700',
+    description: 'Золотой малыш Рошан, Булава Эонов и Dragonclaw Hook.',
+    items: [
+      { skinId: 'dota2_arms_of_desolation', weight: 260 },    // $5.40 (26.0%)
+      { skinId: 'dota2_arcana_pa', weight: 340 },             // $34.00 (34.0%)
+      { skinId: 'dota2_vigil_triumph', weight: 230 },         // $55.00 (23.0%)
+      { skinId: 'dota2_dragonclaw_hook', weight: 125 },       // $185.00 (12.5%)
+      { skinId: 'dota2_mace_of_aeons', weight: 40 },          // $295.00 (4.0%)
+      { skinId: 'dota2_golden_baby_roshan', weight: 5 }       // $2850.00 (0.5%)
     ]
   },
 
   // ==========================================
-  // RUST CASES (5 Unique Cases)
+  // RUST CASES (5 Balanced Cases)
   // ==========================================
   {
-    id: 'case_rust_mask_collector',
+    id: 'case_rust_scrap_fortune',
     game: 'rust',
-    name: 'Mask Collector',
-    nameEn: 'Mask Collector Case',
-    price: 120.00,
-    icon: '👺',
-    color: '#ffd700',
-    description: 'Самые редкие маски в истории Rust: Big Grin и Punishment Mask.',
+    name: 'Скрап фортуна',
+    nameEn: 'Scrap Fortune Case',
+    price: 1.50,
+    icon: '🔩',
+    color: '#6b7280',
+    description: 'Начальный кейс из металлолома с шансом выбить Tempered AK-47.',
     items: [
-      { skinId: 'rust_big_grin_STANDARD', weight: 65 },         // Big Grin ($1,250) -> 6.5%
-      { skinId: 'rust_punishment_mask_STANDARD', weight: 135 }, // Punishment Mask ($820) -> 13.5%
-      { skinId: 'rust_glory_ak47_STANDARD', weight: 300 },      // Glory AK ($340) -> 30.0%
-      { skinId: 'rust_alien_red_STANDARD', weight: 500 }        // Alien Red ($290) -> 50.0%
-    ]
-  },
-  {
-    id: 'case_rust_glowing_night',
-    game: 'rust',
-    name: 'Glowing Night',
-    nameEn: 'Glowing Night Case',
-    price: 40.00,
-    icon: '💡',
-    color: '#00ff88',
-    description: 'Светящиеся в темноте неоновые скины для рейдов.',
-    items: [
-      { skinId: 'rust_alien_red_STANDARD', weight: 80 },         // Alien Red ($290) -> 8.0%
-      { skinId: 'rust_glory_ak47_STANDARD', weight: 120 },       // Glory AK ($340) -> 12.0%
-      { skinId: 'rust_tempered_ak47_STANDARD', weight: 400 },    // Tempered AK ($65) -> 40.0%
-      { skinId: 'rust_neon_storage_box_STANDARD', weight: 400 }  // Neon Box ($8.5) -> 40.0%
-    ]
-  },
-  {
-    id: 'case_rust_raiders_armory',
-    game: 'rust',
-    name: "Raider's Armory",
-    nameEn: "Raider's Armory Case",
-    price: 55.00,
-    icon: '🔫',
-    color: '#eb4b4b',
-    description: 'Тяжелый арсенал для клановых рейдов.',
-    items: [
-      { skinId: 'rust_big_grin_STANDARD', weight: 15 },         // Big Grin ($1,250) -> 1.5%
-      { skinId: 'rust_glory_ak47_STANDARD', weight: 135 },      // Glory AK ($340) -> 13.5%
-      { skinId: 'rust_alien_red_STANDARD', weight: 150 },       // Alien Red ($290) -> 15.0%
-      { skinId: 'rust_tempered_ak47_STANDARD', weight: 400 },   // Tempered AK ($65) -> 40.0%
-      { skinId: 'rust_fireproof_door_STANDARD', weight: 300 }   // Fireproof Door ($18) -> 30.0%
+      { skinId: 'rust_nomad_shoes', weight: 480 },            // $0.25 (48.0%)
+      { skinId: 'rust_revolver_scrap', weight: 280 },         // $0.60 (28.0%)
+      { skinId: 'rust_hazard_sheet_door', weight: 135 },      // $1.10 (13.5%)
+      { skinId: 'rust_frostbite_tshirt', weight: 75 },        // $3.60 (7.5%)
+      { skinId: 'rust_bombing_garage_door', weight: 24 },     // $9.50 (2.4%)
+      { skinId: 'rust_tempered_ak47', weight: 6 }             // $48.00 (0.6%)
     ]
   },
   {
     id: 'case_rust_toxic_wasteland',
     game: 'rust',
-    name: 'Toxic Wasteland',
+    name: 'Токсичная пустошь',
     nameEn: 'Toxic Wasteland Case',
-    price: 15.00,
+    price: 5.00,
     icon: '☢️',
     color: '#f59e0b',
-    description: 'Закаленный металл и радиоактивное снаряжение.',
+    description: 'Радиационное снаряжение и двери выживания пустоши.',
     items: [
-      { skinId: 'rust_alien_red_STANDARD', weight: 30 },        // Alien Red ($290) -> 3.0%
-      { skinId: 'rust_tempered_ak47_STANDARD', weight: 170 },   // Tempered AK ($65) -> 17.0%
-      { skinId: 'rust_fireproof_door_STANDARD', weight: 400 },  // Fireproof Door ($18) -> 40.0%
-      { skinId: 'rust_neon_storage_box_STANDARD', weight: 400 } // Neon Box ($8.5) -> 40.0%
+      { skinId: 'rust_revolver_scrap', weight: 280 },         // $0.60 (28.0%)
+      { skinId: 'rust_hazard_sheet_door', weight: 280 },      // $1.10 (28.0%)
+      { skinId: 'rust_frostbite_tshirt', weight: 230 },       // $3.60 (23.0%)
+      { skinId: 'rust_bombing_garage_door', weight: 140 },    // $9.50 (14.0%)
+      { skinId: 'rust_metal_tree_door', weight: 55 },         // $18.50 (5.5%)
+      { skinId: 'rust_tempered_ak47', weight: 15 }            // $48.00 (1.5%)
     ]
   },
   {
-    id: 'case_rust_scrap_fortune',
+    id: 'case_rust_raiders_armory',
     game: 'rust',
-    name: 'Scrap Fortune',
-    nameEn: 'Scrap Fortune Case',
-    price: 3.00,
-    icon: '🔩',
-    color: '#6b7280',
-    description: 'Сборщик металлолома: дешевый кейс для каждого выжившего.',
+    name: 'Арсенал рейдера',
+    nameEn: 'Raiders Armory Case',
+    price: 18.00,
+    icon: '🔫',
+    color: '#eb4b4b',
+    description: 'Боевая броня, армированные двери и культовый Alien Red.',
     items: [
-      { skinId: 'rust_tempered_ak47_STANDARD', weight: 20 },    // Tempered AK ($65) -> 2.0%
-      { skinId: 'rust_fireproof_door_STANDARD', weight: 80 },   // Fireproof Door ($18) -> 8.0%
-      { skinId: 'rust_neon_storage_box_STANDARD', weight: 200 },// Neon Box ($8.5) -> 20.0%
-      { skinId: 'rust_metal_hunter_bow_STANDARD', weight: 700 } // Bow ($1.2) -> 70.0%
+      { skinId: 'rust_camo_hoodie', weight: 150 },            // $1.50 (15.0%)
+      { skinId: 'rust_frostbite_tshirt', weight: 250 },       // $3.60 (25.0%)
+      { skinId: 'rust_bombing_garage_door', weight: 270 },    // $9.50 (27.0%)
+      { skinId: 'rust_metal_tree_door', weight: 190 },        // $18.50 (19.0%)
+      { skinId: 'rust_glowing_skull_door', weight: 95 },      // $38.00 (9.5%)
+      { skinId: 'rust_tempered_ak47', weight: 35 },           // $48.00 (3.5%)
+      { skinId: 'rust_alien_red', weight: 10 }                // $165.00 (1.0%)
+    ]
+  },
+  {
+    id: 'case_rust_glowing_night',
+    game: 'rust',
+    name: 'Ночное свечение',
+    nameEn: 'Glowing Night Case',
+    price: 40.00,
+    icon: '💡',
+    color: '#00ff88',
+    description: 'Светящиеся в ночи двери, легендарный автомат Glory и Alien Red.',
+    items: [
+      { skinId: 'rust_frostbite_tshirt', weight: 150 },       // $3.60 (15.0%)
+      { skinId: 'rust_bombing_garage_door', weight: 220 },    // $9.50 (22.0%)
+      { skinId: 'rust_metal_tree_door', weight: 280 },        // $18.50 (28.0%)
+      { skinId: 'rust_glowing_skull_door', weight: 210 },     // $38.00 (21.0%)
+      { skinId: 'rust_tempered_ak47', weight: 95 },           // $48.00 (9.5%)
+      { skinId: 'rust_alien_red', weight: 35 },               // $165.00 (3.5%)
+      { skinId: 'rust_glory_ak47', weight: 10 }               // $320.00 (1.0%)
+    ]
+  },
+  {
+    id: 'case_rust_mask_collector',
+    game: 'rust',
+    name: 'Коллекционер масок',
+    nameEn: 'Mask Collector Case',
+    price: 90.00,
+    icon: '👺',
+    color: '#ffd700',
+    description: 'Эксклюзивные маски Rust: Punishment Mask и легендарная Big Grin.',
+    items: [
+      { skinId: 'rust_metal_tree_door', weight: 300 },        // $18.50 (30.0%)
+      { skinId: 'rust_glowing_skull_door', weight: 280 },     // $38.00 (28.0%)
+      { skinId: 'rust_tempered_ak47', weight: 190 },          // $48.00 (19.0%)
+      { skinId: 'rust_alien_red', weight: 140 },              // $165.00 (14.0%)
+      { skinId: 'rust_punishment_mask', weight: 55 },         // $280.00 (5.5%)
+      { skinId: 'rust_glory_ak47', weight: 25 },              // $320.00 (2.5%)
+      { skinId: 'rust_big_grin', weight: 10 }                 // $920.00 (1.0%)
     ]
   }
 ];
 
-window.CASES_DATABASE = CASES_DATABASE;
+if (typeof window !== 'undefined') {
+  window.CASES_DATABASE = CASES_DATABASE;
+}

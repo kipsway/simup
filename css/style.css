@@ -78,6 +78,18 @@ body[data-theme="ice"] {
   --bg-card-hover: rgba(26, 50, 86, 0.85);
 }
 
+/* Theme: Gold Luxury */
+body[data-theme="gold"] {
+  --accent-color: #ffd700;
+  --accent-rgb: 255, 215, 0;
+  --accent-hover: #e6c200;
+  --accent-glow: rgba(255, 215, 0, 0.4);
+  --bg-primary: #121008;
+  --bg-secondary: #1c180c;
+  --bg-card: rgba(35, 30, 15, 0.78);
+  --bg-card-hover: rgba(50, 42, 20, 0.88);
+}
+
 /* BASE RESET */
 * {
   box-sizing: border-box;
@@ -1721,7 +1733,7 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   color: var(--text-muted);
 }
 
-/* NEEDLE POINTER */
+/* NEEDLE POINTER & 4 SWITCHABLE ARROW STYLES */
 .wheel-needle-pointer {
   position: absolute;
   top: 50%;
@@ -1733,19 +1745,93 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   transform-origin: bottom center;
   z-index: 10;
   pointer-events: none;
-  filter: drop-shadow(0 0 8px var(--accent-glow));
+  transition: filter var(--transition-fast);
 }
 
-.needle-shape {
+/* 1. Laser Blade (Default: Neon light beam) */
+.wheel-needle-pointer.arrow-laser {
+  background: linear-gradient(to top, transparent 0%, var(--accent-color) 40%, #ffffff 100%);
+  width: 3px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  filter: drop-shadow(0 0 10px var(--accent-glow)) drop-shadow(0 0 20px var(--accent-color));
+}
+.wheel-needle-pointer.arrow-laser .needle-shape {
   width: 0;
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-bottom: 24px solid #fff;
+  border-bottom: 20px solid #ffffff;
   position: absolute;
-  top: 0;
+  top: -10px;
+  left: -4.5px;
+  filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 14px var(--accent-color));
+}
+
+/* 2. Cyber Edge Blade */
+.wheel-needle-pointer.arrow-blade {
+  background: linear-gradient(180deg, #fff 0%, #888 60%, transparent 100%);
+  width: 4px;
+  margin-left: -2px;
+  border-left: 1px solid var(--accent-color);
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+.wheel-needle-pointer.arrow-blade .needle-shape {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 2px solid transparent;
+  border-bottom: 28px solid var(--accent-color);
+  position: absolute;
+  top: -14px;
+  left: -5px;
+  filter: drop-shadow(0 0 10px var(--accent-color));
+}
+
+/* 3. Precision Minimal Needle */
+.wheel-needle-pointer.arrow-needle {
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.9));
+  width: 2px;
+  margin-left: -1px;
+}
+.wheel-needle-pointer.arrow-needle .needle-shape {
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border: 2px solid var(--accent-color);
+  border-radius: 50%;
+  position: absolute;
+  top: -4px;
   left: -3px;
-  filter: drop-shadow(0 0 6px #fff);
+  box-shadow: 0 0 12px var(--accent-color), 0 0 20px #fff;
+}
+
+/* 4. Classic Triangle Pointer */
+.wheel-needle-pointer.arrow-classic {
+  background: transparent;
+  width: 2px;
+  margin-left: -1px;
+}
+.wheel-needle-pointer.arrow-classic .needle-shape {
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 22px solid #ffffff;
+  position: absolute;
+  top: -2px;
+  left: -8px;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.8));
+}
+
+/* ARENA WHEEL STYLES */
+.upgrader-wheel-box.wheel-style-neon {
+  box-shadow: 0 0 40px var(--accent-glow), inset 0 0 30px rgba(var(--accent-rgb), 0.12);
+  border-color: rgba(var(--accent-rgb), 0.4);
+}
+.upgrader-wheel-box.wheel-style-gold {
+  box-shadow: 0 0 45px rgba(255, 215, 0, 0.25), inset 0 0 35px rgba(255, 215, 0, 0.08);
+  border-color: rgba(255, 215, 0, 0.4);
 }
 
 /* QUICK MULTIPLIERS ROW */
@@ -3684,4 +3770,483 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
+/* ==========================================================================
+   RESPONSIVE / MOBILE ADAPTIVE LAYOUT
+   Fix header overlapping, stacked navigation, card grids, game panels
+/* ==========================================================================
+   BLOCK 2: RESPONSIVE ARCHITECTURE & 50/50 MOBILE-DESKTOP LAYOUT
+   Guarantees:
+   - Zero layout skewing / zero horizontal overflow on mobile
+   - No top header overlap / no giant wrapped navigation
+   - Smooth horizontal swipe subnav bar under header on mobile
+   - Ergonomic thumb-friendly Mobile Bottom Navigation for smartphones
+   - Fluid 1-column layouts for arenas and games on smaller screens
+   ========================================================================== */
 
+/* Universal anti-overflow guarantee */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Ensure app-container stays within viewport bounds */
+.app-container {
+  width: 100%;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 16px 20px 48px;
+  overflow-x: hidden;
+  transition: padding var(--transition-fast);
+}
+
+/* Completely remove live drops bar styling */
+.live-drops-bar {
+  display: none !important;
+}
+
+/* --- MOBILE SUBNAV BAR (Horizontal swipeable pills) --- */
+.mobile-subnav-bar {
+  display: none;
+  width: 100%;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px 0 6px;
+}
+
+.mobile-subnav-scroller {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0 4px;
+}
+
+.mobile-subnav-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-subnav-btn {
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.mobile-subnav-btn.active {
+  background: var(--accent-gradient);
+  color: #000;
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 10px var(--accent-glow);
+}
+
+/* --- MOBILE BOTTOM NAVIGATION (Native-app feel) --- */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(10, 14, 22, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-color);
+  z-index: 1000;
+  padding: 0 4px env(safe-area-inset-bottom, 0px) 4px;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.6);
+}
+
+.mobile-bottom-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 6px 2px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  min-width: 0;
+}
+
+.mobile-bottom-tab.active {
+  color: var(--accent-color);
+}
+
+.mobile-bottom-icon {
+  font-size: 18px;
+  line-height: 1;
+  margin-bottom: 2px;
+  transition: transform 0.2s ease;
+}
+
+.mobile-bottom-tab.active .mobile-bottom-icon {
+  transform: translateY(-2px) scale(1.18);
+}
+
+.mobile-bottom-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* ── TABLETS & INTERMEDIATE (≤ 960px) ── */
+@media (max-width: 960px) {
+  .desktop-nav-tabs {
+    display: none !important;
+  }
+
+  .site-header {
+    padding: 10px 14px 6px 14px;
+  }
+
+  .header-inner {
+    flex-wrap: nowrap !important;
+    gap: 12px;
+    padding-bottom: 4px;
+  }
+
+  .mobile-subnav-bar {
+    display: block;
+  }
+
+  .brand-logo-text {
+    font-size: 20px;
+  }
+
+  .brand-logo-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+
+  .badge-sim {
+    display: none;
+  }
+
+  .upgrader-arena-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+/* ── SMARTPHONES (≤ 768px: 50% OF USERBASE) ── */
+@media (max-width: 768px) {
+  .site-header {
+    padding: 8px 10px 4px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-inner {
+    gap: 8px;
+  }
+
+  .brand-section {
+    gap: 6px;
+  }
+
+  .brand-logo-text {
+    font-size: 18px;
+  }
+
+  .brand-logo-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .audio-toggle-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .balance-card {
+    padding: 4px 6px 4px 10px;
+    gap: 6px;
+    border-radius: 8px;
+  }
+
+  .balance-amount {
+    font-size: 13.5px;
+  }
+
+  .btn-deposit {
+    font-size: 11px;
+    padding: 4px 7px;
+    border-radius: 6px;
+  }
+
+  .user-profile-btn {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+
+  .user-name-label {
+    font-size: 12px !important;
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .user-level-pill {
+    font-size: 9px !important;
+    padding: 1px 5px !important;
+  }
+
+  /* Show Bottom App Nav & adjust page bottom padding */
+  .mobile-bottom-nav {
+    display: flex;
+  }
+
+  .app-container {
+    padding: 10px 10px 84px !important;
+  }
+
+  /* Upgrader Mobile Arena Layout */
+  .upgrader-arena-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .upgrader-panel-box {
+    padding: 14px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+
+  .bet-chips-row {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 5px !important;
+  }
+
+  .bet-chip {
+    padding: 6px 4px !important;
+    font-size: 11px !important;
+  }
+
+  /* Center Wheel Arena */
+  .upgrader-col-center {
+    padding: 18px 12px !important;
+  }
+
+  .wheel-wrap {
+    max-width: 280px !important;
+    max-height: 280px !important;
+    margin: 0 auto;
+  }
+
+  #upgrader-canvas {
+    width: 270px !important;
+    height: 270px !important;
+  }
+
+  .wheel-center-info {
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+
+  .wheel-quick-multipliers {
+    gap: 4px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .btn-mult-chip {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+  }
+
+  /* Cases and Catalog Grid */
+  .cases-grid,
+  .catalog-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .case-card,
+  .catalog-skin-card {
+    padding: 10px !important;
+  }
+
+  .case-card img,
+  .catalog-skin-card img {
+    max-height: 65px !important;
+  }
+
+  /* Mines 5x5 Grid on Mobile */
+  .mines-arena-layout {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .mines-grid-5x5 {
+    gap: 4px !important;
+    max-width: 290px !important;
+    margin: 0 auto;
+  }
+
+  .mines-cell {
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 18px !important;
+    border-radius: 8px !important;
+  }
+
+  /* Coinflip on Mobile */
+  .coinflip-arena-layout {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  /* Crash Canvas on Mobile */
+  .crash-arena-layout {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .crash-canvas-wrap {
+    min-height: 210px !important;
+    height: 220px !important;
+  }
+
+  /* Contracts on Mobile */
+  .contract-slots-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Leaderboard on Mobile */
+  .leaderboard-switch-bar {
+    width: 100% !important;
+    display: flex !important;
+  }
+
+  .leaderboard-tab-btn {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+  }
+
+  /* Bank Dashboard on Mobile */
+  .bank-dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  /* Modals on Mobile */
+  .modal-window {
+    width: 94vw !important;
+    max-width: 94vw !important;
+    max-height: 90vh !important;
+    padding: 18px 14px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+}
+
+/* ── SMALL PHONES (≤ 420px: iPhone SE, Compact Androids) ── */
+@media (max-width: 420px) {
+  .site-header {
+    padding: 6px 8px 3px 8px;
+  }
+
+  .brand-logo-text {
+    font-size: 16px;
+  }
+
+  .brand-logo-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .balance-amount {
+    font-size: 12px;
+  }
+
+  .user-name-label {
+    max-width: 65px;
+    font-size: 11px !important;
+  }
+
+  #upgrader-canvas {
+    width: 240px !important;
+    height: 240px !important;
+  }
+
+  .wheel-wrap {
+    max-width: 250px !important;
+    max-height: 250px !important;
+  }
+
+  .mines-cell {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 15px !important;
+  }
+
+  .mines-grid-5x5 {
+    max-width: 250px !important;
+    gap: 3px !important;
+  }
+}
+
+/* ── TOUCH TARGET ENHANCEMENTS (POINTER COARSE) ── */
+@media (hover: none) and (pointer: coarse) {
+  .btn-submit-action,
+  .btn-deposit,
+  .btn-action-primary,
+  .btn-direction-pill,
+  .bet-chip {
+    min-height: 38px;
+  }
+
+  .mobile-bottom-tab {
+    min-height: 52px;
+  }
+}

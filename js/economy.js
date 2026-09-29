@@ -95,43 +95,16 @@ class EconomyManager {
   }
 
   // =========================================================================
-  // 1. FREE DEPOSIT (FAUCET $10 - $100,000)
-  // =========================================================================
-  depositFunds(amount) {
-    const user = window.authManager.currentUser;
-    if (!user) {
-      window.notify.error('Ошибка', 'Сначала войдите в свой профиль.');
-      return false;
-    }
-
-    const val = parseFloat(amount);
-    if (isNaN(val) || val < 10 || val > 100000) {
-      window.notify.error('Ошибка суммы', 'Сумма пополнения должна быть от $10 до $100,000.');
-      return false;
-    }
-
-    user.balance = Number((user.balance + val).toFixed(2));
-    user.stats.totalDeposited = (user.stats.totalDeposited || 0) + val;
-
-    window.authManager.saveCurrentUser();
-
-    window.notify.bigWin(
-      'Баланс пополнен! 💰',
-      `На ваш виртуальный баланс успешно зачислено +$${val.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
-    );
-
-    return true;
-  }
-
-  // =========================================================================
-  // 2. VIRTUAL CREDIT & LOAN SYSTEM
+  // 1. BANK LOAN SYSTEM (FAUCETS REMOVED)
   // =========================================================================
   getMaxLoanLimit(user) {
-    if (!user) return 500;
-    // Limit scales with user experience & deposits
-    const baseLimit = 1000;
-    const wagerBonus = Math.floor((user.stats?.totalWagered || 0) * 0.2);
-    return Math.min(50000, baseLimit + wagerBonus);
+    if (!user) return 1000;
+    const totalWagered = user.stats?.totalWagered || 0;
+    const level = Math.max(1, Math.floor(totalWagered / 250) + 1);
+    // Base $1,000 + $250 per LVL + 15% of wagered volume
+    const baseLimit = 1000 + (level - 1) * 250;
+    const wagerBonus = Math.floor(totalWagered * 0.15);
+    return Math.min(25000, baseLimit + wagerBonus);
   }
 
   takeLoan(amount) {
@@ -145,12 +118,12 @@ class EconomyManager {
 
     const maxLimit = this.getMaxLoanLimit(user);
     const currentDebt = user.loans?.currentDebt || 0;
-    const availableCredit = maxLimit - currentDebt;
+    const availableCredit = Math.max(0, maxLimit - currentDebt);
 
     if (val > availableCredit) {
       return {
         success: false,
-        error: `Превышен доступный кредитный лимит! Доступно к займу: $${availableCredit.toFixed(2)} (Макс. лимит: $${maxLimit.toFixed(2)})`
+        error: `Превышен кредитный лимит! Доступно к займу: $${availableCredit.toFixed(2)} (Макс. лимит: $${maxLimit.toFixed(2)})`
       };
     }
 
@@ -158,22 +131,59 @@ class EconomyManager {
 
     // Update user state
     user.balance = Number((user.balance + val).toFixed(2));
-    if (!user.loans) user.loans = { currentDebt: 0, totalBorrowed: 0, totalRepaid: 0 };
+    if (!user.loans) {
+      user.loans = { currentDebt: 0, totalBorrowed: 0, totalRepaid: 0, autoRepay: true };
+    }
 
     user.loans.currentDebt = Number((user.loans.currentDebt + totalToRepay).toFixed(2));
     user.loans.totalBorrowed = Number((user.loans.totalBorrowed + val).toFixed(2));
+    if (user.loans.autoRepay === undefined) user.loans.autoRepay = true;
 
     // Check achievement
     this.checkAchievements(user);
 
     window.authManager.saveCurrentUser();
+    window.SoundManager?.playCash();
 
     window.notify.warning(
       'Кредит получен! 🏦',
-      `Вам начислено $${val.toFixed(2)}. К возврату с комиссией 10%: $${totalToRepay.toFixed(2)}`
+      `Вам начислено +$${val.toFixed(2)}. К возврату с комиссией 10%: $${totalToRepay.toFixed(2)}. Задолженность отображается в лидерборде.`
     );
 
     return { success: true, amount: val, totalToRepay };
+  }
+
+  // Automatic deduction of debt from game winnings (20% of net profit)
+  autoDeductDebtFromWin(user, profitAmount) {
+    if (!user || !user.loans || user.loans.currentDebt <= 0) return 0;
+    if (user.loans.autoRepay === false) return 0;
+    if (!profitAmount || profitAmount <= 0) return 0;
+
+    const candidate = Number((profitAmount * 0.20).toFixed(2));
+    const toDeduct = Math.min(candidate, user.loans.currentDebt, user.balance);
+
+    if (toDeduct >= 0.50) {
+      user.balance = Number((user.balance - toDeduct).toFixed(2));
+      user.loans.currentDebt = Number((user.loans.currentDebt - toDeduct).toFixed(2));
+      user.loans.totalRepaid = Number(((user.loans.totalRepaid || 0) + toDeduct).toFixed(2));
+
+      window.authManager.saveCurrentUser();
+
+      window.notify.info(
+        'Автопогашение кредита 🏦',
+        `С чистого выигрыша списано $${toDeduct.toFixed(2)} на погашение долга. Оставшийся долг: $${user.loans.currentDebt.toFixed(2)}`
+      );
+      return toDeduct;
+    }
+    return 0;
+  }
+
+  toggleAutoRepay(enabled) {
+    const user = window.authManager.currentUser;
+    if (!user) return;
+    if (!user.loans) user.loans = { currentDebt: 0, totalBorrowed: 0, totalRepaid: 0, autoRepay: true };
+    user.loans.autoRepay = Boolean(enabled);
+    window.authManager.saveCurrentUser();
   }
 
   repayLoan(amount) {
@@ -208,6 +218,7 @@ class EconomyManager {
     this.checkAchievements(user);
 
     window.authManager.saveCurrentUser();
+    window.SoundManager?.playCash();
 
     if (user.loans.currentDebt <= 0) {
       window.notify.success('Кредит полностью закрыт! 🎉', `Вы погасили долг $${val.toFixed(2)}. Ваша кредитная история идеальна!`);
@@ -379,6 +390,7 @@ class EconomyManager {
     user.balance = Number((user.balance + sellPrice).toFixed(2));
 
     window.authManager.saveCurrentUser();
+    window.SoundManager?.playCash();
 
     window.notify.success(
       'Предмет продан! 💵',
@@ -403,6 +415,7 @@ class EconomyManager {
     user.balance = Number((user.balance + totalValue).toFixed(2));
 
     window.authManager.saveCurrentUser();
+    window.SoundManager?.playCash();
 
     window.notify.bigWin(
       'Инвентарь очищен! 💰',

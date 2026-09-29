@@ -286,6 +286,22 @@ class CatalogCart {
     if (window.catalogController) window.catalogController.render();
   }
 
+  openModal() {
+    this.openCartModal();
+  }
+
+  closeModal() {
+    this.closeCartModal();
+  }
+
+  static openModal() {
+    window.catalogCart?.openCartModal();
+  }
+
+  static updateUI() {
+    window.catalogCart?.updateUI();
+  }
+
   updateUI() {
     const count = this.getCount();
     const total = this.getTotalPrice();
@@ -296,21 +312,21 @@ class CatalogCart {
     const dockTotal = document.getElementById('cart-dock-total');
     if (dockEl) {
       if (count > 0) {
-        dockEl.classList.add('visible');
+        dockEl.classList.add('visible', 'active');
       } else {
-        dockEl.classList.remove('visible');
+        dockEl.classList.remove('visible', 'active');
       }
     }
     if (dockCount) dockCount.textContent = `${count} ${count === 1 ? 'скин' : (count < 5 ? 'скина' : 'скинов')}`;
     if (dockTotal) dockTotal.textContent = `$${total.toFixed(2)}`;
 
     // Update Header Cart Badge
-    const headerBadge = document.getElementById('cart-header-badge');
+    const headerBadges = document.querySelectorAll('#cart-header-badge, #cart-badge-count');
+    headerBadges.forEach(b => {
+      b.textContent = count;
+      b.style.display = count > 0 ? 'inline-flex' : 'none';
+    });
     const headerBtn = document.getElementById('btn-header-cart');
-    if (headerBadge) {
-      headerBadge.textContent = count;
-      headerBadge.style.display = count > 0 ? 'inline-flex' : 'none';
-    }
     if (headerBtn) {
       headerBtn.classList.toggle('has-items', count > 0);
     }
@@ -320,12 +336,12 @@ class CatalogCart {
   }
 
   renderModal() {
-    const listEl = document.getElementById('cart-modal-items-list');
-    const modalTotalEl = document.getElementById('cart-modal-total-price');
+    const listEl = document.getElementById('cart-modal-items') || document.getElementById('cart-modal-items-list');
+    const modalTotalEl = document.getElementById('cart-modal-total') || document.getElementById('cart-modal-total-price');
     const modalCountEl = document.getElementById('cart-modal-count');
     const modalBalanceEl = document.getElementById('cart-modal-user-balance');
     const modalRemainderEl = document.getElementById('cart-modal-balance-remainder');
-    const checkoutBtn = document.getElementById('btn-cart-modal-checkout');
+    const checkoutBtn = document.getElementById('btn-cart-checkout-modal') || document.getElementById('btn-cart-modal-checkout');
 
     const total = this.getTotalPrice();
     const count = this.getCount();
@@ -345,33 +361,50 @@ class CatalogCart {
       checkoutBtn.disabled = count === 0 || (user && balance < total);
       checkoutBtn.textContent = count === 0 
         ? 'Корзина пуста' 
-        : (user && balance < total ? `Не хватает $${(total - balance).toFixed(2)}` : `💳 Оплатить $${total.toFixed(2)}`);
+        : (user && balance < total ? `Не хватает $${(total - balance).toFixed(2)}` : `⚡ Купить все скины ($${total.toFixed(2)})`);
     }
 
     if (!listEl) return;
 
     if (count === 0) {
       listEl.innerHTML = `
-        <div style="padding: 36px 16px; text-align: center; color: var(--text-dim);">
-          <div style="font-size: 36px; margin-bottom: 8px;">🛒</div>
-          <div style="font-size: 16px; font-weight: 700; color: #fff;">Ваша корзина пуста</div>
-          <div style="font-size: 12px; margin-top: 4px;">Добавляйте скины кнопкой «🛒 В корзину»!</div>
+        <div style="padding: 40px 16px; text-align: center; color: var(--text-dim);">
+          <div style="font-size: 40px; margin-bottom: 10px;">🛒</div>
+          <div style="font-size: 16px; font-weight: 800; color: #fff;">Ваша корзина пуста</div>
+          <div style="font-size: 12px; margin-top: 6px; color: var(--text-muted);">Добавляйте скины из Каталога кнопкой «🛒 В корзину»!</div>
         </div>
       `;
       return;
     }
 
-    listEl.innerHTML = this.items.map(item => `
-      <div class="cart-modal-row" data-cart-item-id="${item.cartId}">
-        <img src="${item.image}" alt="${item.name}" class="cart-modal-thumb" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id}');">
-        <div class="cart-modal-meta">
-          <div class="cart-modal-name" title="${item.name}">${item.name}</div>
-          <div class="cart-modal-sub">${(item.game || 'CS2').toUpperCase()} • ${item.wear}</div>
+    listEl.innerHTML = this.items.map(item => {
+      const currentPrice = window.marketEconomy?.getPrice(item.id) || item.price;
+      const trendPct = window.marketEconomy?.getChangePct(item.id) || 0;
+      const trendClass = trendPct >= 0 ? 'trend-up' : 'trend-down';
+      const trendSign = trendPct >= 0 ? '▲ +' : '▼ ';
+      return `
+        <div class="cart-item-row" data-cart-item-id="${item.cartId}">
+          <div class="cart-item-left">
+            <img src="${item.image}" alt="${item.name}" class="cart-item-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id}');">
+            <div class="cart-item-details">
+              <div class="cart-item-name" title="${item.name}">${item.name}</div>
+              <div class="cart-item-meta">
+                <span>${(item.game || 'CS2').toUpperCase()}</span>
+                <span>•</span>
+                <span>${item.wear}</span>
+                <span class="price-trend ${trendClass}">${trendSign}${Math.abs(trendPct).toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
+          <div class="cart-item-right">
+            <div class="cart-item-price-col">
+              <span class="cart-item-price">$${currentPrice.toFixed(2)}</span>
+            </div>
+            <button class="cart-item-remove-btn" data-remove-cart-id="${item.cartId}" title="Удалить из корзины">&times;</button>
+          </div>
         </div>
-        <div class="cart-modal-price">$${item.price.toFixed(2)}</div>
-        <button class="btn-cart-modal-remove" data-remove-cart-id="${item.cartId}" title="Удалить из корзины">&times;</button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     listEl.querySelectorAll('[data-remove-cart-id]').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -394,25 +427,21 @@ if (typeof window !== 'undefined') {
     window.catalogCart.updateUI();
 
     // Wire up dock buttons
-    document.getElementById('btn-cart-dock-open')?.addEventListener('click', () => {
-      window.catalogCart.openCartModal();
+    document.querySelectorAll('#btn-dock-cart-open, #btn-cart-dock-open, #btn-dock-checkout, #btn-header-cart').forEach(btn => {
+      btn.addEventListener('click', () => window.catalogCart.openCartModal());
     });
-    document.getElementById('btn-cart-clear')?.addEventListener('click', () => {
-      window.catalogCart.clear();
-      window.catalogCart.updateUI();
-      if (window.catalogController) window.catalogController.render();
+    document.querySelectorAll('#btn-dock-cart-clear, #btn-cart-clear, #btn-cart-clear-modal').forEach(btn => {
+      btn.addEventListener('click', () => {
+        window.catalogCart.clear();
+        window.catalogCart.updateUI();
+        if (window.catalogController) window.catalogController.render();
+      });
     });
-    document.getElementById('btn-cart-checkout')?.addEventListener('click', () => {
-      window.catalogCart.openCartModal();
+    document.querySelectorAll('#cart-modal-close, #btn-cart-modal-close').forEach(btn => {
+      btn.addEventListener('click', () => window.catalogCart.closeCartModal());
     });
-    document.getElementById('btn-header-cart')?.addEventListener('click', () => {
-      window.catalogCart.openCartModal();
-    });
-    document.getElementById('cart-modal-close')?.addEventListener('click', () => {
-      window.catalogCart.closeCartModal();
-    });
-    document.getElementById('btn-cart-modal-checkout')?.addEventListener('click', () => {
-      window.catalogCart.checkout();
+    document.querySelectorAll('#btn-cart-checkout-modal, #btn-cart-modal-checkout').forEach(btn => {
+      btn.addEventListener('click', () => window.catalogCart.checkout());
     });
   });
 }

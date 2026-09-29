@@ -1754,7 +1754,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.catalogController.onSelectTargetCallback = (skin) => {
     window.upgraderEngine.setTargetSkin(skin);
     updateUpgraderUI();
-    window.notify.info('Целевой скин выбран', `${skin.name} ($${skin.price.toFixed(2)}) готов к апгрейду!`);
+    window.notify.info('Целевой скин выбран 🎯', `${skin.name} ($${skin.price.toFixed(2)}) готов к апгрейду!`);
+    if (typeof switchTab === 'function') switchTab('upgrader');
     document.getElementById('upgrader-arena')?.scrollIntoView({ behavior: 'smooth' });
   };
 

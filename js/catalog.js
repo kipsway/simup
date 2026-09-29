@@ -78,6 +78,18 @@ class CatalogController {
     return result;
   }
 
+  render() {
+    const grid = document.getElementById('skins-grid');
+    if (grid) {
+      this.renderTo(grid, this.onSelectTargetCallback);
+      const count = this.getFilteredSkins().length;
+      const countBadge = document.getElementById('catalog-count-badge');
+      if (countBadge) {
+        countBadge.textContent = `${count} скинов`;
+      }
+    }
+  }
+
   renderTo(containerElement, onSelectCallback) {
     if (!containerElement) return;
     this.onSelectTargetCallback = onSelectCallback;

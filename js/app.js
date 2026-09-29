@@ -1487,7 +1487,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const isSel = selectedIds.includes(item.instanceId);
       return `
         <div class="drawer-item-row ${isSel ? 'selected' : ''}" data-drawer-id="${item.instanceId}">
-          <input type="checkbox" ${isSel ? 'checked' : ''} style="accent-color: var(--accent-color); pointer-events: none; margin-right: 6px;">
+          <div class="drawer-item-status-icon">${isSel ? '✓' : ''}</div>
           <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="drawer-item-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
           <div style="flex: 1; min-width: 0; margin: 0 8px;">
             <div class="drawer-item-name" title="${item.name}">${item.name}</div>
@@ -1511,8 +1511,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (item) {
           const isNowSelected = window.upgraderEngine.toggleItemSelection(item);
           row.classList.toggle('selected', isNowSelected);
-          const chk = row.querySelector('input[type="checkbox"]');
-          if (chk) chk.checked = isNowSelected;
+          const iconEl = row.querySelector('.drawer-item-status-icon');
+          if (iconEl) iconEl.textContent = isNowSelected ? '✓' : '';
           updateUpgraderUI(true);
         }
       });
@@ -3539,11 +3539,111 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Global haptic & click sound for buttons, tabs, and chips
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('button, .mobile-bottom-tab, .game-pill-btn, .bet-chip, .theme-card-option, .arrow-choice-btn, .arena-choice-btn');
+    const btn = e.target.closest('button, .mobile-bottom-tab, .mobile-subnav-btn, .game-pill-btn, .bet-chip, .theme-card-option, .arrow-choice-btn, .arena-choice-btn');
     if (btn) {
       window.SoundManager?.playClick();
     }
   }, { passive: true });
+
+  // =========================================================================
+  // DEVICE CLOUD SYNC & CROSS-DEVICE ACCOUNT LINKING
+  // =========================================================================
+  const modalDeviceSync = document.getElementById('modal-device-sync');
+  const btnOpenSyncModal = document.getElementById('btn-open-sync-modal');
+  const deviceSyncModalClose = document.getElementById('device-sync-modal-close');
+  const tabSyncExportBtn = document.getElementById('tab-sync-export-btn');
+  const tabSyncImportBtn = document.getElementById('tab-sync-import-btn');
+  const panelSyncExport = document.getElementById('panel-sync-export');
+  const panelSyncImport = document.getElementById('panel-sync-import');
+  const syncQrImage = document.getElementById('sync-qr-image');
+  const syncExportKeyInput = document.getElementById('sync-export-key-input');
+  const btnCopySyncKey = document.getElementById('btn-copy-sync-key');
+  const syncImportKeyInput = document.getElementById('sync-import-key-input');
+  const btnApplySyncImport = document.getElementById('btn-apply-sync-import');
+
+  function updateSyncExportDisplay() {
+    if (!window.authManager) return;
+    const token = window.authManager.exportSyncData();
+    if (!token) return;
+    if (syncExportKeyInput) syncExportKeyInput.value = token;
+    
+    // Construct QR code URL with direct sync link
+    const syncUrl = `${window.location.origin}${window.location.pathname}#sync=${token}`;
+    if (syncQrImage) {
+      syncQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(syncUrl)}`;
+    }
+  }
+
+  btnOpenSyncModal?.addEventListener('click', () => {
+    updateSyncExportDisplay();
+    if (modalDeviceSync) modalDeviceSync.classList.add('active');
+  });
+
+  deviceSyncModalClose?.addEventListener('click', () => {
+    if (modalDeviceSync) modalDeviceSync.classList.remove('active');
+  });
+
+  tabSyncExportBtn?.addEventListener('click', () => {
+    tabSyncExportBtn.classList.add('active');
+    tabSyncImportBtn?.classList.remove('active');
+    if (panelSyncExport) panelSyncExport.style.display = 'block';
+    if (panelSyncImport) panelSyncImport.style.display = 'none';
+    updateSyncExportDisplay();
+  });
+
+  tabSyncImportBtn?.addEventListener('click', () => {
+    tabSyncImportBtn.classList.add('active');
+    tabSyncExportBtn?.classList.remove('active');
+    if (panelSyncExport) panelSyncExport.style.display = 'none';
+    if (panelSyncImport) panelSyncImport.style.display = 'block';
+  });
+
+  btnCopySyncKey?.addEventListener('click', async () => {
+    if (!syncExportKeyInput || !syncExportKeyInput.value) return;
+    try {
+      await navigator.clipboard.writeText(syncExportKeyInput.value);
+      btnCopySyncKey.textContent = '✓ Скопировано!';
+      setTimeout(() => { btnCopySyncKey.textContent = '📋 Копировать'; }, 2000);
+      window.notify?.success('Ключ скопирован', 'Отправьте этот ключ себе на телефон и вставьте во вкладке «Ввести код»!');
+    } catch (e) {
+      syncExportKeyInput.select();
+      document.execCommand('copy');
+      window.notify?.info('Ключ выделен', 'Нажмите Ctrl+C для копирования.');
+    }
+  });
+
+  btnApplySyncImport?.addEventListener('click', () => {
+    const val = (syncImportKeyInput?.value || '').trim();
+    if (!val) {
+      window.notify?.warning('Введите ключ', 'Вставьте ключ синхронизации в текстовое поле.');
+      return;
+    }
+    const res = window.authManager.importSyncData(val);
+    if (res.success) {
+      modalDeviceSync?.classList.remove('active');
+      window.notify?.success('Синхронизация успешна!', `Добро пожаловать, ${res.user.username}! Все данные перенесены.`);
+      updateHeaderUserUI(res.user);
+      updateUpgraderUI();
+    } else {
+      window.notify?.error('Ошибка переноса', res.error || 'Не удалось распознать ключ синхронизации.');
+    }
+  });
+
+  // Auto-import sync hash on URL startup (e.g. from QR scan)
+  try {
+    if (window.location.hash && window.location.hash.includes('#sync=')) {
+      const token = window.location.hash.split('#sync=')[1];
+      if (token && window.authManager) {
+        const res = window.authManager.importSyncData(token);
+        if (res.success) {
+          window.notify?.success('Устройство привязано!', `Аккаунт ${res.user.username} успешно синхронизирован!`);
+        }
+        history.replaceState(null, null, window.location.pathname + window.location.search);
+      }
+    }
+  } catch (e) {
+    console.warn('Sync hash check error:', e);
+  }
 
   // Initial draw
   updateUpgraderUI();
@@ -3559,6 +3659,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const originalSwitchTab = switchTab;
   switchTab = function(tabId) {
     originalSwitchTab(tabId);
+
+    // Smoothly scroll active tab into view on mobile
+    const activeBottomTab = document.querySelector(`.mobile-bottom-tab[data-tab="${tabId}"]`);
+    if (activeBottomTab) {
+      try { activeBottomTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch (e) {}
+    }
+    const activeSubnavBtn = document.querySelector(`.mobile-subnav-btn[data-tab="${tabId}"]`);
+    if (activeSubnavBtn) {
+      try { activeSubnavBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch (e) {}
+    }
+
     if (tabId === 'bank') {
       renderBankPage();
     } else if (tabId === 'upgrader') {

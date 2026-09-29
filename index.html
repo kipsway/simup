@@ -31,7 +31,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SIMUP">
-  <link rel="stylesheet" href="css/style.css?v=3.1">
+  <link rel="stylesheet" href="css/style.css?v=3.3">
 
   <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
   <script type="application/ld+json">
@@ -96,6 +96,11 @@
 
       <!-- USER & SYSTEM CONTROLS -->
       <div class="header-actions">
+        <!-- Cross-Device Sync Button -->
+        <button class="btn-sync-pill" id="btn-open-sync-modal" title="Синхронизация аккаунта (ПК ↔ Смартфон)" aria-label="Синхронизация">
+          <span>📱 Синхронизация</span>
+        </button>
+
         <!-- Simple Audio Toggle -->
         <button class="audio-toggle-btn" id="audio-toggle-btn" title="Звук вкл/выкл" aria-label="Звук">
           🔊
@@ -121,20 +126,20 @@
           <!-- Injected via JavaScript (AuthManager) -->
         </div>
       </div>
+    </div>
 
-      <!-- MOBILE SUBNAV HORIZONTAL PILLS STRIP -->
-      <div class="mobile-subnav-bar">
-        <div class="mobile-subnav-scroller">
-          <button class="mobile-subnav-btn active" data-tab="upgrader">🎯 Апгрейд</button>
-          <button class="mobile-subnav-btn" data-tab="cases">📦 Кейсы</button>
-          <button class="mobile-subnav-btn" data-tab="contracts">📜 Контракты</button>
-          <button class="mobile-subnav-btn" data-tab="mines">💣 Мины</button>
-          <button class="mobile-subnav-btn" data-tab="coinflip">🪙 Коинфлип</button>
-          <button class="mobile-subnav-btn" data-tab="crash">🚀 Краш</button>
-          <button class="mobile-subnav-btn" data-tab="leaderboard">🏆 Рейтинг</button>
-          <button class="mobile-subnav-btn" data-tab="bank">🏦 Банк</button>
-          <button class="mobile-subnav-btn" data-tab="profile">👤 Профиль</button>
-        </div>
+    <!-- MOBILE SUBNAV HORIZONTAL PILLS STRIP (Full Width Dedicated Row) -->
+    <div class="mobile-subnav-bar">
+      <div class="mobile-subnav-scroller">
+        <button class="mobile-subnav-btn active" data-tab="upgrader">🎯 Апгрейд</button>
+        <button class="mobile-subnav-btn" data-tab="cases">📦 Кейсы</button>
+        <button class="mobile-subnav-btn" data-tab="contracts">📜 Контракты</button>
+        <button class="mobile-subnav-btn" data-tab="mines">💣 Мины</button>
+        <button class="mobile-subnav-btn" data-tab="coinflip">🪙 Коинфлип</button>
+        <button class="mobile-subnav-btn" data-tab="crash">🚀 Краш</button>
+        <button class="mobile-subnav-btn" data-tab="leaderboard">🏆 Рейтинг</button>
+        <button class="mobile-subnav-btn" data-tab="bank">🏦 Банк</button>
+        <button class="mobile-subnav-btn" data-tab="profile">👤 Профиль</button>
       </div>
     </div>
   </header>
@@ -1386,6 +1391,61 @@
     </div>
   </div>
 
+  <!-- 10. DEVICE CLOUD / TRANSFER SYNC MODAL -->
+  <div class="modal-overlay" id="modal-device-sync">
+    <div class="modal-window" style="max-width: 520px; text-align: left;">
+      <button class="modal-close-btn" id="device-sync-modal-close" title="Закрыть">&times;</button>
+      <div class="modal-header" style="text-align: center;">
+        <h2 class="modal-title" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>📱</span> Синхронизация ПК и Смартфона
+        </h2>
+        <p class="modal-subtitle">Играйте на одном аккаунте со смартфона и ПК: одинаковый баланс, инвентарь и прогресс!</p>
+      </div>
+
+      <!-- Tab switch: Export or Import -->
+      <div style="display: flex; gap: 8px; margin: 16px 0; background: rgba(0,0,0,0.3); padding: 4px; border-radius: var(--radius-sm);">
+        <button id="tab-sync-export-btn" class="game-pill-btn active" style="flex: 1; text-align: center;">📲 С этого устройства</button>
+        <button id="tab-sync-import-btn" class="game-pill-btn" style="flex: 1; text-align: center;">📥 Ввести код с другого</button>
+      </div>
+
+      <!-- Panel 1: Export (QR + Copy Key) -->
+      <div id="panel-sync-export">
+        <div style="text-align: center; margin-bottom: 14px;">
+          <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
+            Наведите камеру смартфона на QR-код для мгновенного входа:
+          </div>
+          <div style="display: inline-block; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.6);">
+            <img id="sync-qr-image" src="" alt="QR-код синхронизации" style="width: 160px; height: 160px; display: block;">
+          </div>
+        </div>
+
+        <div style="margin-top: 12px;">
+          <label class="form-label">Или скопируйте текстовый ключ синхронизации:</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="sync-export-key-input" class="form-input" readonly style="font-family: monospace; font-size: 11px; padding: 10px;" value="...">
+            <button class="btn-deposit" id="btn-copy-sync-key" style="white-space: nowrap; padding: 0 16px;">
+              📋 Копировать
+            </button>
+          </div>
+          <p style="font-size: 11px; color: var(--text-dim); margin-top: 6px;">
+            Отправьте этот ключ себе в избранное Telegram или мессенджер и откройте на телефоне.
+          </p>
+        </div>
+      </div>
+
+      <!-- Panel 2: Import (Paste Key) -->
+      <div id="panel-sync-import" style="display: none;">
+        <div>
+          <label class="form-label" for="sync-import-key-input">Вставьте ключ синхронизации:</label>
+          <textarea id="sync-import-key-input" class="form-input" rows="4" placeholder="Вставьте сюда скопированный ключ..." style="font-family: monospace; font-size: 11px; resize: none; margin-bottom: 10px;"></textarea>
+          <button class="btn-submit-action" id="btn-apply-sync-import" style="padding: 14px; font-size: 15px; font-weight: 900;">
+            ⚡ Синхронизировать и войти
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MOBILE BOTTOM NAVIGATION (50/50 Mobile UX) ==================== -->
   <nav class="mobile-bottom-nav" aria-label="Мобильная навигация">
     <button class="mobile-bottom-tab active" data-tab="upgrader">
@@ -1396,9 +1456,21 @@
       <span class="mobile-bottom-icon">📦</span>
       <span class="mobile-bottom-label">Кейсы</span>
     </button>
+    <button class="mobile-bottom-tab" data-tab="contracts">
+      <span class="mobile-bottom-icon">📜</span>
+      <span class="mobile-bottom-label">Контракты</span>
+    </button>
     <button class="mobile-bottom-tab" data-tab="mines">
       <span class="mobile-bottom-icon">💣</span>
       <span class="mobile-bottom-label">Мины</span>
+    </button>
+    <button class="mobile-bottom-tab" data-tab="coinflip">
+      <span class="mobile-bottom-icon">🪙</span>
+      <span class="mobile-bottom-label">Коинфлип</span>
+    </button>
+    <button class="mobile-bottom-tab" data-tab="crash">
+      <span class="mobile-bottom-icon">🚀</span>
+      <span class="mobile-bottom-label">Краш</span>
     </button>
     <button class="mobile-bottom-tab" data-tab="leaderboard">
       <span class="mobile-bottom-icon">🏆</span>
@@ -1406,7 +1478,7 @@
     </button>
     <button class="mobile-bottom-tab" data-tab="bank">
       <span class="mobile-bottom-icon">🏦</span>
-      <span class="mobile-bottom-label">Кредиты</span>
+      <span class="mobile-bottom-label">Банк</span>
     </button>
     <button class="mobile-bottom-tab" data-tab="profile">
       <span class="mobile-bottom-icon">👤</span>
@@ -1415,28 +1487,28 @@
   </nav>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="js/sound.js?v=3.2"></script>
-  <script src="js/skins-data.js?v=3.2"></script>
-  <script src="js/notifications.js?v=3.2"></script>
-  <script src="js/auth.js?v=3.2"></script>
-  <script src="js/economy.js?v=3.2"></script>
-  <script src="js/catalog.js?v=3.2"></script>
-  <script src="js/upgrader.js?v=3.2"></script>
-  <script src="js/cases-data.js?v=3.2"></script>
-  <script src="js/cases.js?v=3.2"></script>
-  <script src="js/leaderboard.js?v=3.2"></script>
-  <script src="js/contracts.js?v=3.2"></script>
-  <script src="js/lucky-wheel.js?v=3.2"></script>
-  <script src="js/case-builder.js?v=3.2"></script>
-  <script src="js/mines.js?v=3.2"></script>
-  <script src="js/quests.js?v=3.2"></script>
-  <script src="js/coinflip.js?v=3.2"></script>
-  <script src="js/crash.js?v=3.2"></script>
-  <script src="js/app.js?v=3.2"></script>
+  <script src="js/sound.js?v=3.3"></script>
+  <script src="js/skins-data.js?v=3.3"></script>
+  <script src="js/notifications.js?v=3.3"></script>
+  <script src="js/auth.js?v=3.3"></script>
+  <script src="js/economy.js?v=3.3"></script>
+  <script src="js/catalog.js?v=3.3"></script>
+  <script src="js/upgrader.js?v=3.3"></script>
+  <script src="js/cases-data.js?v=3.3"></script>
+  <script src="js/cases.js?v=3.3"></script>
+  <script src="js/leaderboard.js?v=3.3"></script>
+  <script src="js/contracts.js?v=3.3"></script>
+  <script src="js/lucky-wheel.js?v=3.3"></script>
+  <script src="js/case-builder.js?v=3.3"></script>
+  <script src="js/mines.js?v=3.3"></script>
+  <script src="js/quests.js?v=3.3"></script>
+  <script src="js/coinflip.js?v=3.3"></script>
+  <script src="js/crash.js?v=3.3"></script>
+  <script src="js/app.js?v=3.3"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=3.2').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=3.3').then(reg => {
           reg.update();
         }).catch(() => {});
       });

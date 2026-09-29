@@ -90,12 +90,26 @@ body[data-theme="gold"] {
   --bg-card-hover: rgba(50, 42, 20, 0.88);
 }
 
-/* BASE RESET */
-* {
+/* BASE RESET & 60-120 FPS ANTI-FLICKER SYSTEM */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+}
+
+button, a, input, select, textarea,
+.mobile-bottom-tab, .mobile-subnav-btn, .game-pill-btn,
+.skin-card, .case-card, .drawer-item-row, .bet-chip,
+.btn-primary, .btn-action, .theme-card-option, .arrow-choice-btn,
+.arena-choice-btn, .btn-sync-pill, .btn-deposit, .audio-toggle-btn, .theme-toggle-btn {
+  -webkit-tap-highlight-color: transparent !important;
+  outline: none !important;
+  touch-action: manipulation;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 body {
@@ -4777,6 +4791,30 @@ body {
   box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.25) !important;
 }
 
+.drawer-item-status-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: transparent;
+  background: rgba(255, 255, 255, 0.03);
+  flex-shrink: 0;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.drawer-item-row.selected .drawer-item-status-icon {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #032313;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
 /* --- 4. Cases Section Overhaul --- */
 .case-card {
   background: #101624 !important;
@@ -4840,17 +4878,33 @@ body {
   box-shadow: 0 0 14px var(--accent-glow) !important;
 }
 
-/* --- 5. Mobile Floating Dock (Native App Feel) --- */
+/* --- 5. Mobile Floating Dock (Native App Feel, 9 Tabs Scrollable) --- */
 .mobile-bottom-nav {
-  background: rgba(8, 10, 16, 0.94) !important;
+  background: rgba(8, 10, 16, 0.96) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
   height: 64px !important;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.7) !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 2px !important;
+  padding: 0 6px env(safe-area-inset-bottom, 0px) 6px !important;
+}
+
+.mobile-bottom-nav::-webkit-scrollbar {
+  display: none !important;
 }
 
 .mobile-bottom-tab {
+  flex: 0 0 64px !important;
+  min-width: 60px !important;
   color: #64748b !important;
-  transition: color 0.18s ease !important;
+  transition: color 0.18s ease, transform 0.18s ease !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 .mobile-bottom-tab.active {
@@ -4860,6 +4914,59 @@ body {
 .mobile-bottom-tab.active .mobile-bottom-icon {
   transform: translateY(-2px) scale(1.15) !important;
   filter: drop-shadow(0 0 8px var(--accent-glow)) !important;
+}
+
+/* Sync Button in Header */
+.btn-sync-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.14), rgba(var(--accent-rgb), 0.04));
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  color: var(--accent-color);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.btn-sync-pill:hover {
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.25), rgba(var(--accent-rgb), 0.1));
+  border-color: var(--accent-color);
+  box-shadow: 0 0 12px var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+.btn-sync-pill:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 768px) {
+  .btn-sync-pill {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    gap: 4px !important;
+  }
+  .btn-sync-pill {
+    padding: 5px 7px;
+  }
+  .balance-card {
+    padding: 3px 6px !important;
+  }
+  .btn-deposit {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+  }
 }
 
 /* --- 6. Catalog & Shop (Zero Clutter) --- */

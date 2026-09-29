@@ -402,6 +402,48 @@ class AuthManager {
     this.saveCurrentUser();
     return true;
   }
+
+  exportSyncData() {
+    if (!this.currentUser) return null;
+    try {
+      const payload = {
+        v: 2,
+        u: this.currentUser,
+        ts: Date.now()
+      };
+      const json = JSON.stringify(payload);
+      return btoa(encodeURIComponent(json));
+    } catch (e) {
+      console.error('SIMUP Auth: Export sync error', e);
+      return null;
+    }
+  }
+
+  importSyncData(token) {
+    if (!token || typeof token !== 'string') return { success: false, error: 'Неверный ключ' };
+    try {
+      const cleanToken = token.trim().replace(/^#sync=/, '');
+      const json = decodeURIComponent(atob(cleanToken));
+      const payload = JSON.parse(json);
+      if (!payload || !payload.u || !payload.u.username) {
+        return { success: false, error: 'Ключ поврежден или не содержит данных аккаунта.' };
+      }
+      const user = payload.u;
+      const users = this.getAllUsers();
+      const existingIdx = users.findIndex(u => u.username && u.username.toLowerCase() === user.username.toLowerCase());
+      if (existingIdx !== -1) {
+        users[existingIdx] = user;
+      } else {
+        users.push(user);
+      }
+      this.saveUsers(users);
+      this.setCurrentUser(user);
+      return { success: true, user };
+    } catch (e) {
+      console.error('SIMUP Auth: Import sync error', e);
+      return { success: false, error: 'Ошибка расшифровки ключа. Убедитесь, что скопировали его полностью.' };
+    }
+  }
 }
 
 // Global instance

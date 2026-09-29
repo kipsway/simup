@@ -132,7 +132,7 @@ class CasesManager {
     reelTrackElement.innerHTML = track.map((item, idx) => `
       <div class="reel-item-card skin-rarity-${item.rarity}" style="--rarity-clr: ${item.rarityColor};" data-idx="${idx}">
         <span class="reel-item-wear">${item.wear && item.wear !== 'STANDARD' ? item.wear : ''}</span>
-        <img src="${item.image}" alt="${item.name}" class="reel-item-img" onerror="this.src='https://placehold.co/100x70/111827/ffffff?text=${encodeURIComponent(item.name)}'">
+        <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="reel-item-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
         <div class="reel-item-name">${item.name}</div>
         <div class="reel-item-price">$${item.price.toFixed(2)}</div>
       </div>

@@ -3,15 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SIMUP - Симулятор Апгрейда CS2, Dota 2 & Rust</title>
-  <meta name="description" content="Реалистичный симулятор Upgrader для CS2, Dota 2 и Rust. Шансы 1 в 1, огромная база скинов, кейсы, система кредитов и лидерборд без реальных денег.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗡️</text></svg>">
+  <title>SIMUP 2.0 — Симулятор апгрейда скинов CS2, Dota 2, Rust | Кейсы и мини-игры онлайн</title>
+  <meta name="description" content="Бесплатный киберспортивный симулятор апгрейда скинов CS2, Dota 2 и Rust. Математика 1:1, открытие кейсов, мини-игры Краш, Мины, Коинфлип и виртуальный банк без реальных денег.">
+  <meta name="keywords" content="симулятор апгрейда скинов, upgrader cs2, симулятор кейсов кс2, апгрейд скинов дота 2, rust skin upgrade, simup, симулятор рулетки скинов">
+  <link rel="canonical" href="https://kipsway.github.io/simup/">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Open Graph / VK / Telegram -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kipsway.github.io/simup/">
+  <meta property="og:title" content="SIMUP 2.0 — Симулятор апгрейда скинов CS2, Dota 2, Rust">
+  <meta property="og:description" content="Бесплатный симулятор апгрейда скинов и открытия кейсов. Математика 1:1, 15 кейсов, мини-игры и виртуальный банк.">
+  <meta property="og:image" content="https://kipsway.github.io/simup/preview.png">
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://kipsway.github.io/simup/">
+  <meta name="twitter:title" content="SIMUP 2.0 — Симулятор апгрейда скинов CS2, Dota 2, Rust">
+  <meta name="twitter:description" content="Бесплатный симулятор апгрейда скинов и открытия кейсов без реальных денег.">
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#10b981">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SIMUP">
   <link rel="stylesheet" href="css/style.css">
+
+  <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "SIMUP 2.0 - Esports Skin Upgrade Simulator",
+    "url": "https://kipsway.github.io/simup/",
+    "description": "Бесплатный симулятор апгрейда скинов CS2, Dota 2 и Rust с математикой 1:1, кейсами и мини-играми без реальных денег.",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "All",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
 </head>
 <body data-theme="emerald">
 
@@ -28,7 +63,7 @@
       <!-- MAIN NAVIGATION (Desktop) -->
       <nav class="nav-tabs desktop-nav-tabs" aria-label="Навигация сайта">
         <button class="nav-tab-btn active" data-tab="upgrader">
-          <span>🎯</span> Апгрейдер
+          <span>🎯</span> Апгрейд
         </button>
         <button class="nav-tab-btn" data-tab="cases">
           <span>📦</span> Кейсы
@@ -46,10 +81,10 @@
           <span>🚀</span> Краш
         </button>
         <button class="nav-tab-btn" data-tab="leaderboard">
-          <span>🏆</span> Лидерборд
+          <span>🏆</span> Топ
         </button>
         <button class="nav-tab-btn" data-tab="bank">
-          <span>🏦</span> Кредиты
+          <span>🏦</span> Банк
         </button>
         <button class="nav-tab-btn" data-tab="profile">
           <span>👤</span> Профиль
@@ -197,10 +232,10 @@
             <button class="btn-mult-chip" data-quick-mult="100">100x</button>
           </div>
 
-          <!-- Big Pulsating Upgrade Button -->
-          <button class="btn-upgrade-fire" id="btn-fire-upgrade">
+          <!-- Big Pulsating Upgrade Button (Skins-only, disabled until skins selected) -->
+          <button class="btn-upgrade-fire" id="btn-fire-upgrade" disabled title="Выберите скин из инвентаря для ставки">
             <span>⚡ АПГРЕЙД</span>
-            <span id="btn-upgrade-price-tag">($10.00)</span>
+            <span id="btn-upgrade-price-tag">(Скины не выбраны)</span>
           </button>
         </div>
 
@@ -226,33 +261,6 @@
             <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Возможный выигрыш:</div>
             <div style="font-size: 18px; font-weight: 900; color: #fff; margin-top: 2px;" id="target-win-payout-val">+$0.00 профит</div>
           </div>
-        </div>
-
-        <!-- BOTTOM ROW: PROVABLY FAIR SYSTEM BAR -->
-        <div class="provably-fair-bar">
-          <div class="pf-info-item">
-            <span class="pf-tag">🛡️ Provably Fair:</span>
-            <span style="color: var(--success); font-weight: 700;">Активен</span>
-          </div>
-
-          <div class="pf-info-item">
-            <span class="pf-tag">Client Seed:</span>
-            <span class="pf-val" id="pf-bar-client-seed">...</span>
-          </div>
-
-          <div class="pf-info-item">
-            <span class="pf-tag">Server Hash:</span>
-            <span class="pf-val" id="pf-bar-server-hash">...</span>
-          </div>
-
-          <div class="pf-info-item">
-            <span class="pf-tag">Nonce:</span>
-            <span class="pf-val" id="pf-bar-nonce">#1</span>
-          </div>
-
-          <button class="btn-open-pf" id="btn-open-pf-modal">
-            Проверить честность 🔍
-          </button>
         </div>
 
       </div>
@@ -1131,50 +1139,7 @@
     </div>
   </div>
 
-  <!-- 5. PROVABLY FAIR VERIFIER MODAL (BLOCK 3) -->
-  <div class="modal-overlay" id="modal-provably-fair">
-    <div class="modal-window" style="max-width: 540px;">
-      <button class="modal-close-btn" id="pf-modal-close">&times;</button>
-      
-      <div class="modal-header">
-        <h2 class="modal-title">Доказуемая честность (Provably Fair)</h2>
-        <p class="modal-subtitle">Криптографическая верификация каждого броска через SHA-256</p>
-      </div>
 
-      <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 16px; font-size: 13px; color: var(--text-muted); line-height: 1.5;">
-        Каждый результат апгрейда рассчитывается до начала раунда при помощи комбинации семян: <strong style="color: #fff;">Server Seed + Client Seed + Nonce</strong>. Хэш серверного сида фиксируется заранее, что исключает подтасовку!
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Ваш Client Seed (можно изменить)</label>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="pf-client-seed-input" class="form-input" style="padding: 10px 14px;">
-          <button class="btn-submit-action" id="btn-save-client-seed" style="margin-top: 0; width: auto; padding: 10px 16px; white-space: nowrap;">
-            Сохранить
-          </button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Server Seed Hash текущего раунда (SHA-256)</label>
-        <input type="text" id="pf-server-hash-input" class="form-input" readonly style="font-family: monospace; font-size: 12px; color: var(--accent-color);">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Номер раунда (Nonce)</label>
-        <input type="text" id="pf-nonce-input" class="form-input" readonly style="font-family: monospace;">
-      </div>
-
-      <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 16px;">
-        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
-          Данные последнего завершенного раунда:
-        </div>
-        <div id="pf-last-round-details" style="font-size: 12px; font-family: monospace; color: var(--text-dim); background: rgba(0,0,0,0.4); padding: 10px; border-radius: var(--radius-sm); word-break: break-all;">
-          Раунд еще не сыгран. Сделайте первый апгрейд!
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- 6. CASE OPENING MODAL (BLOCK 4) -->
   <div class="modal-overlay" id="modal-case-open">

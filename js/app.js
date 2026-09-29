@@ -56,6 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const wheelNeedleEl = document.getElementById('wheel-needle');
   const upgraderWheelBox = document.querySelector('.upgrader-wheel-box');
 
+  const ARROW_NAMES_MAP = {
+    'arrow-laser': '🎯 Лазер',
+    'arrow-blade': '⚔️ Лезвие',
+    'arrow-needle': '📍 Игла',
+    'arrow-classic': '🔺 Классик'
+  };
+
   const savedTheme = localStorage.getItem('simup_theme') || 'emerald';
   const savedArrow = localStorage.getItem('simup_arrow_style') || 'arrow-laser';
   const savedWheelStyle = localStorage.getItem('simup_wheel_style') || 'wheel-style-dark';
@@ -68,20 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.setAttribute('data-theme', themeName);
     localStorage.setItem('simup_theme', themeName);
     themeOptions.forEach(opt => {
-      opt.classList.toggle('active', opt.dataset.theme === themeName);
+      opt.classList.toggle('active', opt.dataset?.theme === themeName);
     });
     // Trigger wheel re-draw with updated CSS variables
     if (typeof updateUpgraderUI === 'function') {
       try { updateUpgraderUI(); } catch (e) {}
     }
   }
-
-  const ARROW_NAMES_MAP = {
-    'arrow-laser': '🎯 Лазер',
-    'arrow-blade': '⚔️ Лезвие',
-    'arrow-needle': '📍 Игла',
-    'arrow-classic': '🔺 Классик'
-  };
 
   function applyArrowStyle(arrowClass) {
     if (wheelNeedleEl) {
@@ -1360,6 +1360,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnUpgradePriceTag) {
       btnUpgradePriceTag.textContent = totalBet > 0 ? `($${totalBet.toFixed(2)})` : '(Выберите скин)';
     }
+    if (btnFireUpgrade) {
+      btnFireUpgrade.disabled = (selectedCount === 0 || !target || window.upgraderEngine.isSpinning);
+    }
 
     if (wheelChanceVal) wheelChanceVal.textContent = `${chance.toFixed(2)}%`;
     if (wheelMultVal) wheelMultVal.textContent = multiplier > 0 ? `${multiplier.toFixed(2)}x` : '0.00x';
@@ -1367,8 +1370,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Target skin showcase
     if (target) {
       if (targetSkinImg) {
-        targetSkinImg.src = target.image;
+        targetSkinImg.src = target.image || target.fallbackSvg || '';
         targetSkinImg.alt = target.name;
+        targetSkinImg.onerror = function() {
+          this.onerror = null;
+          if (window.generateSkinSvg) {
+            this.src = window.generateSkinSvg(target.name, target.rarity, target.category, target.game);
+          }
+        };
       }
       if (targetSkinName) {
         targetSkinName.textContent = `${target.name} ${target.wear && target.wear !== 'STANDARD' ? `(${target.wear})` : ''}`;
@@ -1451,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return `
         <div class="drawer-item-row ${isSel ? 'selected' : ''}" data-drawer-id="${item.instanceId}">
           <input type="checkbox" ${isSel ? 'checked' : ''} style="accent-color: var(--accent-color); pointer-events: none; margin-right: 6px;">
-          <img src="${item.image}" alt="${item.name}" class="drawer-item-img">
+          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="drawer-item-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
           <div style="flex: 1; min-width: 0; margin: 0 8px;">
             <div class="drawer-item-name" title="${item.name}">${item.name}</div>
             <div style="font-size: 9.5px; color: var(--text-dim);">${item.wear && item.wear !== 'STANDARD' ? item.wear : (item.game || 'CS2').toUpperCase()}</div>
@@ -1685,13 +1694,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    modalProvablyFair.classList.add('active');
+    modalProvablyFair?.classList.add('active');
   }
 
-  btnOpenPfModal.addEventListener('click', () => {
-    pfClientSeedInput.value = window.upgraderEngine.clientSeed;
-    pfServerHashInput.value = window.upgraderEngine.serverSeedHash;
-    pfNonceInput.value = window.upgraderEngine.nonce;
+  btnOpenPfModal?.addEventListener('click', () => {
+    if (pfClientSeedInput) pfClientSeedInput.value = window.upgraderEngine.clientSeed;
+    if (pfServerHashInput) pfServerHashInput.value = window.upgraderEngine.serverSeedHash;
+    if (pfNonceInput) pfNonceInput.value = window.upgraderEngine.nonce;
 
     const last = window.upgraderEngine.lastRoundData;
     if (last && last.provablyFair) {
@@ -1699,16 +1708,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    pfLastRoundDetails.textContent = 'Раундов еще не было. Сделайте первый апгрейд!';
-    modalProvablyFair.classList.add('active');
+    if (pfLastRoundDetails) pfLastRoundDetails.textContent = 'Раундов еще не было. Сделайте первый апгрейд!';
+    modalProvablyFair?.classList.add('active');
   });
 
-  pfModalClose.addEventListener('click', () => {
-    modalProvablyFair.classList.remove('active');
+  pfModalClose?.addEventListener('click', () => {
+    modalProvablyFair?.classList.remove('active');
   });
 
-  btnSaveClientSeed.addEventListener('click', () => {
-    const val = pfClientSeedInput.value.trim();
+  btnSaveClientSeed?.addEventListener('click', () => {
+    const val = pfClientSeedInput?.value?.trim();
     if (!val) {
       window.notify.warning('Client Seed', 'Введите строку для сида.');
       return;
@@ -1716,7 +1725,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.upgraderEngine.clientSeed = val;
     updateUpgraderUI();
     window.notify.success('Provably Fair', 'Новый Client Seed сохранен!');
-    modalProvablyFair.classList.remove('active');
+    modalProvablyFair?.classList.remove('active');
   });
 
   // =========================================================================

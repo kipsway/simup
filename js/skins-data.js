@@ -782,11 +782,117 @@ function getAllSkinVariants() {
   return result;
 }
 
+// Helper to escape XML special characters in SVG labels
+function escapeXml(unsafe) {
+  return String(unsafe || '').replace(/[<>&'"]/g, c => {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '&': return '&amp;';
+      case '\'': return '&apos;';
+      case '"': return '&quot;';
+    }
+  });
+}
+
+// Procedural vector illustration generator for 100% offline & zero-latency skin artwork
+function generateSkinSvg(name, rarity, category, game) {
+  const clr = RARITY_COLORS[rarity] || '#10b981';
+  const gameTag = (game || 'CS2').toUpperCase();
+  
+  let icon = 'ITEM';
+  let weaponPath = '';
+  
+  if (category === 'knife') {
+    icon = '★ KNIFE';
+    weaponPath = `<path d="M 120 220 C 140 180, 180 140, 240 110 C 290 85, 340 70, 360 60 C 350 90, 330 130, 290 170 C 250 210, 200 240, 160 250 Z" fill="url(#gradBlade)" filter="url(#glow)"/>
+                  <path d="M 110 230 C 80 260, 50 280, 40 270 C 30 260, 50 230, 80 200 Z" fill="#2d3748"/>
+                  <circle cx="110" cy="225" r="14" fill="#0f172a" stroke="${clr}" stroke-width="3"/>`;
+  } else if (category === 'sniper') {
+    icon = 'AWP SNIPER';
+    weaponPath = `<rect x="30" y="145" width="340" height="12" rx="4" fill="url(#gradBlade)" filter="url(#glow)"/>
+                  <path d="M 100 130 L 220 130 L 200 145 L 120 145 Z" fill="#1e293b" stroke="${clr}" stroke-width="1.5"/>
+                  <path d="M 80 157 L 140 157 L 130 195 L 70 195 Z" fill="#0f172a" stroke="#334155"/>
+                  <path d="M 230 157 L 270 157 L 255 200 L 220 200 Z" fill="#1e293b"/>
+                  <path d="M 270 150 L 370 140 L 370 160 L 270 165 Z" fill="url(#gradBlade)"/>`;
+  } else if (category === 'rifle') {
+    icon = 'ASSAULT RIFLE';
+    weaponPath = `<path d="M 40 135 L 280 135 L 290 150 L 270 160 L 140 160 L 120 210 L 85 205 L 105 160 L 40 160 Z" fill="url(#gradBlade)" filter="url(#glow)"/>
+                  <rect x="290" y="140" width="70" height="7" fill="#64748b"/>
+                  <path d="M 180 160 C 190 200, 205 235, 230 250 L 205 255 C 180 235, 165 195, 155 160 Z" fill="#1e293b" stroke="${clr}" stroke-width="1.5"/>
+                  <path d="M 40 135 L 10 160 L 10 200 L 40 180 Z" fill="#334155"/>`;
+  } else if (category === 'pistol') {
+    icon = 'PISTOL';
+    weaponPath = `<rect x="100" y="110" width="200" height="45" rx="5" fill="url(#gradBlade)" filter="url(#glow)"/>
+                  <path d="M 140 155 L 190 155 L 175 250 L 125 245 Z" fill="#1e293b" stroke="${clr}" stroke-width="2"/>
+                  <rect x="240" y="118" width="50" height="8" rx="2" fill="#0f172a"/>`;
+  } else if (category === 'gloves') {
+    icon = 'GLOVES';
+    weaponPath = `<path d="M 130 90 C 160 80, 210 90, 230 130 L 240 210 C 230 250, 180 260, 140 250 L 110 210 C 100 160, 110 110, 130 90 Z" fill="url(#gradBlade)" filter="url(#glow)"/>
+                  <rect x="135" y="125" width="20" height="40" rx="6" fill="#0f172a" stroke="${clr}" stroke-width="2"/>
+                  <rect x="165" y="120" width="20" height="45" rx="6" fill="#0f172a" stroke="${clr}" stroke-width="2"/>
+                  <rect x="195" y="130" width="20" height="38" rx="6" fill="#0f172a" stroke="${clr}" stroke-width="2"/>`;
+  } else if (game === 'dota2') {
+    icon = 'IMMORTAL / ARCANA';
+    weaponPath = `<path d="M 200 40 L 240 120 L 320 150 L 240 180 L 200 260 L 160 180 L 80 150 L 160 120 Z" fill="url(#gradBlade)" filter="url(#glow)"/>
+                  <circle cx="200" cy="150" r="30" fill="#0f172a" stroke="#fff" stroke-width="2"/>
+                  <circle cx="200" cy="150" r="14" fill="${clr}"/>`;
+  } else if (game === 'rust') {
+    icon = 'RUST GEAR';
+    weaponPath = `<path d="M 120 70 L 280 70 L 290 190 L 200 260 L 110 190 Z" fill="url(#gradBlade)" filter="url(#glow)"/>
+                  <rect x="145" y="120" width="40" height="20" rx="4" fill="#0f172a" stroke="${clr}" stroke-width="2"/>
+                  <rect x="215" y="120" width="40" height="20" rx="4" fill="#0f172a" stroke="${clr}" stroke-width="2"/>
+                  <line x1="160" y1="180" x2="240" y2="180" stroke="#0f172a" stroke-width="6"/>`;
+  } else {
+    icon = 'COLLECTIBLE';
+    weaponPath = `<path d="M 60 130 L 340 130 L 320 170 L 80 170 Z" fill="url(#gradBlade)" filter="url(#glow)"/>
+                  <circle cx="200" cy="150" r="35" fill="#0f172a" stroke="${clr}" stroke-width="3"/>`;
+  }
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+    <defs>
+      <radialGradient id="gradBg" cx="50%" cy="50%" r="65%">
+        <stop offset="0%" stop-color="${clr}" stop-opacity="0.25"/>
+        <stop offset="60%" stop-color="#0b0f19" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="#06080d" stop-opacity="1"/>
+      </radialGradient>
+      <linearGradient id="gradBlade" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="40%" stop-color="${clr}"/>
+        <stop offset="100%" stop-color="#111827"/>
+      </linearGradient>
+      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="8" result="blur"/>
+        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+      </filter>
+    </defs>
+    <rect width="400" height="300" rx="16" fill="url(#gradBg)"/>
+    <rect width="398" height="298" x="1" y="1" rx="15" fill="none" stroke="${clr}" stroke-opacity="0.3" stroke-width="1.5"/>
+    <text x="375" y="36" text-anchor="end" fill="rgba(255,255,255,0.18)" font-family="system-ui, sans-serif" font-size="14" font-weight="900" letter-spacing="2">${gameTag}</text>
+    <text x="25" y="36" text-anchor="start" fill="${clr}" font-family="system-ui, sans-serif" font-size="11" font-weight="800" letter-spacing="1">${icon}</text>
+    <g transform="translate(0, 0)">
+      ${weaponPath}
+    </g>
+    <rect x="20" y="252" width="360" height="32" rx="8" fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <circle cx="36" cy="268" r="5" fill="${clr}"/>
+    <text x="50" y="273" fill="#ffffff" font-family="system-ui, sans-serif" font-size="12" font-weight="700">${escapeXml(name.length > 34 ? name.substring(0, 32) + '...' : name)}</text>
+  </svg>`;
+
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+// Automatically enrich all items with procedural artwork
+SKINS_DATABASE.forEach(skin => {
+  skin.fallbackSvg = generateSkinSvg(skin.name, skin.rarity, skin.category, skin.game);
+  skin.image = skin.fallbackSvg; // 100% reliable offline artwork
+});
+
 // Global exports
 if (typeof window !== 'undefined') {
   window.RARITY_COLORS = RARITY_COLORS;
   window.RARITY_LABELS = RARITY_LABELS;
   window.WEAR_NAMES = WEAR_NAMES;
   window.SKINS_DATABASE = SKINS_DATABASE;
+  window.generateSkinSvg = generateSkinSvg;
   window.getAllSkinVariants = getAllSkinVariants;
 }

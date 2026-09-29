@@ -1225,7 +1225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.upgraderEngine.setTargetSkin(defaultTarget);
   }
 
-  // Draw wheel on canvas
+  // Draw wheel on canvas with 100% synchronized needle angle alignment & cyber glow
   function drawWheel(chance, direction, currentRoll = null) {
     if (!wheelCanvas) return;
     const ctx = wheelCanvas.getContext('2d');
@@ -1239,19 +1239,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ctx.clearRect(0, 0, w, h);
 
-    // 1. Draw base dark circular track
+    // Accent glow color
+    const computedAccent = getComputedStyle(document.body).getPropertyValue('--accent-color').trim() || '#00ff88';
+
+    // 1. Draw outer cyber perimeter ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius + 15, 0, Math.PI * 2);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.stroke();
+
+    // Inner rim
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius - 15, 0, Math.PI * 2);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. Draw base dark metallic circular track
+    ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.lineWidth = thickness;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.strokeStyle = 'rgba(16, 22, 34, 0.85)';
     ctx.stroke();
 
-    // 2. Draw 100 subtle tick marks around circumference
+    // Dark track border highlights
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.lineWidth = thickness - 4;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+    ctx.stroke();
+    ctx.restore();
+
+    // 3. Draw 100 precision tick marks around circumference
+    ctx.save();
     for (let i = 0; i < 100; i++) {
+      // 0 is 12 o'clock (top), rotating clockwise
       const angle = (i / 100) * Math.PI * 2 - Math.PI / 2;
       const isMajor = i % 10 === 0;
-      const tickInner = radius - (isMajor ? 12 : 7);
-      const tickOuter = radius + (isMajor ? 12 : 7);
+      const isMedium = i % 5 === 0;
+      const tickInner = radius - (isMajor ? 13 : (isMedium ? 9 : 6));
+      const tickOuter = radius + (isMajor ? 13 : (isMedium ? 9 : 6));
 
       const x1 = cx + Math.cos(angle) * tickInner;
       const y1 = cy + Math.sin(angle) * tickInner;
@@ -1261,39 +1292,87 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
-      ctx.lineWidth = isMajor ? 2 : 1;
-      ctx.strokeStyle = isMajor ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = isMajor ? 2.5 : (isMedium ? 1.5 : 1);
+      ctx.strokeStyle = isMajor ? 'rgba(255, 255, 255, 0.45)' : (isMedium ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)');
       ctx.stroke();
+
+      // Major tick dot on perimeter
+      if (isMajor) {
+        const dotR = radius + 15;
+        const dx = cx + Math.cos(angle) * dotR;
+        const dy = cy + Math.sin(angle) * dotR;
+        ctx.beginPath();
+        ctx.arc(dx, dy, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.fill();
+      }
     }
+    ctx.restore();
 
     if (chance <= 0) return;
 
-    // 3. Draw winning glowing sector
-    const sectorRad = (chance / 100) * (Math.PI * 2);
-    let startAngle = -Math.PI / 2;
-    let endAngle = startAngle + sectorRad;
-
-    if (direction === 'over') {
+    // 4. Draw winning glowing sector
+    // Needle starts at 12 o'clock and moves CLOCKWISE by (roll / 100) * 360 deg.
+    // Therefore:
+    // If direction === 'under': WIN is roll <= chance.
+    // Sector runs from 0% to chance% of circle clockwise starting at 12 o'clock:
+    // startAngle = -Math.PI / 2
+    // endAngle = -Math.PI / 2 + (chance / 100) * 2 * Math.PI
+    //
+    // If direction === 'over': WIN is roll >= (100 - chance).
+    // Sector runs from (100 - chance)% to 100% of circle clockwise:
+    // startAngle = -Math.PI / 2 + ((100 - chance) / 100) * 2 * Math.PI
+    // endAngle = -Math.PI / 2 + 2 * Math.PI  (12 o'clock)
+    //
+    // Both sectors are drawn strictly CLOCKWISE (counterclockwise = false).
+    // This guarantees that any winning roll's needle lands strictly inside the glowing sector!
+    let startAngle, endAngle;
+    if (direction === 'under') {
       startAngle = -Math.PI / 2;
-      endAngle = startAngle - sectorRad;
+      endAngle = startAngle + (chance / 100) * (Math.PI * 2);
+    } else {
+      startAngle = -Math.PI / 2 + ((100 - chance) / 100) * (Math.PI * 2);
+      endAngle = -Math.PI / 2 + (Math.PI * 2);
     }
 
+    // Outer intense glow pass
     ctx.save();
     ctx.beginPath();
-    ctx.arc(cx, cy, radius, startAngle, endAngle, direction === 'over');
-    ctx.lineWidth = thickness + 4;
+    ctx.arc(cx, cy, radius, startAngle, endAngle, false);
+    ctx.lineWidth = thickness + 8;
     ctx.lineCap = 'round';
-
-    // Accent glow color
-    const computedAccent = getComputedStyle(document.body).getPropertyValue('--accent-color').trim() || '#00ff88';
     ctx.strokeStyle = computedAccent;
     ctx.shadowColor = computedAccent;
-    ctx.shadowBlur = 18;
+    ctx.shadowBlur = 24;
     ctx.stroke();
+    ctx.restore();
+
+    // Sharp bright core pass
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, startAngle, endAngle, false);
+    ctx.lineWidth = thickness + 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#ffffff';
+    ctx.shadowColor = computedAccent;
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+
+    // Glowing LED beads at sector start and end
+    [startAngle, endAngle].forEach(ang => {
+      const bx = cx + Math.cos(ang) * radius;
+      const by = cy + Math.sin(ang) * radius;
+      ctx.beginPath();
+      ctx.arc(bx, by, (thickness / 2) + 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = computedAccent;
+      ctx.shadowBlur = 12;
+      ctx.fill();
+    });
     ctx.restore();
   }
 
-  function updateUpgraderUI() {
+  function updateUpgraderUI(skipDrawerRebuild = false) {
     const totalBet = window.upgraderEngine.getTotalBetAmount();
     const chance = window.upgraderEngine.calculateChance();
     const multiplier = window.upgraderEngine.calculateMultiplier();
@@ -1305,6 +1384,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (arenaSelectedItemsSummary) {
       arenaSelectedItemsSummary.textContent = `${selectedCount} ${getNoun(selectedCount, 'предмет', 'предмета', 'предметов')}`;
+    }
+    if (drawerSelectedCount) {
+      drawerSelectedCount.textContent = `Выбрано: ${selectedCount} шт.`;
     }
     if (btnUpgradePriceTag) {
       btnUpgradePriceTag.textContent = totalBet > 0 ? `($${totalBet.toFixed(2)})` : '(Выберите скин)';
@@ -1347,8 +1429,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Draw Wheel
     drawWheel(chance, window.upgraderEngine.direction);
 
-    // Render drawer
-    renderInventoryDrawer();
+    // Render drawer only if full rebuild requested
+    if (!skipDrawerRebuild) {
+      renderInventoryDrawer();
+    }
   }
 
   window.updateUpgraderUI = updateUpgraderUI;
@@ -1414,16 +1498,25 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
 
-    arenaInventoryDrawer.querySelectorAll('[data-drawer-id]').forEach(row => {
-      row.addEventListener('click', () => {
+    // Attach delegated click listener once to avoid lag and memory leaks
+    if (!arenaInventoryDrawer._hasDelegation) {
+      arenaInventoryDrawer._hasDelegation = true;
+      arenaInventoryDrawer.addEventListener('click', (e) => {
+        const row = e.target.closest('[data-drawer-id]');
+        if (!row) return;
+        const curUser = window.authManager.currentUser;
+        if (!curUser || !curUser.inventory) return;
         const id = row.dataset.drawerId;
-        const item = user.inventory.find(it => it.instanceId === id);
+        const item = curUser.inventory.find(it => it.instanceId === id);
         if (item) {
-          window.upgraderEngine.toggleItemSelection(item);
-          updateUpgraderUI();
+          const isNowSelected = window.upgraderEngine.toggleItemSelection(item);
+          row.classList.toggle('selected', isNowSelected);
+          const chk = row.querySelector('input[type="checkbox"]');
+          if (chk) chk.checked = isNowSelected;
+          updateUpgraderUI(true);
         }
       });
-    });
+    }
   }
 
   // Inventory Quick Action buttons
@@ -1894,7 +1987,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const bestDropHtml = p.bestWinSkin ? `
             <div style="display: flex; align-items: center; gap: 8px;">
-              <img src="${p.bestWinSkin.image}" alt="" style="width: 32px; height: 22px; object-fit: contain;">
+              ${p.bestWinSkin.image ? `<img src="${p.bestWinSkin.image}" alt="" style="width: 32px; height: 22px; object-fit: contain;">` : '<span style="font-size: 16px;">🏆</span>'}
               <span style="font-weight: 800; color: #fff;">$${(p.bestWinSkin.price || 0).toFixed(2)}</span>
               ${p.bestWinMultiplier > 0 ? `<span style="font-size: 11px; color: var(--accent-color); font-weight: 800;">(${p.bestWinMultiplier}x)</span>` : ''}
             </div>

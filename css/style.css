@@ -547,6 +547,7 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
   gap: 16px;
   margin-top: 18px;
+  contain: content;
 }
 
 /* SKIN CARD */
@@ -558,6 +559,9 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   padding: 14px;
   display: flex;
   flex-direction: column;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
   justify-content: space-between;
   cursor: pointer;
   overflow: hidden;
@@ -1694,34 +1698,49 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 136px;
-  height: 136px;
+  width: 142px;
+  height: 142px;
   border-radius: 50%;
-  background: rgba(14, 19, 30, 0.94);
-  border: 2px solid var(--border-highlight);
+  background: radial-gradient(circle, rgba(18, 24, 38, 0.98) 0%, rgba(8, 12, 20, 0.98) 100%);
+  border: 2px solid rgba(var(--accent-rgb), 0.35);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.9), inset 0 0 25px rgba(var(--accent-rgb), 0.12);
   z-index: 5;
   pointer-events: none;
 }
 
+.wheel-center-display::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+  animation: cyberHubPulse 16s linear infinite;
+}
+
+@keyframes cyberHubPulse {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .wheel-center-title {
-  font-size: 9px;
+  font-size: 9.5px;
   text-transform: uppercase;
   color: var(--text-dim);
   font-weight: 800;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .wheel-center-chance {
-  font-size: 26px;
+  font-size: 27px;
   font-weight: 900;
   color: var(--accent-color);
-  text-shadow: 0 0 14px var(--accent-glow);
+  text-shadow: 0 0 16px var(--accent-glow);
   font-family: 'Outfit', sans-serif;
   line-height: 1.1;
   margin: 2px 0;
@@ -1739,47 +1758,49 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   top: 50%;
   left: 50%;
   width: 4px;
-  height: 122px;
+  height: 124px;
   margin-left: -2px;
-  margin-top: -122px;
+  margin-top: -124px;
   transform-origin: bottom center;
   z-index: 10;
   pointer-events: none;
-  transition: filter var(--transition-fast);
+  filter: drop-shadow(0 0 10px var(--accent-glow));
+  will-change: transform;
 }
 
 /* Base pivot bead at the center hub */
 .wheel-needle-pointer::after {
   content: '';
   position: absolute;
-  bottom: -4px;
+  bottom: -6px;
   left: 50%;
   transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: var(--accent-color);
-  box-shadow: 0 0 10px var(--accent-glow);
+  background: radial-gradient(circle, #ffffff 25%, var(--accent-color) 85%);
+  box-shadow: 0 0 12px var(--accent-glow), 0 0 16px #ffffff;
+  border: 2px solid #06090e;
 }
 
 /* 1. Laser Blade (Default: Neon light beam with diamond apex) */
 .wheel-needle-pointer.arrow-laser {
-  background: linear-gradient(to top, transparent 0%, rgba(var(--accent-rgb), 0.4) 30%, var(--accent-color) 80%, #ffffff 100%);
+  background: linear-gradient(to top, transparent 0%, rgba(var(--accent-rgb), 0.3) 25%, var(--accent-color) 70%, #ffffff 100%);
   width: 3px;
   margin-left: -1.5px;
   border-radius: 999px;
-  filter: drop-shadow(0 0 8px var(--accent-glow)) drop-shadow(0 0 16px var(--accent-color));
+  filter: drop-shadow(0 0 10px var(--accent-glow)) drop-shadow(0 0 20px var(--accent-color));
 }
 .wheel-needle-pointer.arrow-laser .needle-shape {
-  width: 14px;
-  height: 22px;
+  width: 16px;
+  height: 24px;
   background: linear-gradient(180deg, #ffffff 0%, var(--accent-color) 100%);
   clip-path: polygon(50% 0%, 100% 70%, 50% 100%, 0% 70%);
   position: absolute;
-  top: -16px;
+  top: -18px;
   left: 50%;
   transform: translateX(-50%);
-  filter: drop-shadow(0 0 10px var(--accent-glow));
+  filter: drop-shadow(0 0 14px var(--accent-glow)) drop-shadow(0 0 8px #ffffff);
 }
 
 /* 2. Cyber Edge Blade (Angled aerodynamic Katana) */
@@ -4168,14 +4189,44 @@ html, body {
     font-size: 11px !important;
   }
 
-  #upgrader-canvas {
-    width: 240px !important;
-    height: 240px !important;
+  #upgrader-canvas,
+  #wheel-canvas,
+  .wheel-canvas {
+    width: 250px !important;
+    height: 250px !important;
   }
 
+  .upgrader-wheel-box,
   .wheel-wrap {
+    width: 250px !important;
+    height: 250px !important;
     max-width: 250px !important;
     max-height: 250px !important;
+  }
+
+  .wheel-center-display {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  .wheel-center-chance {
+    font-size: 22px !important;
+  }
+
+  .wheel-needle-pointer {
+    height: 108px !important;
+    margin-top: -108px !important;
+  }
+
+  .wheel-needle-pointer.arrow-laser .needle-shape {
+    width: 14px !important;
+    height: 20px !important;
+    top: -15px !important;
+  }
+
+  .app-container {
+    padding: 0 10px 40px !important;
+    overflow-x: hidden !important;
   }
 
   .mines-cell {
@@ -4728,24 +4779,23 @@ body {
 
 /* --- 4. Cases Section Overhaul --- */
 .case-card {
-  background: rgba(14, 18, 28, 0.65) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
+  background: #101624 !important;
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-radius: 18px !important;
   padding: 20px !important;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
   position: relative !important;
   overflow: hidden !important;
-  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 10px 25px -6px rgba(0, 0, 0, 0.5) !important;
+  transform: translateZ(0);
 }
 
 .case-card:hover {
-  transform: translateY(-6px) scale(1.02) !important;
+  transform: translateY(-5px) !important;
   border-color: var(--case-clr, var(--accent-color)) !important;
   box-shadow: 
-    0 18px 40px -10px rgba(0, 0, 0, 0.7),
-    0 0 25px rgba(var(--accent-rgb), 0.2) !important;
+    0 16px 36px -8px rgba(0, 0, 0, 0.7),
+    0 0 20px rgba(var(--accent-rgb), 0.18) !important;
 }
 
 .case-card::after {
@@ -4792,9 +4842,7 @@ body {
 
 /* --- 5. Mobile Floating Dock (Native App Feel) --- */
 .mobile-bottom-nav {
-  background: rgba(8, 10, 16, 0.88) !important;
-  backdrop-filter: blur(28px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+  background: rgba(8, 10, 16, 0.94) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
   height: 64px !important;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.7) !important;
@@ -4802,7 +4850,7 @@ body {
 
 .mobile-bottom-tab {
   color: #64748b !important;
-  transition: all 0.2s ease !important;
+  transition: color 0.18s ease !important;
 }
 
 .mobile-bottom-tab.active {
@@ -4816,8 +4864,7 @@ body {
 
 /* --- 6. Catalog & Shop (Zero Clutter) --- */
 .catalog-controls-card {
-  background: rgba(14, 18, 28, 0.65) !important;
-  backdrop-filter: blur(20px) !important;
+  background: #101624 !important;
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-radius: 18px !important;
   padding: 16px 20px !important;
@@ -4849,19 +4896,20 @@ body {
 }
 
 .skin-card {
-  background: rgba(14, 18, 28, 0.65) !important;
-  backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: #111726 !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-radius: 16px !important;
   padding: 16px !important;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4) !important;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease !important;
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.4) !important;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .skin-card:hover {
-  transform: translateY(-4px) scale(1.02) !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
-  box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.6) !important;
+  transform: translateY(-4px) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.6) !important;
 }
 
 /* --- 7. Mini-Games: Mines, Coinflip, Crash --- */

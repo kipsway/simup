@@ -135,85 +135,91 @@ class CatalogController {
 
     containerElement.innerHTML = html;
 
-    // Attach inspect buttons
-    containerElement.querySelectorAll('[data-inspect-skin-id]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const skinId = btn.dataset.inspectSkinId;
-        const skin = this.skins.find(s => s.id === skinId);
-        if (skin && window.openSkinInspectModal) {
-          window.openSkinInspectModal(skin);
-        }
-      });
-    });
-
-    // Attach buy buttons (Fast purchase with balance)
-    containerElement.querySelectorAll('[data-buy-id]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const skinId = btn.dataset.buyId;
-        const skin = this.skins.find(s => s.id === skinId);
-        if (!skin) return;
-
-        const user = window.authManager?.currentUser;
-        if (!user) {
-          if (typeof window.showAuthModal === 'function') {
-            window.showAuthModal('login');
+    // Fast, ultra-smooth event delegation on container (Zero DOM listener leaks)
+    if (!containerElement._hasDelegation) {
+      containerElement._hasDelegation = true;
+      containerElement.addEventListener('click', (e) => {
+        // 1. Inspect button
+        const inspectBtn = e.target.closest('[data-inspect-skin-id]');
+        if (inspectBtn) {
+          e.stopPropagation();
+          const skinId = inspectBtn.dataset.inspectSkinId;
+          const skin = this.skins.find(s => s.id === skinId);
+          if (skin && window.openSkinInspectModal) {
+            window.openSkinInspectModal(skin);
           }
           return;
         }
 
-        if (user.balance < skin.price) {
-          window.notify?.error?.(
-            'Недостаточно средств',
-            `Для покупки ${skin.name} требуется $${skin.price.toFixed(2)}, ваш баланс: $${user.balance.toFixed(2)}.`
+        // 2. Buy button (Fast purchase with balance)
+        const buyBtn = e.target.closest('[data-buy-id]');
+        if (buyBtn) {
+          e.stopPropagation();
+          const skinId = buyBtn.dataset.buyId;
+          const skin = this.skins.find(s => s.id === skinId);
+          if (!skin) return;
+
+          const user = window.authManager?.currentUser;
+          if (!user) {
+            if (typeof window.showAuthModal === 'function') {
+              window.showAuthModal('login');
+            }
+            return;
+          }
+
+          if (user.balance < skin.price) {
+            window.notify?.error?.(
+              'Недостаточно средств',
+              `Для покупки ${skin.name} требуется $${skin.price.toFixed(2)}, ваш баланс: $${user.balance.toFixed(2)}.`
+            );
+            return;
+          }
+
+          // Deduct balance
+          user.balance = Number((user.balance - skin.price).toFixed(2));
+
+          // Add skin to inventory
+          const newInstance = {
+            instanceId: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+            skinId: skin.id,
+            name: skin.name,
+            wear: skin.wear || 'STANDARD',
+            wearName: skin.wearName || 'Базовое качество',
+            game: skin.game,
+            rarity: skin.rarity,
+            rarityColor: skin.rarityColor,
+            price: skin.price,
+            image: skin.image,
+            fallbackSvg: skin.fallbackSvg,
+            acquiredAt: Date.now()
+          };
+          user.inventory.push(newInstance);
+
+          window.authManager.saveCurrentUser();
+          if (window.soundManager?.playCoin) {
+            window.soundManager.playCoin();
+          }
+          window.notify?.success?.(
+            'Скин куплен!',
+            `${skin.name} ($${skin.price.toFixed(2)}) успешно добавлен в ваш инвентарь!`
           );
+          if (typeof window.updateUpgraderUI === 'function') {
+            window.updateUpgraderUI();
+          }
           return;
         }
 
-        // Deduct balance
-        user.balance = Number((user.balance - skin.price).toFixed(2));
-
-        // Add skin to inventory
-        const newInstance = {
-          instanceId: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-          skinId: skin.id,
-          name: skin.name,
-          wear: skin.wear || 'STANDARD',
-          wearName: skin.wearName || 'Базовое качество',
-          game: skin.game,
-          rarity: skin.rarity,
-          rarityColor: skin.rarityColor,
-          price: skin.price,
-          image: skin.image,
-          acquiredAt: Date.now()
-        };
-        user.inventory.push(newInstance);
-
-        window.authManager.saveCurrentUser();
-        if (window.soundManager?.playCoin) {
-          window.soundManager.playCoin();
-        }
-        window.notify?.success?.(
-          'Скин куплен!',
-          `${skin.name} ($${skin.price.toFixed(2)}) успешно добавлен в ваш инвентарь!`
-        );
-      });
-    });
-
-    // Attach select handlers
-    containerElement.querySelectorAll('.skin-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('[data-buy-id]') || e.target.closest('[data-inspect-skin-id]')) {
-          return;
-        }
-        const skinId = card.dataset.skinId;
-        const skin = this.skins.find(s => s.id === skinId);
-        if (skin && this.onSelectTargetCallback) {
-          this.onSelectTargetCallback(skin);
+        // 3. Select card target
+        const card = e.target.closest('.skin-card');
+        if (card) {
+          const skinId = card.dataset.skinId;
+          const skin = this.skins.find(s => s.id === skinId);
+          if (skin && this.onSelectTargetCallback) {
+            this.onSelectTargetCallback(skin);
+          }
         }
       });
-    });
+    }
   }
 }
 

@@ -6,7 +6,7 @@
 
 class UpgraderEngine {
   constructor() {
-    this.houseEdge = 0.08; // 8% realistic esports house edge (fixed, standard)
+    this.houseEdge = 0.12; // 12% balanced realistic esports house edge
     this.direction = 'under'; // 'under' or 'over'
     this.sectorOffset = 0; // rotation angle of sector
     this.isSpinning = false;
@@ -101,9 +101,9 @@ class UpgraderEngine {
       return 0;
     }
 
-    // Pure 1:1 odds formula: chance = (totalBetSkins / targetSkinPrice) * (1 - 0.08) * 100
+    // Balanced odds formula: chance = (totalBetSkins / targetSkinPrice) * (1 - 0.12) * 100
     const rawChance = (totalBet / this.targetSkin.price) * (1 - this.houseEdge) * 100;
-    const clamped = Math.min(90.00, Math.max(0.05, rawChance));
+    const clamped = Math.min(75.00, Math.max(0.05, rawChance));
     return Number(clamped.toFixed(2));
   }
 

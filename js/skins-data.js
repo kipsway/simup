@@ -753,6 +753,7 @@ function getAllSkinVariants() {
           rarityColor: RARITY_COLORS[base.rarity] || '#ffffff',
           rarityLabel: RARITY_LABELS[base.rarity] || base.rarity,
           image: base.image,
+          fallbackSvg: base.fallbackSvg,
           wear: wearKey,
           wearName: WEAR_NAMES[wearKey] || wearKey,
           price: wearInfo.price
@@ -772,6 +773,7 @@ function getAllSkinVariants() {
         rarityColor: RARITY_COLORS[base.rarity] || '#ffffff',
         rarityLabel: RARITY_LABELS[base.rarity] || base.rarity,
         image: base.image,
+        fallbackSvg: base.fallbackSvg,
         wear: 'STANDARD',
         wearName: WEAR_NAMES.STANDARD,
         price: base.price
@@ -881,10 +883,13 @@ function generateSkinSvg(name, rarity, category, game) {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
-// Automatically enrich all items with procedural artwork
+// Automatically enrich all items with procedural fallback artwork
 SKINS_DATABASE.forEach(skin => {
   skin.fallbackSvg = generateSkinSvg(skin.name, skin.rarity, skin.category, skin.game);
-  skin.image = skin.fallbackSvg; // 100% reliable offline artwork
+  // Keep authentic Steam CDN photo if available; fallback to SVG only if missing
+  if (!skin.image || skin.image.trim() === '') {
+    skin.image = skin.fallbackSvg;
+  }
 });
 
 // Global exports

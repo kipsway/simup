@@ -3487,6 +3487,31 @@ document.addEventListener('DOMContentLoaded', () => {
       renderProfilePage();
     }
   };
+
+  // Responsive dynamic re-scaler for PC & Smartphones
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (window.crashEngine && typeof window.crashEngine.resizeCanvas === 'function') {
+        window.crashEngine.resizeCanvas();
+      }
+      if (typeof updateUpgraderUI === 'function') {
+        try { updateUpgraderUI(); } catch (e) {}
+      }
+    }, 100);
+  }, { passive: true });
+
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+      if (window.crashEngine && typeof window.crashEngine.resizeCanvas === 'function') {
+        window.crashEngine.resizeCanvas();
+      }
+      if (typeof updateUpgraderUI === 'function') {
+        try { updateUpgraderUI(); } catch (e) {}
+      }
+    }, 200);
+  }, { passive: true });
 });
 
 

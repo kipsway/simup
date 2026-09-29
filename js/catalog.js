@@ -113,7 +113,7 @@ class CatalogController {
             <button class="btn-card-inspect" data-inspect-skin-id="${skin.id}" title="Осмотреть скин" style="margin-left: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer;">🔍</button>
           </div>
           <div class="skin-img-wrap">
-            <img src="${skin.image || skin.fallbackSvg}" alt="${skin.name}" loading="lazy" class="skin-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${skin.name.replace(/'/g, '')}', '${skin.rarity}', '${skin.category}', '${skin.game}');"/>
+            <img src="${skin.image || skin.fallbackSvg}" alt="${skin.name}" loading="lazy" class="skin-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${skin.id}');"/>
           </div>
           <div class="skin-info">
             <div class="skin-name" title="${skin.name}">${skin.name}</div>

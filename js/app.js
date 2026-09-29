@@ -808,7 +808,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   ${item.wear && item.wear !== 'STANDARD' ? `<span class="wear-pill">${item.wear}</span>` : ''}
                 </div>
                 <div class="skin-img-wrap">
-                  <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="skin-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
+                  <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="skin-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
                 </div>
                 <div class="skin-info">
                   <div class="skin-name" title="${item.name}">${item.name}</div>
@@ -1427,9 +1427,8 @@ document.addEventListener('DOMContentLoaded', () => {
         targetSkinImg.src = target.image || target.fallbackSvg || '';
         targetSkinImg.alt = target.name;
         targetSkinImg.onerror = function() {
-          this.onerror = null;
-          if (window.generateSkinSvg) {
-            this.src = window.generateSkinSvg(target.name, target.rarity, target.category, target.game);
+          if (window.handleSkinImgError) {
+            window.handleSkinImgError(this, target.id, target.name, target.rarity, target.category, target.game);
           }
         };
       }
@@ -1521,7 +1520,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return `
         <div class="drawer-item-row ${isSel ? 'selected' : ''}" data-drawer-id="${item.instanceId}">
           <div class="drawer-item-status-icon">${isSel ? '✓' : ''}</div>
-          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="drawer-item-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
+          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="drawer-item-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
           <div style="flex: 1; min-width: 0; margin: 0 8px;">
             <div class="drawer-item-name" title="${item.name}">${item.name}</div>
             <div style="font-size: 9.5px; color: var(--text-dim);">${item.wear && item.wear !== 'STANDARD' ? item.wear : (item.game || 'CS2').toUpperCase()}</div>
@@ -1677,7 +1676,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     targetPickerGrid.innerHTML = filtered.map(s => `
       <div class="target-picker-item" data-picker-skin-id="${s.id}" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 8px; cursor: pointer; text-align: center; transition: all 0.18s ease; display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
-        <img src="${s.image || s.fallbackSvg}" alt="${s.name}" style="width: 100%; height: 68px; object-fit: contain; margin-bottom: 6px;" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${s.name.replace(/'/g, '')}', '${s.rarity}', '${s.category}', '${s.game}');">
+        <img src="${s.image || s.fallbackSvg}" alt="${s.name}" style="width: 100%; height: 68px; object-fit: contain; margin-bottom: 6px;" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${s.id || ''}', '${s.name?.replace(/['\"\\]/g, '') || ''}', '${s.rarity || 'milspec'}', '${s.category || 'weapon'}', '${s.game || 'cs2'}');">
         <div style="font-size: 11px; font-weight: 700; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;" title="${s.name}">${s.name}</div>
         <div style="font-size: 12px; font-weight: 900; color: var(--accent-color); margin-top: 4px;">$${s.price.toFixed(2)}</div>
       </div>
@@ -1939,7 +1938,7 @@ document.addEventListener('DOMContentLoaded', () => {
     caseReelTrack.innerHTML = items.slice(0, 8).map(item => `
       <div class="reel-item-card skin-rarity-${item.rarity}" style="--rarity-clr: ${item.rarityColor};">
         <span class="reel-item-wear">${item.wear && item.wear !== 'STANDARD' ? item.wear : ''}</span>
-        <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="reel-item-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
+        <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="reel-item-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
         <div class="reel-item-name">${item.name}</div>
         <div class="reel-item-price">$${item.price.toFixed(2)}</div>
       </div>
@@ -1949,7 +1948,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modalCaseDropsPreview.innerHTML = items.map(item => `
       <div class="case-drop-preview-card skin-rarity-${item.rarity}" style="--rarity-clr: ${item.rarityColor};">
         <span class="case-drop-chance-pill">${item.percent}%</span>
-        <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="drop-preview-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
+        <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="drop-preview-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
         <div class="drop-preview-name">${item.name}</div>
         <div class="drop-preview-price">$${item.price.toFixed(2)}</div>
       </div>
@@ -2250,7 +2249,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     card.innerHTML = `
       <div class="live-drop-user-avatar" title="${username}">${avatar || '🗡️'}</div>
-      <img src="${item.image || item.fallbackSvg}" alt="" class="live-drop-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${(item.name || 'Skin').replace(/'/g, '')}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
+      <img src="${item.image || item.fallbackSvg}" alt="" class="live-drop-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${(item.name || 'Skin').replace(/['\"\\]/g, '')}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
       <div class="live-drop-info">
         <div class="live-drop-name">${item.name}</div>
         <div class="live-drop-price">$${item.price.toFixed(2)}</div>
@@ -2514,7 +2513,7 @@ document.addEventListener('DOMContentLoaded', () => {
         slotEl.style.setProperty('--slot-clr', item.rarityColor || '#888');
         slotEl.innerHTML = `
           <button class="contract-slot-remove" data-remove-id="${item.instanceId}" title="Убрать из контракта">&times;</button>
-          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="contract-slot-img" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
+          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="contract-slot-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
           <div class="contract-slot-name" title="${item.name}">${item.name}</div>
           <div class="contract-slot-price">$${item.price.toFixed(2)}</div>
         `;
@@ -2564,7 +2563,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ${item.wear && item.wear !== 'STANDARD' ? `<span class="wear-pill">${item.wear}</span>` : ''}
         </div>
         <div class="skin-img-wrap" style="height: 60px;">
-          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="skin-img" style="max-height: 55px;" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${item.name.replace(/'/g, '')}', '${item.rarity}', '${item.category}', '${item.game}');">
+          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="skin-img" style="max-height: 55px;" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
         </div>
         <div class="skin-info" style="margin-top: 4px;">
           <div class="skin-name" style="font-size: 11px;" title="${item.name}">${item.name}</div>

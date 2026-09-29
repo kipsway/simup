@@ -76,7 +76,7 @@ const SKINS_DATABASE = [
     nameEn: '★ M9 Bayonet | Lore',
     category: 'knife',
     rarity: 'extraordinary',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfxPrMfipP7dezhr-Djsj7P7TWlGJW-NB9t-3I-4_wjgHsrkdoZ2_3LIfEcVI5YgqCrgW_x-rngsO5v87PyHYxvCc8pGB8srcwZ3tC',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Wts2sab1iLvWHMWSF_uMvj-NoVha_mg8ijDCAnobsLGWebgVzA5EjQrMJ40G9xIHhMu_j4wOM2oJMnCuq2nlN73w54OdRVqoj5OSJ2HZV8Guh',
     wears: {
       FN: { price: 1780.00, wear: 'FN' },
       MW: { price: 1250.00, wear: 'MW' },
@@ -93,7 +93,7 @@ const SKINS_DATABASE = [
     nameEn: '★ Skeleton Knife | Crimson Web',
     category: 'knife',
     rarity: 'extraordinary',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tCvq4GGqPr1Ibndk1RX6sl0teXI8o_w1wK3-ENkYm_zLIeRdAU4Ml_W-gTtk-rvgJW_u5TMzHJqv3Fws3rYyAv330-8d54w2g',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1I5PeibbBiLs-bF1iHxOxlj-lsTj-q20twt2yGydf9eHOfbAZzD8Z1F7YC5xW8w4KxN-vrtFDf2oxGmC-r2HhXrnE8IzMD7FA',
     wears: {
       FN: { price: 2900.00, wear: 'FN' },
       MW: { price: 1420.00, wear: 'MW' },
@@ -123,7 +123,7 @@ const SKINS_DATABASE = [
     nameEn: '★ Gut Knife | Safari Mesh',
     category: 'knife',
     rarity: 'extraordinary',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf3qr3czxb49KzgL-Mh-PnJ6nkkm5u5Mx2gv2P8I-njlDlqUVoMm6nd9TAJAQ4Z1jW-wC7w-rng5W7uJ7KyCZiuSMk53_bmB3i00wePLc70qHNVxzAUBKfZy3I',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1c-uaRe7RSLfWABliEwOBJuORoWTD9zUh3tz_Vz9mgJX-VPQAlXpd1EONYtBTpldOzMrzn51He2d9HmHn3jjQJsHhrk_1paw',
     wears: {
       MW: { price: 92.00, wear: 'MW' },
       FT: { price: 78.00, wear: 'FT' },
@@ -138,7 +138,7 @@ const SKINS_DATABASE = [
     nameEn: '★ Sport Gloves | Vice',
     category: 'gloves',
     rarity: 'extraordinary',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DAQ1h3LliLprFZEydtwv33fDxO6NO7k5SZmvLwOq7cqWdQ-sJ0xOzFoN33jgXs_RBqZ2HwII6ScQVsNAmFrlXtwbzs18e778zMynsy6CE8pGB8st3o1o4',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tk5UvzWCL2kpn2-DFk_OKherB0H_KfG2Kv0ed4u95hSiiljFN3tT_QnNn9eC6SP1MiCpV5E-ZfuhC6l4XhZOK07wWM395Fyyys2H4d8G81tNR2TKD3',
     wears: {
       FN: { price: 12800.00, wear: 'FN' },
       MW: { price: 4200.00, wear: 'MW' },
@@ -154,7 +154,7 @@ const SKINS_DATABASE = [
     nameEn: '★ Driver Gloves | Snow Leopard',
     category: 'gloves',
     rarity: 'extraordinary',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DAQ1h3LliLprFZEydtwv33fDxO6NO7k5SZmvLwOq7cqWdQ-sJ0xOzAotj23wK2_0c6YWzzLNLEegRqNFvZ-lfsyevnhMC17svNySBg7igk7XrZygv3308nC45Eyw',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5T441rsfhr9kYDl7h1I4_utY5tnIfeGD3Wv1uZ_pORWRyyygwRp4mzXm9aocy3CbFQlDJNzReRc5Be5kdXmY76wsQ3Y2oJAyCn2hixNvDErvbhTdGoagA',
     wears: {
       FN: { price: 3800.00, wear: 'FN' },
       MW: { price: 1450.00, wear: 'MW' },
@@ -174,7 +174,7 @@ const SKINS_DATABASE = [
     nameEn: 'M4A4 | Howl',
     category: 'rifle',
     rarity: 'contraband',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09izh4-GkvP9Jrafw2lU6ccp0rqVpdus2lXnqkVsZzv7INSSIQFoNA2F_FS_xefog5W9vc_XiSw0Fvdh9jQ',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjMmyMnTGtRl39YXt1VHoVhHOjpfw-DAVuqf7MKU9damVXDfJmLcntbZvHC-2l0Ry4DvUyIv6IHzBOwAjWJtxRvlK7EfgvyAnMQ',
     wears: {
       FN: { price: 6800.00, wear: 'FN' },
       MW: { price: 5100.00, wear: 'MW' },
@@ -189,7 +189,7 @@ const SKINS_DATABASE = [
     nameEn: 'AWP | Dragon Lore',
     category: 'sniper',
     rarity: 'covert',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2DwB65Jy0rmVpoin2Q3m-ERkYW_6LYTBdwc5MFjX-1btweznh5S-6MzKm3Fm7ik8pGB8srA5YF6u',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjMmyZyvY5kUnpLjw-FjgThPOkpny-B1d4PuiJvE0JPGWWTHIx70v5bMxGyzmlksi4GSDy9uhd37GOFUiXpciF-dZukWm0oqwD9CZ2wA',
     wears: {
       FN: { price: 11500.00, wear: 'FN' },
       MW: { price: 7900.00, wear: 'MW' },
@@ -205,7 +205,7 @@ const SKINS_DATABASE = [
     nameEn: 'AK-47 | Wild Lotus',
     category: 'rifle',
     rarity: 'covert',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhnwMzJemkV09m7hJKOhOTLPr7Vn35cppQh2-yVp92m2Qfm_0JsYjyncNWReg9vN1CE_gK5w-y-hpDv7cycmnI17CMr-z-DyP2hP00k',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiVI0POlPPNSJ_-fCliR0-90tfJ4WiyMmBgjuiiI1Nn4cXjEbwMlDsR4RrVfsRK4wdPgPrjh4wKNg49Cyn__2iNI6ihi5O8cEf1yNgAZ7yU',
     wears: {
       FN: { price: 9200.00, wear: 'FN' },
       MW: { price: 6100.00, wear: 'MW' },
@@ -221,7 +221,7 @@ const SKINS_DATABASE = [
     nameEn: 'AK-47 | Fire Serpent',
     category: 'rifle',
     rarity: 'covert',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV08y5nY6fqPP9ILrDhGpI18h0juDU-MKt0Fex-kdsMTjyd9SVc1VoY1nV_1m8xr_vh5S5u5qYznM26CQk5Srem0SpwUYbe7V0Zyo',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0PSneqF-JeKDC2mE_u995LZWTTuygxIYuziEjJa3cniSPQVxDcZ2ReNZtBOwkIHvPr_l4lTWitgRzyqqiHkcvC9s5rtRVb1lpPPqTLzIAg',
     wears: {
       FN: { price: 2900.00, wear: 'FN' },
       MW: { price: 1150.00, wear: 'MW' },
@@ -237,7 +237,7 @@ const SKINS_DATABASE = [
     nameEn: 'M4A1-S | Printstream',
     category: 'rifle',
     rarity: 'covert',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIITBhGJf_NZlmOzA-LP5gVO8v11rYm_wJYKTJw9tN12D-lW6kO_pjZXp7szNn2wj5He4vnPfgw',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_OGMWrEwL9lj_F7Rienhgk1tjyIpYf8ID3ecAZyWJAkEbNY5hOwx9zvMrng4VfXiopMxHqtjC5A7Sw-tbxXUaAn8qTJz1aWlVg16BM',
     wears: {
       FN: { price: 320.00, wear: 'FN' },
       MW: { price: 180.00, wear: 'MW' },
@@ -253,7 +253,7 @@ const SKINS_DATABASE = [
     nameEn: 'Desert Eagle | Printstream',
     category: 'pistol',
     rarity: 'covert',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-kLAtl7PDdTjlH_8j4hoW0k_L4Or7fglRd4cJ5nqeY843w0Q23_hZvNmn6cI7BdlU8NAyF-lG5l7rvjZO7ucvMm2wj5Hfy803BfA',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7OeRbKFsJ8-DHG6e1f1iouRoQha_nBovp3OGmdeqInyVP1V0XsYlRbEI50a5wNyzZr605AyI3t5MmCSohylAuC89_a9cBoMY9UkV',
     wears: {
       FN: { price: 145.00, wear: 'FN' },
       MW: { price: 72.00, wear: 'MW' },
@@ -303,7 +303,7 @@ const SKINS_DATABASE = [
     nameEn: 'AWP | Hyper Beast',
     category: 'sniper',
     rarity: 'covert',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJU5cyzhr-GkvP9Jrafw2lU6ccp0rqV842kjQ23-kZsZG-nd9edcQVoZwvV_Fa9w-bog5W5vczLnXNhviU8pGB8so_0jU0',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk7uW-V6x0MPWBMWWVwP1ij-xsSyCmmFMj62Tcwt-gJC_BbwNyDZokQu8I4BK6wdazMuq35AbW3YIWmy_4h3tO8G81tKCz9TDP',
     wears: {
       FN: { price: 95.00, wear: 'FN' },
       MW: { price: 54.00, wear: 'MW' },
@@ -319,7 +319,7 @@ const SKINS_DATABASE = [
     nameEn: 'M4A4 | The Emperor',
     category: 'rifle',
     rarity: 'covert',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIITBhGJf_NZlmOzA-LP5gVO8v11sY2_1LNeTJg5tY1DV_1W_kO-5h5Tuu5TAzHBh7CIr-z-DyJ690B4i',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiVI0P_6afBSJf2DC3Wf09F7teVgWiT9kEtxsW_dntepcn2SZgF1CcN3RORe4RTtlN2yYenh7wPXiYxDmS_22jQJsHjOUN0CaQ',
     wears: {
       FN: { price: 155.00, wear: 'FN' },
       MW: { price: 48.00, wear: 'MW' },
@@ -335,7 +335,7 @@ const SKINS_DATABASE = [
     nameEn: 'AWP | Atheris',
     category: 'sniper',
     rarity: 'restricted',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17P7NdTRH-t26q4SZlvD7PYTQgXtu5Mx2gv2PrNms2VXi-kRtZzzyLdOXclI-YF6F-lG3lenmhsDovpTImHVluiZ34CnUnAv330-Q3_Vj_g',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk7uW-V7JkMPWBMWuZxuZi_rZsS3zgzU8isW3dnIr6eHKfPVAhDpojEe9YsUW4xta1Nuzm5FDci4NbjXKpmWVQppo',
     wears: {
       FN: { price: 14.50, wear: 'FN' },
       MW: { price: 6.80, wear: 'MW' },
@@ -351,7 +351,7 @@ const SKINS_DATABASE = [
     nameEn: 'Desert Eagle | Conspiracy',
     category: 'pistol',
     rarity: 'classified',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-kLAtl7PDdTjlH_9mkgL-OlvD4NoTck29Y_cg_37iSrIms3wXh-kFqYW7yIoXAcANsNF3T-FPsle3t05e_6ZzJnHM3viUk53fem0SpwUYbZl4vQ40',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7OeRbKFsJ_yWMWaF0-tjo95lRi67gVMk4WTSm9moI3-QPVBxDJByQOJe40O6k4fnM-zgsQXci4gUyH3_3CMa8G81tJHuULJI',
     wears: {
       FN: { price: 9.50, wear: 'FN' },
       MW: { price: 6.20, wear: 'MW' },
@@ -371,7 +371,7 @@ const SKINS_DATABASE = [
     nameEn: 'AK-47 | Slate',
     category: 'rifle',
     rarity: 'restricted',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV08-5lpKKqPrxN7LEmyVU7pUpj-vEpN2t0FDg-EVkZzzwJo6ScVU3aQvT-1LtyLu908O5vZvJznc2pGB8soHj-t67',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiVI0POlPPNSMOKcCGKD0ud5vuBlcCW6khUz_W3Sytb4cCqTOFUpWJtzTOUD5hPsw9a0Yrnrs1SK3ooXzy6shilM5311o7FVYrIufmI',
     wears: {
       FN: { price: 9.80, wear: 'FN' },
       MW: { price: 4.20, wear: 'MW' },
@@ -387,7 +387,7 @@ const SKINS_DATABASE = [
     nameEn: 'M4A1-S | Night Terror',
     category: 'rifle',
     rarity: 'milspec',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO-jb-GkuP1P6jummJW4NE_2r2V896j0Q22qRBsYWmiLNedewY5ZgvT_1nrw-zs0ZW9vsuYziRmvCkk7H3amgv330-e_v38Tw',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_eAMWrEwL9lj-hnXCa-mxQmjDCAnobsLGXEPAchWcN4ReIM4Rjpk9CxN762tQXa395DyH732ylA6ilosupRWKUt5OSJ2NcRB1VD',
     wears: {
       FN: { price: 3.20, wear: 'FN' },
       MW: { price: 1.80, wear: 'MW' },
@@ -403,7 +403,7 @@ const SKINS_DATABASE = [
     nameEn: 'USP-S | Ticket to Hell',
     category: 'pistol',
     rarity: 'milspec',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcjhQ09-jq5WYh8j_OrfcZgBQsJ0p37mSrNzx3AXl_kU-Mm_2I9DHdQRoZwnUqAW9xunmh5Dou5iYn3pm7ic8pGB8st-f495S',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSI-WsG3SA_vp5j-lsQyWMmBgjuiiI1I6qdH6fbgAoApFyRrJf4xnumoDnM-7j41Pbgt8TyCT72CxK6SttsrscEf1y0Tw_DYE',
     wears: {
       FN: { price: 2.80, wear: 'FN' },
       MW: { price: 1.40, wear: 'MW' },
@@ -419,7 +419,7 @@ const SKINS_DATABASE = [
     nameEn: 'Glock-18 | Bunsen Burner',
     category: 'pistol',
     rarity: 'milspec',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3djFN79eJkI-Ek_P5Nr_Yg2YfucAk2b2W89Sn0VXs-EVkYjzxctSQdgM9N17X-Fm-lbzt1Je8vM7LmnQ36CQ8pGB8sjv631M',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1a_s2pZKtuK6HLMWGcwONzo95rQzy2qhAitzSQl8GodH-UOgMpWcFwTe5bs0W4kILgN7_q5wTd2oMTyC_9hnxIvyZo6u4BT-N7rUwNFtfM',
     wears: {
       FN: { price: 2.20, wear: 'FN' },
       MW: { price: 0.95, wear: 'MW' },
@@ -435,7 +435,7 @@ const SKINS_DATABASE = [
     nameEn: 'P250 | Sand Dune',
     category: 'pistol',
     rarity: 'consumer',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhjxszYI2gS09-5lpKKqPrxN7LEmyVU7pUpj-vEpdmi3FG1qEU9ZW_7dYDEdFA4NwqBqwToxenph8TovsnMnHM1pGB8si2QeF6r',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLhzMOwwjFU0OGvZqBSLfWXB3Kdj78n4rY-SX-wxhty4WzUwoqud32RPFUnDMR5RuRb4UXrmtznMOLrtgLAy9USoBHo4ag',
     wears: {
       FN: { price: 0.85, wear: 'FN' },
       MW: { price: 0.35, wear: 'MW' },
@@ -451,7 +451,7 @@ const SKINS_DATABASE = [
     nameEn: 'G3SG1 | Safari Mesh',
     category: 'sniper',
     rarity: 'consumer',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposLuoKhRf1OD3fDJR_-O6nYeDg7miYr7VlWgH650m37-V84itiQPt_xVqYW_xLIbAdFU5N1DV_1LoxLu6jJXqvpnNziRk63Ur4HfYnUeyhAYMMLIn_T1e_A',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2zYXnrB1I_82jbbdlH-SSAFicyOl-pK8-Tn3qwkgi5j7Wm9z7dy6fbFMoWcZ0RucOshK5l4DkZr_l5ACNgtpM02yg2YL7CXWd',
     wears: {
       FT: { price: 0.18, wear: 'FT' },
       BS: { price: 0.12, wear: 'BS' }
@@ -465,7 +465,7 @@ const SKINS_DATABASE = [
     nameEn: 'Nova | Sand Dune',
     category: 'shotgun',
     rarity: 'consumer',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpouLWzKjhjxszfcDBM-_zieST2nfL3Za3ShG5G-8t9mr3CtI6g0QCwqBdoYWrzcIfDdwBtMA6Fq1S9ybu-05fuup6fm3QwuiUk4XqJnUepwUYbrH1s35k',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL_kYDhwjFU0OGvZqBSLPmUBnPek75ysrZoHnnkw0V0tjndwo6tcnqSawEoWMQkR-Rf5hLul9S1M-vkthue1dyxC6rLqQ',
     wears: {
       FT: { price: 0.18, wear: 'FT' },
       BS: { price: 0.14, wear: 'BS' }
@@ -503,7 +503,7 @@ const SKINS_DATABASE = [
     nameEn: 'Mace of Aeons',
     category: 'immortal',
     rarity: 'extraordinary',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcU1vRhfV07eU-q51s7XXFVrIhpd_OvvLThz2_PPdDhB5tK12tbbx6GkZOuJzj8IvsEg2e2UpNui2FHn_0RtMDigcNTBIARsY1mE-FGggbC4dkhvYxU',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_DVwM-tMGiE2kB6_YO751jkRCL-mKnh-C1V_L2jaadoH_-VMWaVzuBl_rU9TSzhzBxx5WnRmN77cC6QaAcgCMMmEbIKtRLtk4DgNuzr5ASK3YxbjXKpE8yMK9s',
     price: 295.00
   },
   {
@@ -513,7 +513,7 @@ const SKINS_DATABASE = [
     nameEn: 'Feast of Abscession',
     category: 'arcana',
     rarity: 'extraordinary',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUivB9aSQPAUuCq0vDAWFR3IBZovr6pJAhr7PHHdSpQ48nkwtbax6SlYb_XlzsCv5wpj-2ZoNrx3wHjqEZlZ2H3JY_Ec1Q7NQyF81O_g-3o86-7vI2m1zI97Zf2Wk31',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bBx82kenqF5ld79cjk_13gRCLwjJXh8yNk7fOtY-o8dKHBDTHCxb8n4udqSXu3lk135znXyY38cHKXbgN0AsckQOZcsxW8jJS5YINWo-Du',
     price: 36.50
   },
   {
@@ -523,7 +523,7 @@ const SKINS_DATABASE = [
     nameEn: 'Manifold Paradox',
     category: 'arcana',
     rarity: 'extraordinary',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcU2qR5cSQPAUuCq0vDAWFh3NjtUvLWpJAhr7PHHdSpQ48nkwtbbx6SgZb6ElWwFu5cp37nFoImj2w2y-0FrMj-nJIGdc1I-NVuFrFCggbC4G3oO9cE',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bcwsS1Onao5EVm9ZTn41eoTBz_l5Dv8SZk__O8aaBiOL-SHGSRz-9JoOAnSirkkx9-5D7Tw4v9cXiUbwAmDZR3TONbs0W4kdOzMezhtFTYjohCnzK-0H1hMCTDUg',
     price: 34.00
   },
   {
@@ -533,7 +533,7 @@ const SKINS_DATABASE = [
     nameEn: 'Bladeform Legacy',
     category: 'arcana',
     rarity: 'extraordinary',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUhpxZSS0bFV-q51s7XXF94IRBAu7StJAZr3ODNdT9F7c7lw9TZk_qmZeKAkzsEvpci2evH9N-hjQTn-0dtMDigIo7DcAZoNFiErFCggbC4iF0YQcE',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_zBxM2kJ3WW8EI69ZX361fmDhfkmZHl7yxa-uaRabZuIf6SMWCCxOt4_rMxGSqwkRh04GmGmIusIn6WbgJ1XJYlEOJZu0K8k4e0MLnm4Q3Wj9hbjXKpF3HkZ_M',
     price: 35.00
   },
   {
@@ -583,7 +583,7 @@ const SKINS_DATABASE = [
     nameEn: 'Bracers of the Cavern Luminar',
     category: 'immortal',
     rarity: 'industrial',
-    image: 'https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUupRhbQ0PeU-q51s7XXFRjLQtVvLWsJQhm0v73cy1Q4Nu3l9mJxqSmMrmEkD0IvJBy2eiW8N6k3AS3qEtpMTzyIYKTJwU8ZQqErFCggbC4g7z_54w',
+    image: 'https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_PV0d6pJnOW7lNnu5P9vGbuTBD-jILh8R1Z_fOtbbYiLfWABiiEyLhJuexkQDunlBEYsS-EmYrrb3KROlchX5p1FuBY4xftx9e0ZOK3s1aK2oJNyyWtiixJ7Xli6rkHV6Q7uvqAv2s8asc',
     price: 0.65
   },
   {
@@ -617,7 +617,7 @@ const SKINS_DATABASE = [
     nameEn: 'Glory AK47',
     category: 'weapon',
     rarity: 'extraordinary',
-    image: 'https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe5GLPfCk4nReh8DEiv5dYPao7rLEzQfy6LwYtMmg',
+    image: 'https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fc5GLGfCk4nReh8DEiv5daMag5qLU2QPi5xVewp5A',
     price: 320.00
   },
   {
@@ -627,7 +627,7 @@ const SKINS_DATABASE = [
     nameEn: 'Punishment Mask',
     category: 'mask',
     rarity: 'covert',
-    image: 'https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe5GLBfCk4nReh8DEiv5daPqo7pbczRvm8q0y8L4E',
+    image: 'https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fa4GLNfCk4nReh8DEiv5dbPKs-qrA0RfG9xh-m8C4',
     price: 280.00
   },
   {
@@ -900,4 +900,22 @@ if (typeof window !== 'undefined') {
   window.SKINS_DATABASE = SKINS_DATABASE;
   window.generateSkinSvg = generateSkinSvg;
   window.getAllSkinVariants = getAllSkinVariants;
+}
+
+// Universal error fallback handler to ensure skins never display broken icons
+function handleSkinImgError(imgEl, skinId, fallbackName, rarity, category, game) {
+  if (!imgEl) return;
+  imgEl.onerror = null;
+  const skin = (typeof SKINS_DATABASE !== 'undefined' ? SKINS_DATABASE : window.SKINS_DATABASE)?.find(s => s.id === skinId);
+  if (skin && skin.fallbackSvg) {
+    imgEl.src = skin.fallbackSvg;
+    return;
+  }
+  if (typeof generateSkinSvg === 'function') {
+    imgEl.src = generateSkinSvg(fallbackName || skin?.name || 'Skin', rarity || skin?.rarity || 'milspec', category || skin?.category || 'weapon', game || skin?.game || 'cs2');
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.handleSkinImgError = handleSkinImgError;
 }

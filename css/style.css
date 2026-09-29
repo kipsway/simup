@@ -4681,6 +4681,25 @@ body {
   transform: translateY(-2px) !important;
 }
 
+.btn-mult-chip.active {
+  background: var(--accent-color) !important;
+  color: #032112 !important;
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 14px var(--accent-glow) !important;
+  font-weight: 800 !important;
+}
+
+.target-picker-item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 16px var(--accent-glow) !important;
+  transform: translateY(-3px) scale(1.02) !important;
+}
+
+.target-picker-item:active {
+  transform: scale(0.97) !important;
+}
+
 /* Flagship Big Upgrade Button */
 .btn-upgrade-fire {
   width: 100% !important;

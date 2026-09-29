@@ -31,7 +31,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SIMUP">
-  <link rel="stylesheet" href="css/style.css?v=3.3">
+  <link rel="stylesheet" href="css/style.css?v=3.4">
 
   <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
   <script type="application/ld+json">
@@ -245,7 +245,7 @@
           </div>
 
           <!-- Quick Multiplier Chips -->
-          <div class="quick-multipliers-bar">
+          <div class="quick-multipliers-bar" id="quick-multipliers-container">
             <button class="btn-mult-chip" data-quick-mult="1.5">1.5x</button>
             <button class="btn-mult-chip" data-quick-mult="2">2x</button>
             <button class="btn-mult-chip" data-quick-mult="5">5x</button>
@@ -253,6 +253,16 @@
             <button class="btn-mult-chip" data-quick-mult="20">20x</button>
             <button class="btn-mult-chip" data-quick-mult="50">50x</button>
             <button class="btn-mult-chip" data-quick-mult="100">100x</button>
+          </div>
+
+          <!-- Manual Multiplier Input Strip -->
+          <div class="custom-multiplier-control" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px 0 12px;">
+            <span style="font-size: 11.5px; color: var(--text-dim); font-weight: 700;">Множитель (икс):</span>
+            <div style="display: flex; align-items: center; background: rgba(0,0,0,0.45); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px 8px;">
+              <input type="number" id="input-custom-multiplier" step="0.1" min="1.1" max="1000" placeholder="2.0" style="width: 58px; background: transparent; border: none; color: #fff; font-family: 'Outfit', sans-serif; font-size: 13.5px; font-weight: 800; text-align: right; outline: none;">
+              <span style="font-size: 12px; font-weight: 800; color: var(--accent-color); margin-left: 2px;">x</span>
+            </div>
+            <button id="btn-apply-custom-mult" class="game-pill-btn" style="padding: 4px 10px; font-size: 11px;">Применить</button>
           </div>
 
           <!-- Big Pulsating Upgrade Button (Skins-only, disabled until skins selected) -->
@@ -266,17 +276,18 @@
         <div class="upgrader-panel-box">
           <div class="upgrader-box-title">
             <span>Целевой скин</span>
-            <button id="btn-browse-catalog-target" style="background: transparent; border: none; color: var(--accent-color); font-size: 11.5px; font-weight: 700; cursor: pointer;">
-              Каталог ↓
+            <button id="btn-open-target-picker" style="background: rgba(var(--accent-rgb), 0.15); border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 11px; font-weight: 700; cursor: pointer; padding: 4px 10px; border-radius: 6px; transition: all 0.2s ease;">
+              Выбрать скин 🎯
             </button>
           </div>
 
           <!-- Holographic Target Skin Container -->
-          <div class="target-skin-showcase" id="target-skin-showcase">
+          <div class="target-skin-showcase" id="target-skin-showcase" style="cursor: pointer;" title="Нажмите, чтобы выбрать скин на замену">
             <div class="target-glow-back" id="target-glow-back"></div>
             <img src="" alt="Целевой скин" id="target-skin-img" class="target-img-huge">
             <div class="target-title-name" id="target-skin-name">Выберите скин</div>
             <div class="target-price-big" id="target-skin-price">$0.00</div>
+            <div style="font-size: 11px; color: var(--accent-color); margin-top: 5px; font-weight: 700; letter-spacing: 0.3px;">Нажмите, чтобы сменить скин ↻</div>
           </div>
 
           <!-- Quick Info / Win Payout Preview -->
@@ -1446,6 +1457,38 @@
     </div>
   </div>
 
+  <!-- 11. TARGET SKIN SELECTOR MODAL -->
+  <div class="modal-overlay" id="modal-target-picker">
+    <div class="modal-window" style="max-width: 820px; width: 95%; max-height: 85vh; display: flex; flex-direction: column;">
+      <button class="modal-close-btn" id="target-picker-modal-close" title="Закрыть">&times;</button>
+      <div class="modal-header" style="text-align: left; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>🎯</span> Выберите целевой скин для апгрейда
+        </h2>
+        <p class="modal-subtitle">Кликните на любой скин, чтобы установить его целью апгрейда</p>
+      </div>
+
+      <!-- Controls: Search & Game Filters -->
+      <div style="display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap;">
+        <div class="search-input-wrap" style="flex: 1; min-width: 200px;">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="target-picker-search" class="catalog-search-input" placeholder="Поиск по названию (на русском или англ)...">
+        </div>
+        <div class="game-filter-pills" id="target-picker-game-pills">
+          <button class="game-pill-btn active" data-target-game="all">Все игры</button>
+          <button class="game-pill-btn" data-target-game="cs2">CS2</button>
+          <button class="game-pill-btn" data-target-game="dota2">Dota 2</button>
+          <button class="game-pill-btn" data-target-game="rust">Rust</button>
+        </div>
+      </div>
+
+      <!-- Skins Grid -->
+      <div id="target-picker-grid" style="flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 10px; padding: 6px 2px 14px; max-height: 55vh;">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MOBILE BOTTOM NAVIGATION (50/50 Mobile UX) ==================== -->
   <nav class="mobile-bottom-nav" aria-label="Мобильная навигация">
     <button class="mobile-bottom-tab active" data-tab="upgrader">
@@ -1487,28 +1530,28 @@
   </nav>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="js/sound.js?v=3.3"></script>
-  <script src="js/skins-data.js?v=3.3"></script>
-  <script src="js/notifications.js?v=3.3"></script>
-  <script src="js/auth.js?v=3.3"></script>
-  <script src="js/economy.js?v=3.3"></script>
-  <script src="js/catalog.js?v=3.3"></script>
-  <script src="js/upgrader.js?v=3.3"></script>
-  <script src="js/cases-data.js?v=3.3"></script>
-  <script src="js/cases.js?v=3.3"></script>
-  <script src="js/leaderboard.js?v=3.3"></script>
-  <script src="js/contracts.js?v=3.3"></script>
-  <script src="js/lucky-wheel.js?v=3.3"></script>
-  <script src="js/case-builder.js?v=3.3"></script>
-  <script src="js/mines.js?v=3.3"></script>
-  <script src="js/quests.js?v=3.3"></script>
-  <script src="js/coinflip.js?v=3.3"></script>
-  <script src="js/crash.js?v=3.3"></script>
-  <script src="js/app.js?v=3.3"></script>
+  <script src="js/sound.js?v=3.4"></script>
+  <script src="js/skins-data.js?v=3.4"></script>
+  <script src="js/notifications.js?v=3.4"></script>
+  <script src="js/auth.js?v=3.4"></script>
+  <script src="js/economy.js?v=3.4"></script>
+  <script src="js/catalog.js?v=3.4"></script>
+  <script src="js/upgrader.js?v=3.4"></script>
+  <script src="js/cases-data.js?v=3.4"></script>
+  <script src="js/cases.js?v=3.4"></script>
+  <script src="js/leaderboard.js?v=3.4"></script>
+  <script src="js/contracts.js?v=3.4"></script>
+  <script src="js/lucky-wheel.js?v=3.4"></script>
+  <script src="js/case-builder.js?v=3.4"></script>
+  <script src="js/mines.js?v=3.4"></script>
+  <script src="js/quests.js?v=3.4"></script>
+  <script src="js/coinflip.js?v=3.4"></script>
+  <script src="js/crash.js?v=3.4"></script>
+  <script src="js/app.js?v=3.4"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=3.3').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=3.4').then(reg => {
           reg.update();
         }).catch(() => {});
       });

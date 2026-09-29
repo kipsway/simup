@@ -70,11 +70,20 @@ class UpgraderEngine {
 
   toggleItemSelection(item) {
     const idx = this.selectedItems.findIndex(it => it.instanceId === item.instanceId);
+    let isSelected = false;
     if (idx !== -1) {
       this.selectedItems.splice(idx, 1);
+      isSelected = false;
     } else {
       this.selectedItems.push(item);
+      isSelected = true;
     }
+    try {
+      if (localStorage.getItem('simup_last_target_mode') === 'multiplier' && this.desiredMultiplier) {
+        this.applyDesiredMultiplier();
+      }
+    } catch(e) {}
+    return isSelected;
   }
 
   clearSelectedItems() {
@@ -83,10 +92,67 @@ class UpgraderEngine {
 
   selectAllItems(items = []) {
     this.selectedItems = [...items];
+    try {
+      if (localStorage.getItem('simup_last_target_mode') === 'multiplier' && this.desiredMultiplier) {
+        this.applyDesiredMultiplier();
+      }
+    } catch(e) {}
   }
 
   setTargetSkin(skin) {
     this.targetSkin = skin;
+    try {
+      if (skin && skin.id) {
+        localStorage.setItem('simup_last_target_skin_id', skin.id);
+        localStorage.setItem('simup_last_target_mode', 'skin');
+      }
+    } catch(e) {}
+  }
+
+  setDesiredMultiplier(mult) {
+    this.desiredMultiplier = Number(mult);
+    try {
+      localStorage.setItem('simup_last_multiplier', String(mult));
+      localStorage.setItem('simup_last_target_mode', 'multiplier');
+    } catch(e) {}
+    return this.applyDesiredMultiplier();
+  }
+
+  applyDesiredMultiplier() {
+    if (!this.desiredMultiplier || this.desiredMultiplier <= 0) return null;
+    const totalBet = this.getTotalBetAmount();
+    const allSkins = window.catalogController?.skins || window.SKINS_DATABASE || [];
+    if (allSkins.length === 0) return null;
+
+    if (totalBet > 0) {
+      const desiredPrice = totalBet * this.desiredMultiplier;
+      let closest = allSkins[0];
+      let minDiff = Math.abs(closest.price - desiredPrice);
+      for (let i = 1; i < allSkins.length; i++) {
+        const diff = Math.abs(allSkins[i].price - desiredPrice);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = allSkins[i];
+        }
+      }
+      this.targetSkin = closest;
+      return closest;
+    } else {
+      // If bet is 0, pick a representative skin matching base price * mult
+      const sampleBase = 10;
+      const desiredPrice = sampleBase * this.desiredMultiplier;
+      let closest = allSkins[0];
+      let minDiff = Math.abs(closest.price - desiredPrice);
+      for (let i = 1; i < allSkins.length; i++) {
+        const diff = Math.abs(allSkins[i].price - desiredPrice);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = allSkins[i];
+        }
+      }
+      this.targetSkin = closest;
+      return closest;
+    }
   }
 
   getTotalBetAmount() {
@@ -109,33 +175,15 @@ class UpgraderEngine {
 
   calculateMultiplier() {
     const totalBet = this.getTotalBetAmount();
-    if (!this.targetSkin || totalBet <= 0) return 0;
+    if (!this.targetSkin || totalBet <= 0) {
+      return this.desiredMultiplier || 2.0;
+    }
     return Number((this.targetSkin.price / totalBet).toFixed(2));
   }
 
   // Quick Multiplier adjustment
   setQuickMultiplier(multiplier) {
-    const totalBet = this.getTotalBetAmount();
-    if (totalBet <= 0) return false;
-
-    const desiredPrice = totalBet * multiplier;
-    // Find closest skin in catalog
-    const allSkins = window.catalogController?.skins || [];
-    if (allSkins.length === 0) return false;
-
-    let closest = allSkins[0];
-    let minDiff = Math.abs(closest.price - desiredPrice);
-
-    for (let i = 1; i < allSkins.length; i++) {
-      const diff = Math.abs(allSkins[i].price - desiredPrice);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = allSkins[i];
-      }
-    }
-
-    this.setTargetSkin(closest);
-    return closest;
+    return this.setDesiredMultiplier(multiplier);
   }
 
   // Generate roll using Provably Fair logic

@@ -1214,13 +1214,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const targetGlowBack = document.getElementById('target-glow-back');
   const targetWinPayoutVal = document.getElementById('target-win-payout-val');
   const btnBrowseCatalogTarget = document.getElementById('btn-browse-catalog-target');
+  const btnOpenTargetPicker = document.getElementById('btn-open-target-picker');
+  const inputCustomMultiplier = document.getElementById('input-custom-multiplier');
+  const btnApplyCustomMult = document.getElementById('btn-apply-custom-mult');
+  const modalTargetPicker = document.getElementById('modal-target-picker');
+  const targetPickerClose = document.getElementById('target-picker-modal-close');
+  const targetPickerSearch = document.getElementById('target-picker-search');
+  const targetPickerGrid = document.getElementById('target-picker-grid');
+  const targetPickerGamePills = document.querySelectorAll('#target-picker-game-pills .game-pill-btn');
 
+  // Restore or set default initial target skin & multiplier (Remembering user choice)
+  const allSkins = window.catalogController?.skins || window.SKINS_DATABASE || [];
+  const savedMode = localStorage.getItem('simup_last_target_mode') || 'skin';
+  const savedSkinId = localStorage.getItem('simup_last_target_skin_id');
+  const savedMult = parseFloat(localStorage.getItem('simup_last_multiplier')) || 2.0;
 
+  if (inputCustomMultiplier) inputCustomMultiplier.value = savedMult;
 
-  // Set default initial target skin
-  const allSkins = window.catalogController?.skins || [];
-  if (allSkins.length > 0) {
-    // Choose a popular skin like AK-47 Printstream or Redline
+  if (savedMode === 'multiplier' && savedMult) {
+    window.upgraderEngine.setDesiredMultiplier(savedMult);
+  } else if (savedSkinId) {
+    const found = allSkins.find(s => s.id === savedSkinId);
+    if (found) {
+      window.upgraderEngine.setTargetSkin(found);
+    } else if (allSkins.length > 0) {
+      window.upgraderEngine.setTargetSkin(allSkins[0]);
+    }
+  } else if (allSkins.length > 0) {
     const defaultTarget = allSkins.find(s => s.nameEn && s.nameEn.includes('Printstream')) || allSkins[0];
     window.upgraderEngine.setTargetSkin(defaultTarget);
   }
@@ -1422,6 +1442,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Update active multiplier chips & input
+    const currentMult = multiplier > 0 ? multiplier : (window.upgraderEngine.desiredMultiplier || 2.0);
+    document.querySelectorAll('[data-quick-mult]').forEach(btn => {
+      const chipVal = parseFloat(btn.dataset.quickMult);
+      btn.classList.toggle('active', Math.abs(chipVal - currentMult) < 0.08);
+    });
+    if (inputCustomMultiplier && document.activeElement !== inputCustomMultiplier) {
+      inputCustomMultiplier.value = currentMult.toFixed(1);
+    }
+
     // Direction pills
     if (btnDirUnder) btnDirUnder.classList.toggle('active', window.upgraderEngine.direction === 'under');
     if (btnDirOver) btnDirOver.classList.toggle('active', window.upgraderEngine.direction === 'over');
@@ -1588,19 +1618,109 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-quick-mult]').forEach(btn => {
     btn.addEventListener('click', () => {
       const mult = parseFloat(btn.dataset.quickMult);
-      const matched = window.upgraderEngine.setQuickMultiplier(mult);
+      const matched = window.upgraderEngine.setDesiredMultiplier(mult);
+      updateUpgraderUI();
       if (matched) {
-        updateUpgraderUI();
         window.notify.info(`Множитель ${mult}x`, `Подобран скин: ${matched.name} ($${matched.price.toFixed(2)})`);
       } else {
-        window.notify.warning('Множитель', 'Выберите скины из инвентаря для ставки, чтобы рассчитать множитель.');
+        window.notify.info(`Множитель ${mult}x выбран`, 'Множитель сохранён. Выберите скины из инвентаря для ставки.');
       }
     });
   });
 
-  // Target skin browse button
-  btnBrowseCatalogTarget.addEventListener('click', () => {
-    document.querySelector('.catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+  // Manual multiplier application
+  function applyManualMultiplier(mult) {
+    const val = parseFloat(mult);
+    if (isNaN(val) || val < 1.1) {
+      window.notify.warning('Множитель', 'Минимальный множитель 1.1x');
+      return;
+    }
+    const clamped = Math.min(1000, val);
+    const matched = window.upgraderEngine.setDesiredMultiplier(clamped);
+    updateUpgraderUI();
+    if (matched) {
+      window.notify.info(`Множитель ${clamped}x`, `Подобран скин: ${matched.name} ($${matched.price.toFixed(2)})`);
+    } else {
+      window.notify.info(`Множитель ${clamped}x сохранён`, 'Выберите скины из инвентаря для ставки.');
+    }
+  }
+
+  btnApplyCustomMult?.addEventListener('click', () => {
+    applyManualMultiplier(inputCustomMultiplier?.value);
+  });
+
+  inputCustomMultiplier?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      applyManualMultiplier(inputCustomMultiplier?.value);
+    }
+  });
+
+  // Target Picker Modal logic
+  function renderTargetPickerGrid(searchTerm = '', gameFilter = 'all') {
+    if (!targetPickerGrid) return;
+    const all = window.catalogController?.skins || window.SKINS_DATABASE || [];
+    const term = searchTerm.trim().toLowerCase();
+
+    const filtered = all.filter(s => {
+      const matchGame = (gameFilter === 'all' || s.game === gameFilter);
+      const matchName = !term || (s.name && s.name.toLowerCase().includes(term)) || (s.nameEn && s.nameEn.toLowerCase().includes(term));
+      return matchGame && matchName;
+    });
+
+    if (filtered.length === 0) {
+      targetPickerGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: var(--text-dim);">Скины не найдены</div>`;
+      return;
+    }
+
+    targetPickerGrid.innerHTML = filtered.map(s => `
+      <div class="target-picker-item" data-picker-skin-id="${s.id}" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 8px; cursor: pointer; text-align: center; transition: all 0.18s ease; display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+        <img src="${s.image || s.fallbackSvg}" alt="${s.name}" style="width: 100%; height: 68px; object-fit: contain; margin-bottom: 6px;" onerror="this.onerror=null; if(window.generateSkinSvg) this.src=window.generateSkinSvg('${s.name.replace(/'/g, '')}', '${s.rarity}', '${s.category}', '${s.game}');">
+        <div style="font-size: 11px; font-weight: 700; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;" title="${s.name}">${s.name}</div>
+        <div style="font-size: 12px; font-weight: 900; color: var(--accent-color); margin-top: 4px;">$${s.price.toFixed(2)}</div>
+      </div>
+    `).join('');
+
+    targetPickerGrid.querySelectorAll('.target-picker-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const skinId = el.dataset.pickerSkinId;
+        const skin = all.find(s => s.id === skinId);
+        if (skin) {
+          window.upgraderEngine.setTargetSkin(skin);
+          updateUpgraderUI();
+          modalTargetPicker?.classList.remove('active');
+          window.notify.success('Целевой скин выбран', `${skin.name} ($${skin.price.toFixed(2)}) готов к апгрейду!`);
+        }
+      });
+    });
+  }
+
+  let currentTargetGameFilter = 'all';
+
+  function openTargetPickerModal() {
+    if (!modalTargetPicker) return;
+    if (targetPickerSearch) targetPickerSearch.value = '';
+    currentTargetGameFilter = 'all';
+    targetPickerGamePills?.forEach(p => p.classList.toggle('active', p.dataset.targetGame === 'all'));
+    renderTargetPickerGrid('', 'all');
+    modalTargetPicker.classList.add('active');
+  }
+
+  btnOpenTargetPicker?.addEventListener('click', openTargetPickerModal);
+  targetSkinShowcase?.addEventListener('click', openTargetPickerModal);
+  btnBrowseCatalogTarget?.addEventListener('click', openTargetPickerModal);
+  targetPickerClose?.addEventListener('click', () => modalTargetPicker?.classList.remove('active'));
+
+  targetPickerSearch?.addEventListener('input', (e) => {
+    renderTargetPickerGrid(e.target.value, currentTargetGameFilter);
+  });
+
+  targetPickerGamePills?.forEach(pill => {
+    pill.addEventListener('click', () => {
+      targetPickerGamePills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentTargetGameFilter = pill.dataset.targetGame || 'all';
+      renderTargetPickerGrid(targetPickerSearch?.value || '', currentTargetGameFilter);
+    });
   });
 
   // Selection from catalog overrides target skin

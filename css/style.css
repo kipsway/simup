@@ -1712,19 +1712,20 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 142px;
-  height: 142px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(18, 24, 38, 0.98) 0%, rgba(8, 12, 20, 0.98) 100%);
-  border: 2px solid rgba(var(--accent-rgb), 0.35);
+  background: radial-gradient(circle at 50% 45%, rgba(18, 26, 42, 0.98) 0%, rgba(9, 13, 22, 0.98) 75%, rgba(4, 7, 12, 1) 100%);
+  border: 2px solid rgba(var(--accent-rgb), 0.45);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: 0 0 35px rgba(0, 0, 0, 0.9), inset 0 0 25px rgba(var(--accent-rgb), 0.12);
-  z-index: 5;
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.95), 0 0 16px rgba(var(--accent-rgb), 0.2), inset 0 0 20px rgba(var(--accent-rgb), 0.1);
+  z-index: 15;
   pointer-events: none;
+  backdrop-filter: blur(10px);
 }
 
 .wheel-center-display::before {
@@ -1732,9 +1733,18 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border: 1px dashed rgba(var(--accent-rgb), 0.25);
   pointer-events: none;
-  animation: cyberHubPulse 16s linear infinite;
+  animation: cyberHubPulse 24s linear infinite;
+}
+
+.wheel-center-display::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  pointer-events: none;
 }
 
 @keyframes cyberHubPulse {
@@ -1743,27 +1753,34 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
 }
 
 .wheel-center-title {
-  font-size: 9.5px;
+  font-size: 10px;
   text-transform: uppercase;
   color: var(--text-dim);
   font-weight: 800;
-  letter-spacing: 0.8px;
+  letter-spacing: 1.2px;
+  margin-bottom: 2px;
 }
 
 .wheel-center-chance {
-  font-size: 27px;
+  font-size: 28px;
   font-weight: 900;
-  color: var(--accent-color);
-  text-shadow: 0 0 16px var(--accent-glow);
+  color: #ffffff;
+  text-shadow: 0 0 18px var(--accent-glow);
   font-family: 'Outfit', sans-serif;
   line-height: 1.1;
-  margin: 2px 0;
+  margin: 1px 0;
+  letter-spacing: -0.5px;
 }
 
 .wheel-center-mult {
   font-size: 11.5px;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-weight: 800;
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-top: 4px;
 }
 
 /* NEEDLE POINTER & 4 SWITCHABLE ARROW STYLES */
@@ -1772,46 +1789,31 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   top: 50%;
   left: 50%;
   width: 4px;
-  height: 124px;
+  height: 130px;
   margin-left: -2px;
-  margin-top: -124px;
+  margin-top: -130px;
   transform-origin: bottom center;
-  z-index: 10;
+  z-index: 8;
   pointer-events: none;
   filter: drop-shadow(0 0 10px var(--accent-glow));
   will-change: transform;
 }
 
-/* Base pivot bead at the center hub */
-.wheel-needle-pointer::after {
-  content: '';
-  position: absolute;
-  bottom: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #ffffff 25%, var(--accent-color) 85%);
-  box-shadow: 0 0 12px var(--accent-glow), 0 0 16px #ffffff;
-  border: 2px solid #06090e;
-}
-
 /* 1. Laser Blade (Default: Neon light beam with diamond apex) */
 .wheel-needle-pointer.arrow-laser {
-  background: linear-gradient(to top, transparent 0%, rgba(var(--accent-rgb), 0.3) 25%, var(--accent-color) 70%, #ffffff 100%);
-  width: 3px;
-  margin-left: -1.5px;
+  background: linear-gradient(to top, transparent 0%, rgba(var(--accent-rgb), 0.2) 45%, var(--accent-color) 75%, #ffffff 100%);
+  width: 3.5px;
+  margin-left: -1.75px;
   border-radius: 999px;
   filter: drop-shadow(0 0 10px var(--accent-glow)) drop-shadow(0 0 20px var(--accent-color));
 }
 .wheel-needle-pointer.arrow-laser .needle-shape {
-  width: 16px;
-  height: 24px;
-  background: linear-gradient(180deg, #ffffff 0%, var(--accent-color) 100%);
-  clip-path: polygon(50% 0%, 100% 70%, 50% 100%, 0% 70%);
+  width: 20px;
+  height: 28px;
+  background: linear-gradient(180deg, #ffffff 0%, var(--accent-color) 70%, #00ffaa 100%);
+  clip-path: polygon(50% 0%, 100% 65%, 65% 100%, 35% 100%, 0% 65%);
   position: absolute;
-  top: -18px;
+  top: -22px;
   left: 50%;
   transform: translateX(-50%);
   filter: drop-shadow(0 0 14px var(--accent-glow)) drop-shadow(0 0 8px #ffffff);
@@ -1819,58 +1821,58 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
 
 /* 2. Cyber Edge Blade (Angled aerodynamic Katana) */
 .wheel-needle-pointer.arrow-blade {
-  background: linear-gradient(to top, transparent 10%, rgba(255, 255, 255, 0.4) 60%, #fff 100%);
-  width: 3px;
-  margin-left: -1.5px;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+  background: linear-gradient(to top, transparent 10%, rgba(255, 255, 255, 0.3) 50%, #fff 100%);
+  width: 3.5px;
+  margin-left: -1.75px;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
 }
 .wheel-needle-pointer.arrow-blade .needle-shape {
-  width: 16px;
-  height: 26px;
+  width: 18px;
+  height: 28px;
   background: linear-gradient(135deg, #ffffff 0%, var(--accent-color) 70%, #000 100%);
   clip-path: polygon(50% 0%, 100% 40%, 70% 100%, 0% 80%);
   position: absolute;
-  top: -20px;
+  top: -22px;
   left: 50%;
   transform: translateX(-50%);
-  filter: drop-shadow(0 0 12px var(--accent-color));
+  filter: drop-shadow(0 0 14px var(--accent-color));
 }
 
 /* 3. Precision Minimal Needle (Chronograph surgical needle) */
 .wheel-needle-pointer.arrow-needle {
-  background: linear-gradient(to top, transparent 0%, rgba(255, 255, 255, 0.2) 20%, #ffffff 100%);
-  width: 2px;
-  margin-left: -1px;
+  background: linear-gradient(to top, transparent 0%, rgba(255, 255, 255, 0.2) 30%, #ffffff 100%);
+  width: 2.5px;
+  margin-left: -1.25px;
 }
 .wheel-needle-pointer.arrow-needle .needle-shape {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   background: #ffffff;
   border: 2px solid var(--accent-color);
   border-radius: 50%;
   position: absolute;
-  top: -6px;
+  top: -8px;
   left: 50%;
   transform: translateX(-50%);
-  box-shadow: 0 0 12px var(--accent-glow), 0 0 20px #ffffff;
+  box-shadow: 0 0 14px var(--accent-glow), 0 0 20px #ffffff;
 }
 
 /* 4. Classic Triangle Pointer (Esports Precision V-Arrow) */
 .wheel-needle-pointer.arrow-classic {
   background: linear-gradient(to top, transparent 0%, rgba(255, 215, 0, 0.3) 40%, #ffd700 100%);
-  width: 2.5px;
-  margin-left: -1.25px;
+  width: 3px;
+  margin-left: -1.5px;
 }
 .wheel-needle-pointer.arrow-classic .needle-shape {
-  width: 16px;
-  height: 18px;
+  width: 18px;
+  height: 20px;
   background: linear-gradient(180deg, #ffd700 0%, #ff8800 100%);
   clip-path: polygon(50% 0%, 100% 100%, 50% 75%, 0% 100%);
   position: absolute;
-  top: -14px;
+  top: -16px;
   left: 50%;
   transform: translateX(-50%);
-  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7));
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.7));
 }
 
 /* ARENA WHEEL STYLES */
@@ -4228,14 +4230,14 @@ html, body {
   }
 
   .wheel-needle-pointer {
-    height: 108px !important;
-    margin-top: -108px !important;
+    height: 112px !important;
+    margin-top: -112px !important;
   }
 
   .wheel-needle-pointer.arrow-laser .needle-shape {
-    width: 14px !important;
-    height: 20px !important;
-    top: -15px !important;
+    width: 16px !important;
+    height: 22px !important;
+    top: -17px !important;
   }
 
   .app-container {

@@ -1759,20 +1759,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     await window.upgraderEngine.spin({
       onStart: ({ chance }) => {
-        // Reset needle to top
-        wheelNeedle.style.transition = 'none';
-        wheelNeedle.style.transform = 'rotate(0deg)';
+        if (wheelNeedle) wheelNeedle.style.transition = 'none';
       },
       onTick: (normDeg, totalDeg) => {
-        wheelNeedle.style.transform = `rotate(${totalDeg}deg)`;
-        const curRoll = ((normDeg / 360) * 100).toFixed(2);
-        wheelChanceVal.textContent = curRoll;
+        if (wheelNeedle) wheelNeedle.style.transform = `rotate(${totalDeg}deg)`;
+        const curRoll = (((normDeg % 360 + 360) % 360) / 360 * 100).toFixed(2);
+        if (wheelChanceVal) wheelChanceVal.textContent = `${curRoll}%`;
       },
       onComplete: ({ isWin, roll, targetSkin }) => {
         btnFireUpgrade.disabled = false;
         wheelCenterStatus.textContent = isWin ? '★ ПОБЕДА!' : '✕ МИМО';
         wheelCenterStatus.style.color = isWin ? 'var(--accent-color)' : '#ef4444';
-        wheelChanceVal.textContent = `${roll.toFixed(2)}`;
+        if (wheelChanceVal) wheelChanceVal.textContent = `${roll.toFixed(2)}%`;
 
         if (isWin && targetSkin) {
           window.questsManager?.recordAction('upgrade_wins', 1);

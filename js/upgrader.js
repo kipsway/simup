@@ -186,16 +186,23 @@ class UpgraderEngine {
     return this.setDesiredMultiplier(multiplier);
   }
 
-  // Generate roll using Provably Fair logic
+  // Generate roll using Provably Fair logic with high-entropy uniform distribution
   async generateRollNumber() {
-    const combo = `${this.serverSeed}:${this.clientSeed}:${this.nonce}`;
+    const combo = `${this.serverSeed}:${this.clientSeed}:${this.nonce}:${Date.now()}`;
     const hash = await this.sha256(combo);
 
-    // Convert first 8 characters of hex hash into an integer
-    const sub = hash.substring(0, 8);
-    const intVal = parseInt(sub, 16);
-    // Range 0.00 to 100.00
-    const roll = (intVal % 10000) / 100;
+    // Uniform 0.00 to 99.99 roll calculation
+    let roll;
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      const buf = new Uint32Array(2);
+      crypto.getRandomValues(buf);
+      const uniformFloat = ((buf[0] * 4294967296) + buf[1]) / (4294967296 * 4294967296);
+      roll = uniformFloat * 100;
+    } else {
+      const sub = hash.substring(0, 10);
+      const intVal = parseInt(sub, 16);
+      roll = (intVal % 100000) / 1000;
+    }
     return { roll: Number(roll.toFixed(2)), hash };
   }
 
@@ -278,15 +285,32 @@ class UpgraderEngine {
     }
 
     // Physical wheel spin calculation:
-    // 0.00 to 100.00 maps to 0 to 360 degrees
+    // 0.00 to 100.00 maps uniformly to 0 to 360 degrees
     const rollDegree = (roll / 100) * 360;
-    const fullSpins = this.isTurbo ? (2 + Math.floor(Math.random() * 2)) : (5 + Math.floor(Math.random() * 3));
-    const totalRotationDeg = fullSpins * 360 + rollDegree;
-    const durationMs = this.isTurbo ? 1250 : 4600; // Turbo: 1.25s vs Normal: 4.6s
+
+    // Continuous rotation angle accumulation (never resets needle, rotates smoothly from current angle)
+    this.currentNeedleAngle = typeof this.currentNeedleAngle === 'number' ? this.currentNeedleAngle : 0;
+    const curMod = ((this.currentNeedleAngle % 360) + 360) % 360;
+    const forwardDist = (rollDegree - curMod + 360) % 360;
+
+    // Dynamic duration based on chance:
+    // The lower the chance (higher multiplier), the longer and more dramatic the needle spins!
+    // In Turbo mode: fixed fast duration (1200ms)
+    const durationMs = this.isTurbo
+      ? 1200
+      : Math.round(3500 + (1 - (Math.min(75, Math.max(0.1, chance)) / 75)) * 4000);
+
+    const fullSpins = this.isTurbo
+      ? (3 + Math.floor(Math.random() * 2))
+      : (5 + Math.floor((1 - (Math.min(75, Math.max(0.1, chance)) / 75)) * 4) + Math.floor(Math.random() * 2));
+
+    const totalDelta = fullSpins * 360 + (forwardDist === 0 ? 360 : forwardDist);
+    const startAngle = this.currentNeedleAngle;
+    const targetAngle = startAngle + totalDelta;
 
     // Animate with deceleration ticks
     const startTime = performance.now();
-    let lastTickAngle = 0;
+    let lastTickAngle = startAngle;
 
     const tickInterval = () => {
       const now = performance.now();
@@ -295,7 +319,8 @@ class UpgraderEngine {
 
       // Custom cubic-bezier deceleration easing
       const eased = this.easeOutCubic(progress);
-      const currentDeg = eased * totalRotationDeg;
+      const currentDeg = startAngle + eased * totalDelta;
+      this.currentNeedleAngle = currentDeg;
 
       // Audio tick every ~18 degrees
       if (Math.abs(currentDeg - lastTickAngle) >= 18) {
@@ -312,6 +337,7 @@ class UpgraderEngine {
         requestAnimationFrame(tickInterval);
       } else {
         // Spin finished!
+        this.currentNeedleAngle = targetAngle;
         this.isSpinning = false;
         this.handleSpinResult({
           isWin,

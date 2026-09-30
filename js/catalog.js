@@ -152,20 +152,15 @@ class CatalogController {
           ${skin.exclusiveLabel || '🔒 Эксклюзив'}
         </div>
       ` : `
-        <div class="skin-actions-level-row" style="display:grid; grid-template-columns: 1fr 34px 1.25fr; gap: 5px; align-items: center; width: 100%; height: 34px; margin-top: 6px; box-sizing: border-box;">
-          <!-- 1. На сколько вырос / упал скин в цене -->
-          <button type="button" class="btn-level-action price-trend-chip ${trendClass}" data-trend-skin-id="${skin.id}" title="Динамика цены: ${trendSign}${Math.abs(trendPct).toFixed(1)}% за сутки (нажмите для деталей)">
-            ${trendSign}${Math.abs(trendPct).toFixed(1)}%
+        <div class="skin-actions-level-row" style="display:grid; grid-template-columns: 1fr 1fr; gap: 6px; align-items: center; width: 100%; height: 34px; margin-top: 6px; box-sizing: border-box;">
+          <!-- 1. Купить сразу в 1 клик -->
+          <button type="button" class="btn-level-action btn-direct-buy" data-buy-direct-id="${skin.id}" style="background: linear-gradient(135deg, #ff004d, #b6004c); color: #fff; font-weight: 800; border: none; border-radius: 8px; font-size: 11.5px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(255,0,77,0.3);" title="Купить сразу в инвентарь">
+            Купить
           </button>
 
-          <!-- 2. Убрать из корзины -->
-          <button type="button" class="btn-level-action btn-cart-dec ${!inCart ? 'disabled' : ''}" data-cart-dec-id="${skin.id}" title="${inCart ? 'Убрать одну штуку' : 'Товара нет в корзине'}" ${!inCart ? 'disabled style="opacity: 0.35; cursor: not-allowed;"' : ''}>
-            −
-          </button>
-
-          <!-- 3. Добавить еще один -->
-          <button type="button" class="btn-level-action btn-cart-inc ${inCart ? 'in-cart' : ''}" data-cart-toggle-id="${skin.id}" title="Добавить ещё один (сейчас ×${cartQty})">
-            ${inCart ? `+1 · ×${cartQty}` : '+ В корзину'}
+          <!-- 2. Корзина -->
+          <button type="button" class="btn-level-action btn-cart-inc ${inCart ? 'in-cart' : ''}" data-cart-toggle-id="${skin.id}" style="font-size: 11px; height: 32px; border-radius: 8px;" title="Добавить в корзину">
+            ${inCart ? `Корзина ×${cartQty}` : '+ Корзина'}
           </button>
         </div>
       `;
@@ -243,6 +238,22 @@ class CatalogController {
           const skin = this.skins.find(s => s.id === skinId);
           if (skin && window.openSkinInspectModal) {
             window.openSkinInspectModal(skin);
+          }
+          return;
+        }
+
+        // 1.5 Direct Buy in 1 Click
+        const buyDirectBtn = e.target.closest('[data-buy-direct-id]');
+        if (buyDirectBtn) {
+          e.stopPropagation();
+          const skinId = buyDirectBtn.dataset.buyDirectId;
+          const skin = this.skins.find(s => s.id === skinId);
+          if (skin) {
+            if (window.SimupCore) {
+              window.SimupCore.buySkin(skin, 1);
+            } else if (typeof window.buySkin === 'function') {
+              window.buySkin(skin);
+            }
           }
           return;
         }

@@ -3,7 +3,9 @@
    Coordinates navigation, authentication flows, theme management and catalog.
    ========================================================================== */
 
-document.addEventListener('DOMContentLoaded', () => {
+function initMainApp() {
+  if (window.__SIMUP_APP_INITIALIZED__) return;
+  window.__SIMUP_APP_INITIALIZED__ = true;
   // 1. Initialize State
   let currentAuthMode = 'register'; // 'register' or 'login'
   let isSoundMuted = localStorage.getItem('simup_sound_muted') === 'true';
@@ -4939,7 +4941,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, 200);
   }, { passive: true });
-});
+}
+
+// Universal Ready State Dispatcher
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMainApp);
+} else {
+  initMainApp();
+}
 
 
 

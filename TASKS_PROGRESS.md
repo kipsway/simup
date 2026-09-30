@@ -143,4 +143,9 @@
   - **Активация**: вставить `SIMUP_SUPABASE_URL` и `SIMUP_SUPABASE_ANON_KEY` в `index.html` (сейчас пустые — ждут ключи пользователя).
   - **Обновление версий**: Service Worker `simup-v4.0-cache`, все скрипты и стили `v=4.0`.
 
+- [x] **20. Активация онлайна (Релиз v4.1)**
+  - В `index.html` вставлены боевой `SIMUP_SUPABASE_URL` и publishable-ключ.
+  - Проверено вживую через REST API: чтение топа и запись профиля работают (`__conn_test__`).
+  - **Обновление версий**: Service Worker `simup-v4.1-cache`, все скрипты и стили `v=4.1`.
+
 

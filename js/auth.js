@@ -268,12 +268,41 @@ class AuthManager {
     const salt = this.generateSalt();
     const passwordHash = await this.hashPassword(password, salt);
 
+    // Referral code logic
+    let effectiveRef = (refCode || '').trim();
+    try {
+      if (!effectiveRef) {
+        effectiveRef = (localStorage.getItem('simup_ref_code') || '').trim();
+      }
+    } catch(e) {}
+
+    let initialBalance = 500.00;
+    let referredBy = null;
+
+    if (effectiveRef) {
+      const referrer = users.find(u => u.username && (u.username.toLowerCase() === effectiveRef.toLowerCase() || (u.referralCode && u.referralCode.toLowerCase() === effectiveRef.toLowerCase())));
+      if (referrer && referrer.username.toLowerCase() !== cleanNick.toLowerCase()) {
+        initialBalance = 600.00; // +$100.00 bonus for using invite link!
+        referredBy = referrer.username;
+        // Credit inviter +$50.00 bonus
+        referrer.balance = Number(((referrer.balance || 0) + 50.00).toFixed(2));
+        if (!referrer.referrals) referrer.referrals = { count: 0, totalBonus: 0, referredUsers: [] };
+        referrer.referrals.count = (referrer.referrals.count || 0) + 1;
+        referrer.referrals.totalBonus = Number(((referrer.referrals.totalBonus || 0) + 50.00).toFixed(2));
+        if (!referrer.referrals.referredUsers) referrer.referrals.referredUsers = [];
+        referrer.referrals.referredUsers.push({ username: cleanNick, date: Date.now(), bonus: 50.00 });
+      }
+    }
+
     const newUser = {
       id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
       username: cleanNick,
+      referralCode: cleanNick.toUpperCase(),
+      referredBy: referredBy,
+      referrals: { count: 0, totalBonus: 0, referredUsers: [] },
       passwordHash: passwordHash,
       salt: salt,
-      balance: 500.00, // Starter capital $500.00
+      balance: initialBalance, // Starter capital ($500.00 or $600.00 with ref)
       inventory: [
         // Starter gift skin
         {
@@ -315,7 +344,42 @@ class AuthManager {
     this.saveUsers(users);
     this.setCurrentUser(newUser);
 
-    return { success: true, user: newUser };
+    return { success: true, user: newUser, bonusGot: initialBalance > 500 };
+  }
+
+  redeemReferralCode(code) {
+    const user = this.currentUser;
+    if (!user) return { success: false, error: 'Авторизуйтесь для активации реферального кода.' };
+    if (user.referredBy) return { success: false, error: `Вы уже активировали код приглашения (от ${user.referredBy}).` };
+    const cleanCode = (code || '').trim();
+    if (!cleanCode) return { success: false, error: 'Введите реферальный код друга.' };
+    if (cleanCode.toLowerCase() === user.username.toLowerCase() || (user.referralCode && cleanCode.toLowerCase() === user.referralCode.toLowerCase())) {
+      return { success: false, error: 'Нельзя активировать свой собственный код!' };
+    }
+
+    const users = this.getAllUsers();
+    const referrer = users.find(u => u.username && (u.username.toLowerCase() === cleanCode.toLowerCase() || (u.referralCode && u.referralCode.toLowerCase() === cleanCode.toLowerCase())));
+    if (!referrer) {
+      return { success: false, error: 'Игрок с таким кодом не найден. Проверьте правильность ника.' };
+    }
+
+    user.referredBy = referrer.username;
+    user.balance = Number((user.balance + 100.00).toFixed(2));
+
+    referrer.balance = Number(((referrer.balance || 0) + 50.00).toFixed(2));
+    if (!referrer.referrals) referrer.referrals = { count: 0, totalBonus: 0, referredUsers: [] };
+    referrer.referrals.count = (referrer.referrals.count || 0) + 1;
+    referrer.referrals.totalBonus = Number(((referrer.referrals.totalBonus || 0) + 50.00).toFixed(2));
+    if (!referrer.referrals.referredUsers) referrer.referrals.referredUsers = [];
+    referrer.referrals.referredUsers.push({ username: user.username, date: Date.now(), bonus: 50.00 });
+
+    this.saveUsers(users);
+    this.saveCurrentUser();
+    window.updateHeaderUserUI?.(user);
+
+    window.SoundManager?.playWin?.();
+    if (window.confettiEffect) window.confettiEffect();
+    return { success: true, bonus: 100, referrer: referrer.username };
   }
 
   async login(username, password) {

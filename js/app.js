@@ -193,13 +193,40 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // NAVIGATION ROUTING (DESKTOP & MOBILE BOTTOM BAR)
+  // NAVIGATION ROUTING (GAMES HUB & 5-PILLAR TABS)
   // =========================================================================
-  document.querySelectorAll('.nav-tab-btn, .mobile-subnav-btn, .mobile-bottom-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetTab = btn.dataset.tab;
-      if (targetTab) switchTab(targetTab);
-    });
+  const modalGamesHub = document.getElementById('modal-games-hub');
+  const gamesHubCloseBtn = document.getElementById('games-hub-modal-close');
+  const MINI_GAMES_TABS = ['casebattle', 'cases', 'contracts', 'mines', 'coinflip', 'crash'];
+
+  function openGamesHub() {
+    window.SoundManager?.playClick();
+    modalGamesHub?.classList.add('active');
+  }
+
+  function closeGamesHub() {
+    modalGamesHub?.classList.remove('active');
+  }
+
+  gamesHubCloseBtn?.addEventListener('click', closeGamesHub);
+  document.getElementById('btn-desktop-games-hub')?.addEventListener('click', (e) => {
+    if (window.innerWidth <= 960) {
+      e.stopPropagation();
+      openGamesHub();
+    }
+  });
+  document.getElementById('btn-mobile-games-hub')?.addEventListener('click', openGamesHub);
+
+  // Delegated clicks for all navigation items including dropdown and hub
+  document.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-tab]');
+    if (!target) return;
+    const tabId = target.dataset.tab;
+    if (tabId) {
+      closeGamesHub();
+      document.getElementById('games-dropdown-menu')?.classList.remove('active');
+      switchTab(tabId);
+    }
   });
 
   // Desktop Nav horizontal scroll support (chevrons + mouse wheel)
@@ -229,10 +256,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function switchTab(tabId) {
-    document.querySelectorAll('.nav-tab-btn, .mobile-subnav-btn, .mobile-bottom-tab').forEach(b => {
+    document.querySelectorAll('.nav-tab-btn, .mobile-bottom-tab').forEach(b => {
       b.classList.toggle('active', b.dataset.tab === tabId);
     });
+
+    // If active tab is one of mini-games, highlight the "Мини-игры" buttons
+    const isMiniGame = MINI_GAMES_TABS.includes(tabId);
+    document.getElementById('btn-desktop-games-hub')?.classList.toggle('active', isMiniGame);
+    document.getElementById('btn-mobile-games-hub')?.classList.toggle('active', isMiniGame);
+
     tabContents.forEach(c => c.classList.toggle('active', c.id === `tab-${tabId}`));
+    window.scrollTo({ top: 0, behavior: 'instant' });
 
     if (tabId === 'profile') {
       renderProfilePage();
@@ -241,6 +275,12 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (tabId === 'catalog') {
       if (window.CatalogController?.renderGrid) window.CatalogController.renderGrid();
       if (window.CatalogCart?.updateUI) window.CatalogCart.updateUI();
+    } else if (tabId === 'casebattle') {
+      if (window.CaseBattleController?.init) window.CaseBattleController.init();
+    } else if (tabId === 'pass') {
+      if (window.SimupPassController?.render) window.SimupPassController.render();
+    } else if (tabId === 'admin') {
+      if (window.AdminPanelController?.render) window.AdminPanelController.render();
     }
   }
 
@@ -310,6 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentAuthMode === 'register') {
       const res = await window.authManager.register(username, password);
       if (res.success) {
+        localStorage.setItem('simup_has_authenticated', '1');
         modalAuth.classList.remove('active');
         authForm.reset();
         window.notify.bigWin('Добро пожаловать!', `Аккаунт ${res.user.username} создан! Стартовый бонус $500.00 и скин зачислены.`);
@@ -319,6 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       const res = await window.authManager.login(username, password);
       if (res.success) {
+        localStorage.setItem('simup_has_authenticated', '1');
         modalAuth.classList.remove('active');
         authForm.reset();
         window.notify.success('С возвращением!', `Вы успешно вошли как ${res.user.username}.`);
@@ -327,6 +369,29 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // Prompt nickname & password modal on first launch and check URL parameters (?ref= and ?battle=)
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refParam = urlParams.get('ref');
+    if (refParam) {
+      localStorage.setItem('simup_ref_code', refParam);
+      window.notify?.info('🤝 Приглашение', `Вас пригласил игрок ${refParam}! Зарегистрируйтесь и получите стартовый бонус +$100.00!`);
+    }
+
+    const cur = window.authManager?.currentUser;
+    const isGuest = !cur || cur.salt === 'guest_salt' || (cur.username && cur.username.startsWith('Игрок_'));
+    if (isGuest && (!localStorage.getItem('simup_has_authenticated') || refParam)) {
+      setTimeout(() => {
+        openAuthModal('register');
+      }, 500);
+    }
+
+    const battleParam = urlParams.get('battle');
+    if (battleParam) {
+      setTimeout(() => switchTab('casebattle'), 400);
+    }
+  } catch (e) {}
 
   // =========================================================================
   // USER STATE LISTENER
@@ -487,10 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const chipVal = btn.dataset.loanChip;
       const user = window.authManager.currentUser;
       if (chipVal === 'max') {
-        const maxLimit = window.economyManager.getMaxLoanLimit(user);
-        const debt = user?.loans?.currentDebt || 0;
-        const available = Math.max(50, Math.floor(maxLimit - debt));
-        loanInputAmount.value = available;
+        loanInputAmount.value = 50000;
       } else {
         loanInputAmount.value = chipVal;
       }
@@ -551,7 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const debtPenalty = debt * 1.5;
 
     if (loanMaxLimitEl) {
-      loanMaxLimitEl.textContent = `$${maxLimit.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+      loanMaxLimitEl.textContent = isFinite(maxLimit) ? `$${maxLimit.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : 'БЕЗЛИМИТ ∞';
     }
     if (loanCurrentDebtEl) {
       loanCurrentDebtEl.textContent = `$${debt.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
@@ -804,6 +866,55 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
             <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Долг по кредиту</div>
             <div style="font-size: 20px; font-weight: 800; color: ${user.loans.currentDebt > 0 ? '#ef4444' : '#10b981'}; margin-top: 4px;">$${(user.loans.currentDebt || 0).toFixed(2)}</div>
+          </div>
+        </div>
+
+        <!-- REFERRAL PROGRAM & PASS BANNER -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 24px;">
+          <!-- Referral Card -->
+          <div style="background: rgba(255, 0, 77, 0.05); border: 1px solid rgba(255, 0, 77, 0.25); border-radius: var(--radius-md); padding: 18px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+              <span style="font-weight: 800; color: #fff; font-size: 14px;">🤝 Реферальная система</span>
+              <span style="font-size: 11px; font-weight: 700; color: var(--accent-color); background: rgba(255,0,77,0.15); padding: 2px 8px; border-radius: 999px;">+$100 другу / +$50 вам</span>
+            </div>
+            <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">
+              Поделитесь ссылкой с другом! При регистрации он получит <strong>+$100.00</strong> бонуса, а вы — <strong>+$50.00</strong> на баланс!
+            </p>
+            <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+              <input type="text" id="ref-link-input" readonly value="${window.location.origin}${window.location.pathname}?ref=${user.username}" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; padding: 6px 10px; font-size: 11.5px; outline: none;">
+              <button id="btn-copy-ref-link" class="btn-sm-action" style="background: var(--accent-gradient); color: #fff; border: 1px solid #ff004d; border-radius: 6px; padding: 6px 12px; font-weight: 800; cursor: pointer; white-space: nowrap; font-size: 11.5px;">Копировать</button>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--text-muted);">
+              <span>Приглашено: <strong style="color: #fff;">${user.referrals?.count || 0} чел.</strong></span>
+              <span>Заработано: <strong style="color: #10b981;">+$${(user.referrals?.totalBonus || 0).toFixed(2)}</strong></span>
+            </div>
+            ${!user.referredBy ? `
+              <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 6px;">
+                <input type="text" id="ref-redeem-code-input" placeholder="Код приглашения друга" style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; padding: 6px 10px; font-size: 11.5px; outline: none;">
+                <button id="btn-redeem-ref-code" class="btn-sm-action" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; padding: 6px 12px; font-weight: 700; cursor: pointer; white-space: nowrap; font-size: 11.5px;">Активировать</button>
+              </div>
+            ` : `<div style="margin-top: 8px; font-size: 11px; color: var(--text-dim);">Активирован код от игрока: <strong style="color: #fff;">${user.referredBy}</strong></div>`}
+          </div>
+
+          <!-- SIMUP PASS & Quick Admin Card -->
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-weight: 800; color: #fff; font-size: 14px;">👑 SIMUP PASS: Уровень ${user.pass?.level || 1}</span>
+                <span style="font-size: 11px; font-weight: 800; color: #ffd700;">XP: ${user.pass?.xp || 0}</span>
+              </div>
+              <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">
+                Повышайте уровень ставками и квестами! Забирайте эксклюзивные скины, скидки на комиссию до 0% и льготы по кредитам.
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button onclick="window.switchTab('pass')" class="btn-sm-action" style="flex: 1; background: var(--accent-gradient); color: #fff; border: 1px solid #ff004d; border-radius: 6px; padding: 8px; font-weight: 800; cursor: pointer; text-align: center;">
+                Открыть SIMUP PASS 👑
+              </button>
+              <button onclick="window.switchTab('admin')" class="btn-sm-action" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-dim); border-radius: 6px; padding: 8px 12px; font-weight: 700; cursor: pointer;">
+                ⚙️ Админка
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1175,6 +1286,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('btn-trigger-sell-all')?.addEventListener('click', openSellAllModal);
 
+    document.getElementById('btn-copy-ref-link')?.addEventListener('click', () => {
+      const input = document.getElementById('ref-link-input');
+      if (input) {
+        input.select();
+        navigator.clipboard?.writeText(input.value);
+        window.notify?.bigWin('Ссылка скопирована! 📋', 'Отправьте ссылку другу: ' + input.value);
+      }
+    });
+
+    document.getElementById('btn-redeem-ref-code')?.addEventListener('click', () => {
+      const codeInput = document.getElementById('ref-redeem-code-input');
+      if (!codeInput || !codeInput.value.trim()) {
+        window.notify?.warning('Внимание', 'Введите реферальный код друга.');
+        return;
+      }
+      const res = window.authManager.redeemReferralCode(codeInput.value.trim());
+      if (res.success) {
+        window.notify?.bigWin('Код активирован! 🎉', `Вам начислен бонус +$${res.bonus}.00 от игрока ${res.referrer}!`);
+        renderProfilePage();
+      } else {
+        window.notify?.error('Ошибка кода', res.error);
+      }
+    });
+
     document.getElementById('btn-logout')?.addEventListener('click', () => {
       window.authManager.logout();
       window.notify.info('Выход', 'Вы вышли из своего профиля.');
@@ -1273,8 +1408,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.upgraderEngine.setTargetSkin(defaultTarget);
   }
 
-  // Draw wheel on canvas with 100% synchronized needle angle alignment & cyber glow
-  function drawWheel(chance, direction, currentRoll = null) {
+  // Draw wheel on canvas with 100% synchronized bottom-centered win zone (180 deg) & cherry glow
+  function drawWheel(chance, direction = null, currentRoll = null) {
     if (!wheelCanvas) return;
     const ctx = wheelCanvas.getContext('2d');
     if (!ctx) return;
@@ -1283,54 +1418,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const cx = w / 2;
     const cy = h / 2;
     const radius = 120;
-    const thickness = 16;
+    const thickness = 14;
 
     ctx.clearRect(0, 0, w, h);
 
-    // Accent glow color
-    const computedAccent = getComputedStyle(document.body).getPropertyValue('--accent-color').trim() || '#00ff88';
-
-    // 1. Draw outer cyber perimeter ring
+    // 1. Draw outer hairline ring
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, radius + 15, 0, Math.PI * 2);
     ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.stroke();
 
-    // Inner rim
+    // Inner hairline
     ctx.beginPath();
     ctx.arc(cx, cy, radius - 15, 0, Math.PI * 2);
     ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
     ctx.stroke();
-    ctx.restore();
 
-    // 2. Draw base dark metallic circular track
-    ctx.save();
+    // 2. Base dark obsidian circular track
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.lineWidth = thickness;
-    ctx.strokeStyle = 'rgba(16, 22, 34, 0.85)';
+    ctx.strokeStyle = 'rgba(14, 9, 16, 0.92)';
     ctx.stroke();
 
-    // Dark track border highlights
+    // Dark track inner border
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.lineWidth = thickness - 4;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
     ctx.stroke();
     ctx.restore();
 
     // 3. Draw 100 precision tick marks around circumference
     ctx.save();
     for (let i = 0; i < 100; i++) {
-      // 0 is 12 o'clock (top), rotating clockwise
       const angle = (i / 100) * Math.PI * 2 - Math.PI / 2;
       const isMajor = i % 10 === 0;
       const isMedium = i % 5 === 0;
-      const tickInner = radius - (isMajor ? 13 : (isMedium ? 9 : 6));
-      const tickOuter = radius + (isMajor ? 13 : (isMedium ? 9 : 6));
+      const tickInner = radius - (isMajor ? 11 : (isMedium ? 7 : 4));
+      const tickOuter = radius + (isMajor ? 11 : (isMedium ? 7 : 4));
 
       const x1 = cx + Math.cos(angle) * tickInner;
       const y1 = cy + Math.sin(angle) * tickInner;
@@ -1340,80 +1469,73 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
-      ctx.lineWidth = isMajor ? 2.5 : (isMedium ? 1.5 : 1);
-      ctx.strokeStyle = isMajor ? 'rgba(255, 255, 255, 0.45)' : (isMedium ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)');
+      ctx.lineWidth = isMajor ? 2 : (isMedium ? 1.2 : 0.8);
+      ctx.strokeStyle = isMajor ? 'rgba(255, 255, 255, 0.35)' : (isMedium ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)');
       ctx.stroke();
-
-      // Major tick dot on perimeter
-      if (isMajor) {
-        const dotR = radius + 15;
-        const dx = cx + Math.cos(angle) * dotR;
-        const dy = cy + Math.sin(angle) * dotR;
-        ctx.beginPath();
-        ctx.arc(dx, dy, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.fill();
-      }
     }
+    ctx.restore();
+
+    // 4. Center bottom calibration marker (180° / 6 o'clock)
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + radius - 15);
+    ctx.lineTo(cx, cy + radius + 15);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.stroke();
     ctx.restore();
 
     if (chance <= 0) return;
 
-    // 4. Draw winning glowing sector
-    // Needle starts at 12 o'clock and moves CLOCKWISE by (roll / 100) * 360 deg.
-    // Therefore:
-    // If direction === 'under': WIN is roll <= chance.
-    // Sector runs from 0% to chance% of circle clockwise starting at 12 o'clock:
-    // startAngle = -Math.PI / 2
-    // endAngle = -Math.PI / 2 + (chance / 100) * 2 * Math.PI
-    //
-    // If direction === 'over': WIN is roll >= (100 - chance).
-    // Sector runs from (100 - chance)% to 100% of circle clockwise:
-    // startAngle = -Math.PI / 2 + ((100 - chance) / 100) * 2 * Math.PI
-    // endAngle = -Math.PI / 2 + 2 * Math.PI  (12 o'clock)
-    //
-    // Both sectors are drawn strictly CLOCKWISE (counterclockwise = false).
-    // This guarantees that any winning roll's needle lands strictly inside the glowing sector!
-    let startAngle, endAngle;
-    if (direction === 'under') {
-      startAngle = -Math.PI / 2;
-      endAngle = startAngle + (chance / 100) * (Math.PI * 2);
-    } else {
-      startAngle = -Math.PI / 2 + ((100 - chance) / 100) * (Math.PI * 2);
-      endAngle = -Math.PI / 2 + (Math.PI * 2);
-    }
+    // 5. Draw winning glowing sector centered AT THE BOTTOM (180° / 6 o'clock)
+    // Needle degrees: 0° is top, 90° is right, 180° is bottom, 270° is left.
+    // Canvas radians: rad = (deg - 90) * PI / 180.
+    const angleSpanDeg = (chance / 100) * 360;
+    const halfSpan = angleSpanDeg / 2;
+    const winStartDeg = 180 - halfSpan;
+    const winEndDeg = 180 + halfSpan;
 
-    // Outer intense glow pass
+    const startAngle = (winStartDeg - 90) * (Math.PI / 180);
+    const endAngle = (winEndDeg - 90) * (Math.PI / 180);
+
+    // Outer rich cherry glow pass
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, radius, startAngle, endAngle, false);
-    ctx.lineWidth = thickness + 8;
+    ctx.lineWidth = thickness + 6;
     ctx.lineCap = 'round';
-    ctx.strokeStyle = computedAccent;
-    ctx.shadowColor = computedAccent;
-    ctx.shadowBlur = 24;
+    ctx.strokeStyle = 'rgba(255, 0, 77, 0.7)';
+    ctx.shadowColor = '#ff004d';
+    ctx.shadowBlur = 22;
     ctx.stroke();
     ctx.restore();
 
-    // Sharp bright core pass
+    // Bright core ruby/white pass
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, radius, startAngle, endAngle, false);
-    ctx.lineWidth = thickness + 2;
+    ctx.lineWidth = thickness;
     ctx.lineCap = 'round';
-    ctx.strokeStyle = '#ffffff';
-    ctx.shadowColor = computedAccent;
-    ctx.shadowBlur = 8;
+    ctx.strokeStyle = '#ff2e5b';
     ctx.stroke();
 
-    // Glowing LED beads at sector start and end
+    // Inner highlight line
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, startAngle, endAngle, false);
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#ffffff';
+    ctx.shadowColor = '#ff004d';
+    ctx.shadowBlur = 10;
+    ctx.stroke();
+
+    // Glowing boundary beads (exact start & end limits)
     [startAngle, endAngle].forEach(ang => {
       const bx = cx + Math.cos(ang) * radius;
       const by = cy + Math.sin(ang) * radius;
       ctx.beginPath();
-      ctx.arc(bx, by, (thickness / 2) + 2, 0, Math.PI * 2);
+      ctx.arc(bx, by, (thickness / 2) + 1, 0, Math.PI * 2);
       ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = computedAccent;
+      ctx.shadowColor = '#ff004d';
       ctx.shadowBlur = 12;
       ctx.fill();
     });
@@ -1509,7 +1631,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
       document.getElementById('btn-empty-buy-skins')?.addEventListener('click', () => {
-        document.querySelector('.catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+        switchTab('catalog');
       });
       if (drawerSelectedCount) drawerSelectedCount.textContent = 'Выбрано: 0 шт.';
       return;
@@ -1616,7 +1738,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnArenaBuySkins?.addEventListener('click', () => {
-    document.querySelector('.catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+    switchTab('catalog');
   });
 
   // Quick arrow style cycle button
@@ -1630,15 +1752,19 @@ document.addEventListener('DOMContentLoaded', () => {
     window.notify.info('Стиль стрелки', `Установлен стиль: ${ARROW_NAMES_MAP[nextStyle]}`);
   });
 
-  // Direction toggle
-  btnDirUnder?.addEventListener('click', () => {
-    window.upgraderEngine.setDirection('under');
+  // Random Upgrade button
+  const btnRandomUpgrade = document.getElementById('btn-random-upgrade');
+  btnRandomUpgrade?.addEventListener('click', () => {
+    window.SoundManager?.playClick();
+    const mult = window.upgraderEngine.rollRandomUpgrade();
+    if (inputCustomMultiplier) inputCustomMultiplier.value = mult;
     updateUpgraderUI();
-  });
-
-  btnDirOver?.addEventListener('click', () => {
-    window.upgraderEngine.setDirection('over');
-    updateUpgraderUI();
+    const matched = window.upgraderEngine.targetSkin;
+    if (matched) {
+      window.notify.info('🎲 Рандомный апгрейд!', `Выпал множитель ${mult}x! Цель: ${matched.name} ($${matched.price.toFixed(2)})`);
+    } else {
+      window.notify.info('🎲 Рандомный апгрейд', `Выпал множитель ${mult}x!`);
+    }
   });
 
   // Quick multipliers
@@ -2457,18 +2583,29 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =========================================================================
-  // TURBO MODE CONTROLLER
+  // SPEED MODE CONTROLLER (Fast 1.2s, Standard 2.8s, Slow 5.0s)
   // =========================================================================
-  const btnToggleTurbo = document.getElementById('btn-toggle-turbo');
-  btnToggleTurbo?.addEventListener('click', () => {
-    window.SoundManager?.playClick();
-    window.upgraderEngine.isTurbo = !window.upgraderEngine.isTurbo;
-    btnToggleTurbo.classList.toggle('active', window.upgraderEngine.isTurbo);
-    if (window.upgraderEngine.isTurbo) {
-      window.notify.info('⚡ Турбо режим включен', 'Спин колеса теперь длится всего 1.2 секунды!');
-    } else {
-      window.notify.info('Турбо режим отключен', 'Стандартная длительность вращения (4.6 сек).');
-    }
+  const speedPills = document.querySelectorAll('.btn-speed-pill');
+  const currentSpeed = window.upgraderEngine?.speedMode || 'normal';
+  speedPills.forEach(btn => {
+    const isThis = btn.dataset.speed === currentSpeed;
+    btn.classList.toggle('active', isThis);
+    btn.style.background = isThis ? 'var(--accent-color)' : 'transparent';
+    btn.style.color = isThis ? '#fff' : 'var(--text-dim)';
+
+    btn.addEventListener('click', () => {
+      window.SoundManager?.playClick();
+      const speed = btn.dataset.speed;
+      window.upgraderEngine.setSpeedMode(speed);
+      speedPills.forEach(b => {
+        const match = b.dataset.speed === speed;
+        b.classList.toggle('active', match);
+        b.style.background = match ? 'var(--accent-color)' : 'transparent';
+        b.style.color = match ? '#fff' : 'var(--text-dim)';
+      });
+      const names = { fast: 'Быстрая (1.2 сек)', normal: 'Стандартная (2.8 сек)', slow: 'Медленная (5.0 сек)' };
+      window.notify.info('Скорость вращения', `Выбран режим: ${names[speed] || speed}`);
+    });
   });
 
   // =========================================================================
@@ -3465,14 +3602,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Physical 3D Coin Spin
     window.SoundManager?.playCoinToss();
 
-    // 0deg = T, 180deg = CT
-    // Add 8 to 10 full 360-degree rotations
+    // 0deg = T (Front / Gold), 180deg = CT (Back / Silver)
     const baseSpins = 8 * 360;
     const targetDeg = (res.roundData.winningSide === 'T') ? 0 : 180;
-    cfCurrentRotations += baseSpins + targetDeg + (360 - (cfCurrentRotations % 360));
-    if (res.roundData.winningSide === 'CT') {
-      cfCurrentRotations += 180;
-    }
+    const currentMod = ((cfCurrentRotations % 360) + 360) % 360;
+    const neededAngle = (targetDeg - currentMod + 360) % 360;
+    cfCurrentRotations += baseSpins + neededAngle;
 
     if (coin3dElement) {
       coin3dElement.style.transition = `transform ${res.duration / 1000}s cubic-bezier(0.12, 0.8, 0.2, 1)`;
@@ -3482,6 +3617,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       const finalResult = window.coinflipEngine.finalizeRound();
       btnFireCoinflip.disabled = false;
+      if (!finalResult) return;
       renderCoinflipUI();
       updateHeaderUserUI(window.authManager.currentUser);
 

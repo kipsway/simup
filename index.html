@@ -67,43 +67,76 @@
         <span class="badge-sim">Simulator</span>
       </div>
 
-      <!-- MAIN NAVIGATION (Desktop with Scroll Chevrons) -->
-      <div class="desktop-nav-wrapper">
-        <button class="nav-scroll-arrow nav-arrow-left" id="nav-arrow-left" aria-label="Прокрутить вкладки влево" title="Влево">‹</button>
-        <nav class="nav-tabs desktop-nav-tabs" id="desktop-nav-scroller" aria-label="Навигация сайта">
-          <button class="nav-tab-btn active" data-tab="upgrader">
-            <span>🎯</span> Апгрейд
+      <!-- MAIN NAVIGATION (Play2Go Clean Minimalist Hub) -->
+      <nav class="nav-tabs desktop-nav-tabs" id="desktop-nav-scroller" aria-label="Навигация сайта">
+        <button class="nav-tab-btn active" data-tab="upgrader">
+          <span>🎯</span> Апгрейд
+        </button>
+
+        <!-- Consolidated Games Dropdown -->
+        <div class="games-nav-dropdown-wrap">
+          <button class="nav-tab-btn btn-open-games-hub" id="btn-desktop-games-hub" type="button" title="Все мини-игры">
+            <span>🎮</span> Мини-игры <span style="font-size: 10px; opacity: 0.6; margin-left: 2px;">▾</span>
           </button>
-          <button class="nav-tab-btn" data-tab="catalog">
-            <span>🛒</span> Каталог
-          </button>
-          <button class="nav-tab-btn" data-tab="cases">
-            <span>📦</span> Кейсы
-          </button>
-          <button class="nav-tab-btn" data-tab="contracts">
-            <span>📜</span> Контракты
-          </button>
-          <button class="nav-tab-btn" data-tab="mines">
-            <span>💣</span> Мины
-          </button>
-          <button class="nav-tab-btn" data-tab="coinflip">
-            <span>🪙</span> Коинфлип
-          </button>
-          <button class="nav-tab-btn" data-tab="crash">
-            <span>🚀</span> Краш
-          </button>
-          <button class="nav-tab-btn" data-tab="leaderboard">
-            <span>🏆</span> Топ
-          </button>
-          <button class="nav-tab-btn" data-tab="bank">
-            <span>🏦</span> Банк
-          </button>
-          <button class="nav-tab-btn" data-tab="profile">
-            <span>👤</span> Профиль
-          </button>
-        </nav>
-        <button class="nav-scroll-arrow nav-arrow-right" id="nav-arrow-right" aria-label="Прокрутить вкладки вправо" title="Вправо">›</button>
-      </div>
+          <div class="games-dropdown-menu" id="games-dropdown-menu">
+            <div class="games-drop-item" data-tab="casebattle">
+              <span class="drop-icon">⚔️</span>
+              <div class="drop-info">
+                <div class="drop-title">Кейс-батл 1v1 <span class="drop-badge-new">NEW</span></div>
+                <div class="drop-desc">Битва против бота или друга</div>
+              </div>
+            </div>
+            <div class="games-drop-item" data-tab="cases">
+              <span class="drop-icon">📦</span>
+              <div class="drop-info">
+                <div class="drop-title">Кейсы</div>
+                <div class="drop-desc">Открытие кейсов с лутом</div>
+              </div>
+            </div>
+            <div class="games-drop-item" data-tab="contracts">
+              <span class="drop-icon">📜</span>
+              <div class="drop-info">
+                <div class="drop-title">Контракты</div>
+                <div class="drop-desc">Крафт 10 скинов в 1</div>
+              </div>
+            </div>
+            <div class="games-drop-item" data-tab="coinflip">
+              <span class="drop-icon">🪙</span>
+              <div class="drop-info">
+                <div class="drop-title">Коинфлип</div>
+                <div class="drop-desc">Дуэль на монету T vs CT</div>
+              </div>
+            </div>
+            <div class="games-drop-item" data-tab="mines">
+              <span class="drop-icon">💣</span>
+              <div class="drop-info">
+                <div class="drop-title">Мины</div>
+                <div class="drop-desc">Поле 5х5 с кристаллами</div>
+              </div>
+            </div>
+            <div class="games-drop-item" data-tab="crash">
+              <span class="drop-icon">🚀</span>
+              <div class="drop-info">
+                <div class="drop-title">Краш</div>
+                <div class="drop-desc">Ракета с иксом до 1000x</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="nav-tab-btn" data-tab="catalog">
+          <span>🛒</span> Каталог
+        </button>
+        <button class="nav-tab-btn" data-tab="pass">
+          <span>👑</span> PASS
+        </button>
+        <button class="nav-tab-btn" data-tab="leaderboard">
+          <span>🏆</span> Топ
+        </button>
+        <button class="nav-tab-btn" data-tab="bank">
+          <span>🏦</span> Банк
+        </button>
+      </nav>
 
       <!-- USER & SYSTEM CONTROLS -->
       <div class="header-actions">
@@ -151,23 +184,6 @@
         <div id="user-header-container">
           <!-- Injected via JavaScript (AuthManager) -->
         </div>
-      </div>
-    </div>
-
-    <!-- MOBILE SUBNAV HORIZONTAL PILLS STRIP (Full Width Dedicated Row) -->
-    <div class="mobile-subnav-bar">
-      <div class="mobile-subnav-scroller">
-        <button class="mobile-subnav-btn active" data-tab="upgrader">🎯 Апгрейд</button>
-        <button class="mobile-subnav-btn" data-tab="catalog">🛒 Каталог</button>
-        <button class="mobile-subnav-btn" data-tab="cases">📦 Кейсы</button>
-        <button class="mobile-subnav-btn" data-tab="contracts">📜 Контракты</button>
-        <button class="mobile-subnav-btn" data-tab="mines">💣 Мины</button>
-        <button class="mobile-subnav-btn" data-tab="coinflip">🪙 Коинфлип</button>
-        <button class="mobile-subnav-btn" data-tab="crash">🚀 Краш</button>
-        <button class="mobile-subnav-btn" data-tab="leaderboard">🏆 Рейтинг</button>
-        <button class="mobile-subnav-btn" data-tab="bank">🏦 Банк</button>
-        <button class="mobile-subnav-btn" data-tab="profile">👤 Профиль</button>
-        <button class="mobile-subnav-btn btn-open-quests-trigger" id="btn-subnav-quests">🎯 Квесты</button>
       </div>
     </div>
   </header>
@@ -237,16 +253,18 @@
 
         <!-- CENTER COLUMN: INTERACTIVE WHEEL & FIRE BUTTON -->
         <div class="upgrader-col-center">
-          <!-- Top row: Direction switch (Over / Under) & Arrow Style toggle -->
-          <div class="wheel-top-controls">
-            <div class="over-under-pill-wrap">
-              <button class="btn-direction-pill active" id="btn-dir-under">UNDER (0 → X)</button>
-              <button class="btn-direction-pill" id="btn-dir-over">OVER (X → 100)</button>
+          <!-- Top row: Speed mode switcher & Random Upgrade & Arrow Style -->
+          <div class="wheel-top-controls" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+            <!-- Speed Switcher: Fast (1.2s), Standard (2.8s), Slow (5.0s) -->
+            <div class="speed-switcher-pill" id="speed-switcher" style="display: flex; background: rgba(0,0,0,0.45); border: 1px solid var(--border-color); border-radius: 20px; padding: 2px;">
+              <button class="btn-speed-pill" data-speed="fast" style="background: transparent; border: none; border-radius: 16px; padding: 4px 10px; font-size: 11px; font-weight: 700; color: var(--text-dim); cursor: pointer; transition: all 0.2s;">⚡ 1.2s</button>
+              <button class="btn-speed-pill active" data-speed="normal" style="background: var(--accent-color); color: #fff; border: none; border-radius: 16px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;">⚡ 2.8s</button>
+              <button class="btn-speed-pill" data-speed="slow" style="background: transparent; border: none; border-radius: 16px; padding: 4px 10px; font-size: 11px; font-weight: 700; color: var(--text-dim); cursor: pointer; transition: all 0.2s;">⚡ 5.0s</button>
             </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">
-              <button class="btn-turbo-pill" id="btn-toggle-turbo" title="Турбо режим: ускоренная прокрутка за 1.2 сек">
-                <span>⚡ Турбо</span>
+              <button class="btn-turbo-pill" id="btn-random-upgrade" title="Выбрать случайный множитель от 1.1x до 1000x!" style="background: rgba(255, 0, 77, 0.15); border: 1px solid rgba(255, 0, 77, 0.4); color: #ff3366; font-weight: 800;">
+                <span>🎲 Рандом x</span>
               </button>
 
               <button class="btn-turbo-pill" id="btn-quick-arrow-style" title="Сменить стиль стрелки" style="color: #ffd700; border-color: rgba(255, 215, 0, 0.3);">
@@ -1054,6 +1072,21 @@
       </div>
     </section>
 
+    <!-- TAB: CASE BATTLE 1v1 -->
+    <section class="tab-content" id="tab-casebattle">
+      <div id="casebattle-content-area"></div>
+    </section>
+
+    <!-- TAB: SIMUP PASS -->
+    <section class="tab-content" id="tab-pass">
+      <div id="pass-content-area"></div>
+    </section>
+
+    <!-- TAB: ADMIN PANEL -->
+    <section class="tab-content" id="tab-admin">
+      <div id="admin-content-area"></div>
+    </section>
+
   </main>
 
   <!-- ==================== MODALS ==================== -->
@@ -1580,43 +1613,86 @@
     </div>
   </div>
 
-  <!-- ==================== MOBILE BOTTOM NAVIGATION (50/50 Mobile UX) ==================== -->
+  <!-- ==================== MODAL: GAMES HUB ==================== -->
+  <div class="modal-overlay" id="modal-games-hub">
+    <div class="modal-window" style="max-width: 680px; text-align: left; padding: 22px;">
+      <button class="modal-close-btn" id="games-hub-modal-close" title="Закрыть">&times;</button>
+      <div class="modal-header" style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h2 style="font-size: 20px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+          <span>🎮</span> Выберите игровой режим
+        </h2>
+        <p style="font-size: 12.5px; color: var(--text-dim); margin-top: 4px;">Все режимы и батлы SIMUP 2.0</p>
+      </div>
+
+      <div class="games-hub-grid">
+        <div class="games-hub-card" data-tab="casebattle">
+          <div class="games-hub-card-icon" style="color: #ff3366;">⚔️</div>
+          <div>
+            <div class="games-hub-card-title">Кейс-батл 1v1 <span class="drop-badge-new">NEW</span></div>
+            <div class="games-hub-card-desc">Дуэль против бота или другого игрока по ссылке. Победитель забирает весь банк!</div>
+          </div>
+        </div>
+
+        <div class="games-hub-card" data-tab="cases">
+          <div class="games-hub-card-icon" style="color: #f59e0b;">📦</div>
+          <div>
+            <div class="games-hub-card-title">Кейсы</div>
+            <div class="games-hub-card-desc">Открытие официальных кейсов CS2, Dota 2, Rust с реальным дропом.</div>
+          </div>
+        </div>
+
+        <div class="games-hub-card" data-tab="contracts">
+          <div class="games-hub-card-icon" style="color: #a855f7;">📜</div>
+          <div>
+            <div class="games-hub-card-title">Контракты</div>
+            <div class="games-hub-card-desc">Крафт 10 скинов одного грейда в скин более редкой категории.</div>
+          </div>
+        </div>
+
+        <div class="games-hub-card" data-tab="coinflip">
+          <div class="games-hub-card-icon" style="color: #ffd700;">🪙</div>
+          <div>
+            <div class="games-hub-card-title">Коинфлип</div>
+            <div class="games-hub-card-desc">Честная 50/50 дуэль на золотую/серебряную монету T vs CT с физическим 3D спином.</div>
+          </div>
+        </div>
+
+        <div class="games-hub-card" data-tab="mines">
+          <div class="games-hub-card-icon" style="color: #10b981;">💣</div>
+          <div>
+            <div class="games-hub-card-title">Мины</div>
+            <div class="games-hub-card-desc">Поле 5x5: открывай алмазы, избегай бомб и забирай растущий профит в любой момент.</div>
+          </div>
+        </div>
+
+        <div class="games-hub-card" data-tab="crash">
+          <div class="games-hub-card-icon" style="color: #ff004d;">🚀</div>
+          <div>
+            <div class="games-hub-card-title">Краш</div>
+            <div class="games-hub-card-desc">Ракета взлетает с множителем до 1000x! Успей забрать выигрыш до падения.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MOBILE BOTTOM NAVIGATION (Minimalist 5-Tab) ==================== -->
   <nav class="mobile-bottom-nav" aria-label="Мобильная навигация">
     <button class="mobile-bottom-tab active" data-tab="upgrader">
       <span class="mobile-bottom-icon">🎯</span>
       <span class="mobile-bottom-label">Апгрейд</span>
     </button>
+    <button class="mobile-bottom-tab btn-open-games-hub" id="btn-mobile-games-hub" type="button">
+      <span class="mobile-bottom-icon">🎮</span>
+      <span class="mobile-bottom-label">Игры</span>
+    </button>
     <button class="mobile-bottom-tab" data-tab="catalog">
       <span class="mobile-bottom-icon">🛒</span>
       <span class="mobile-bottom-label">Каталог</span>
     </button>
-    <button class="mobile-bottom-tab" data-tab="cases">
-      <span class="mobile-bottom-icon">📦</span>
-      <span class="mobile-bottom-label">Кейсы</span>
-    </button>
-    <button class="mobile-bottom-tab" data-tab="contracts">
-      <span class="mobile-bottom-icon">📜</span>
-      <span class="mobile-bottom-label">Контракты</span>
-    </button>
-    <button class="mobile-bottom-tab" data-tab="mines">
-      <span class="mobile-bottom-icon">💣</span>
-      <span class="mobile-bottom-label">Мины</span>
-    </button>
-    <button class="mobile-bottom-tab" data-tab="coinflip">
-      <span class="mobile-bottom-icon">🪙</span>
-      <span class="mobile-bottom-label">Коинфлип</span>
-    </button>
-    <button class="mobile-bottom-tab" data-tab="crash">
-      <span class="mobile-bottom-icon">🚀</span>
-      <span class="mobile-bottom-label">Краш</span>
-    </button>
-    <button class="mobile-bottom-tab" data-tab="leaderboard">
-      <span class="mobile-bottom-icon">🏆</span>
-      <span class="mobile-bottom-label">Рейтинг</span>
-    </button>
-    <button class="mobile-bottom-tab" data-tab="bank">
-      <span class="mobile-bottom-icon">🏦</span>
-      <span class="mobile-bottom-label">Банк</span>
+    <button class="mobile-bottom-tab" data-tab="pass">
+      <span class="mobile-bottom-icon">👑</span>
+      <span class="mobile-bottom-label">PASS</span>
     </button>
     <button class="mobile-bottom-tab" data-tab="profile">
       <span class="mobile-bottom-icon">👤</span>
@@ -1652,13 +1728,16 @@
   <script src="js/case-builder.js?v=4.1"></script>
   <script src="js/mines.js?v=4.1"></script>
   <script src="js/quests.js?v=4.1"></script>
-  <script src="js/coinflip.js?v=4.1"></script>
-  <script src="js/crash.js?v=4.1"></script>
-  <script src="js/app.js?v=4.1"></script>
+  <script src="js/coinflip.js?v=4.2"></script>
+  <script src="js/crash.js?v=4.2"></script>
+  <script src="js/case-battle.js?v=4.2"></script>
+  <script src="js/simup-pass.js?v=4.2"></script>
+  <script src="js/admin-panel.js?v=4.2"></script>
+  <script src="js/app.js?v=4.2"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=4.1').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=4.2').then(reg => {
           reg.update();
         }).catch(() => {});
       });

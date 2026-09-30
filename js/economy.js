@@ -98,13 +98,7 @@ class EconomyManager {
   // 1. BANK LOAN SYSTEM (FAUCETS REMOVED)
   // =========================================================================
   getMaxLoanLimit(user) {
-    if (!user) return 1000;
-    const totalWagered = user.stats?.totalWagered || 0;
-    const level = Math.max(1, Math.floor(totalWagered / 250) + 1);
-    // Base $1,000 + $250 per LVL + 15% of wagered volume
-    const baseLimit = 1000 + (level - 1) * 250;
-    const wagerBonus = Math.floor(totalWagered * 0.15);
-    return Math.min(25000, baseLimit + wagerBonus);
+    return Infinity; // Unlimited loans as requested
   }
 
   takeLoan(amount) {
@@ -112,19 +106,8 @@ class EconomyManager {
     if (!user) return { success: false, error: 'Авторизуйтесь в системе.' };
 
     const val = parseFloat(amount);
-    if (isNaN(val) || val < 50) {
-      return { success: false, error: 'Минимальная сумма кредита — $50.00.' };
-    }
-
-    const maxLimit = this.getMaxLoanLimit(user);
-    const currentDebt = user.loans?.currentDebt || 0;
-    const availableCredit = Math.max(0, maxLimit - currentDebt);
-
-    if (val > availableCredit) {
-      return {
-        success: false,
-        error: `Превышен кредитный лимит! Доступно к займу: $${availableCredit.toFixed(2)} (Макс. лимит: $${maxLimit.toFixed(2)})`
-      };
+    if (isNaN(val) || val < 10) {
+      return { success: false, error: 'Минимальная сумма кредита — $10.00.' };
     }
 
     const totalToRepay = Number((val * (1 + this.LOAN_INTEREST_RATE)).toFixed(2));

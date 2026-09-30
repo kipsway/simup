@@ -52,11 +52,18 @@ class CoinflipEngine {
   }
 
   async calculateOutcome() {
-    const combined = `${this.serverSeed}:${this.clientSeed}:${this.nonce}`;
+    const combined = `${this.serverSeed}:${this.clientSeed}:${this.nonce}:${Date.now()}`;
     const hash = await this.sha256(combined);
-    const sub = parseInt(hash.substring(0, 8), 16);
-    // Biased: only 40% chance of T, 60% CT — makes player lose more often
-    const side = (sub % 5 < 2) ? 'T' : 'CT';
+    // Fair 50/50 cryptographic roll
+    let side;
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      const arr = new Uint8Array(1);
+      crypto.getRandomValues(arr);
+      side = (arr[0] % 2 === 0) ? 'T' : 'CT';
+    } else {
+      const sub = parseInt(hash.substring(0, 8), 16);
+      side = (sub % 2 === 0) ? 'T' : 'CT';
+    }
     return { side, hash };
   }
 
@@ -97,8 +104,8 @@ class CoinflipEngine {
     this.winningSide = outcome.side;
     const isWin = (this.winningSide === this.selectedSide);
 
-    // House edge 15%: 1.70x payout on win
-    const multiplier = 1.70;
+    // Fair duel payout: 1.96x (2% house commission)
+    const multiplier = 1.96;
     const payout = isWin ? Number((actualCost * multiplier).toFixed(2)) : 0;
     const profit = isWin ? Number((payout - actualCost).toFixed(2)) : -actualCost;
 
@@ -190,8 +197,7 @@ class CoinflipEngine {
     this.nonce++;
     this.serverSeed = this.generateRandomHex(32);
     this.computeInitialHash();
-    this.gameState = 'ended';
-
+    this.gameState = 'idle';
     return res;
   }
 }

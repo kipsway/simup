@@ -43,19 +43,52 @@ class QuestsManager {
             icon: '🎯',
             target: 3,
             progress: 0,
-            rewardCash: 75,
-            rewardXp: 150,
+            rewardCash: 100,
+            rewardXp: 200,
             claimed: false
           },
           {
             id: 'open_cases',
             title: 'Король кейсов',
-            desc: 'Откройте 2 любых кейса',
+            desc: 'Откройте 3 любых кейса',
             icon: '📦',
+            target: 3,
+            progress: 0,
+            rewardCash: 120,
+            rewardXp: 250,
+            claimed: false
+          },
+          {
+            id: 'multi_upgrade',
+            title: 'Мульти-апгрейд',
+            desc: 'Сделайте апгрейд, пожертвовав 2 или более скинов за раз',
+            icon: '⚡',
+            target: 1,
+            progress: 0,
+            rewardCash: 150,
+            rewardXp: 300,
+            claimed: false
+          },
+          {
+            id: 'case_battle_win',
+            title: 'Дуэлянт 1v1',
+            desc: 'Одержите победу в Кейс-батле против бота или друга',
+            icon: '⚔️',
+            target: 1,
+            progress: 0,
+            rewardCash: 200,
+            rewardXp: 350,
+            claimed: false
+          },
+          {
+            id: 'coinflip_wins',
+            title: 'Повелитель монеты',
+            desc: 'Выиграйте 2 дуэли в Коинфлипе',
+            icon: '🪙',
             target: 2,
             progress: 0,
-            rewardCash: 100,
-            rewardXp: 200,
+            rewardCash: 130,
+            rewardXp: 250,
             claimed: false
           },
           {
@@ -70,25 +103,47 @@ class QuestsManager {
             claimed: false
           },
           {
-            id: 'sign_contract',
-            title: 'Магистр крафта',
-            desc: 'Подпишите 1 Трейд-ап контракт обмена',
-            icon: '📜',
+            id: 'crash_cashout',
+            title: 'Космический пилот',
+            desc: 'Заберите выигрыш в Краше с множителем от 3.00x',
+            icon: '🚀',
             target: 1,
             progress: 0,
-            rewardCash: 150,
-            rewardXp: 300,
+            rewardCash: 140,
+            rewardXp: 280,
             claimed: false
           },
           {
-            id: 'spin_wheel',
-            title: 'Колесо Фортуны',
-            desc: 'Испытайте удачу на Ежедневном Колесе Фортуны',
-            icon: '🎡',
+            id: 'random_upgrade_spin',
+            title: 'Азартный рандом',
+            desc: 'Сыграйте апгрейд через кнопку «🎲 Рандом x»',
+            icon: '🎲',
             target: 1,
             progress: 0,
-            rewardCash: 50,
-            rewardXp: 100,
+            rewardCash: 90,
+            rewardXp: 180,
+            claimed: false
+          },
+          {
+            id: 'sign_contract',
+            title: 'Магистр крафта',
+            desc: 'Подпишите 1 Трейд-ап контракт обмена 10 скинов',
+            icon: '📜',
+            target: 1,
+            progress: 0,
+            rewardCash: 160,
+            rewardXp: 320,
+            claimed: false
+          },
+          {
+            id: 'bank_action',
+            title: 'Финансист',
+            desc: 'Воспользуйтесь услугами Банка SIMUP (заём или погашение)',
+            icon: '🏦',
+            target: 1,
+            progress: 0,
+            rewardCash: 100,
+            rewardXp: 200,
             claimed: false
           }
         ]
@@ -157,8 +212,13 @@ class QuestsManager {
     user.balance = Number((user.balance + quest.rewardCash).toFixed(2));
     user.stats.wagered = Number(((user.stats.wagered || 0) + quest.rewardXp).toFixed(2));
 
+    if (window.SimupPassController?.addXp) {
+      window.SimupPassController.addXp(quest.rewardXp);
+    }
+
     this.saveUserQuests(user.id, data);
     window.authManager.saveCurrentUser();
+    window.updateHeaderUserUI?.(user);
 
     window.SoundManager?.playWin();
     if (window.confettiEffect) {
@@ -181,7 +241,7 @@ class QuestsManager {
 
     const allCompleted = data.quests.every(q => q.claimed || q.progress >= q.target);
     if (!allCompleted) {
-      return { success: false, error: 'Сначала выполните все 5 ежедневных заданий!' };
+      return { success: false, error: 'Сначала выполните все ежедневные задания!' };
     }
     if (data.claimedBonus) {
       return { success: false, error: 'Сундук Чемпиона за сегодня уже забран!' };
@@ -192,6 +252,10 @@ class QuestsManager {
     const bonusXp = 500;
     user.balance = Number((user.balance + bonusCash).toFixed(2));
     user.stats.wagered = Number(((user.stats.wagered || 0) + bonusXp).toFixed(2));
+
+    if (window.SimupPassController?.addXp) {
+      window.SimupPassController.addXp(bonusXp);
+    }
 
     // Grant bonus covert skin
     const allSkins = window.catalogController?.skins || [];

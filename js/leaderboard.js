@@ -70,33 +70,20 @@ class LeaderboardManager {
     });
     const realPlayers = [...seen.values()];
 
-    // Merge shared global roster (same on all devices), excluding name clashes
-    let globalPlayers = [];
-    try {
-      if (window.GlobalPlayersDB && typeof window.GlobalPlayersDB.getAll === 'function') {
-        globalPlayers = window.GlobalPlayersDB.getAll().filter(
-          g => g && g.username && !seen.has(String(g.username).toLowerCase())
-        );
-      }
-    } catch (e) { globalPlayers = []; }
-
-    // Merge LIVE online players from Supabase (real people, other devices).
-    // Online rows win over the built-in demo roster on name clash.
+    // Only REAL players: local registered users + real online players synced via Supabase!
+    // All simulated bots permanently removed per user request.
     let onlinePlayers = [];
     try {
       if (window.OnlineDB && typeof window.OnlineDB.getCached === 'function') {
         onlinePlayers = window.OnlineDB.getCached().filter(
           o => o && o.username && !seen.has(String(o.username).toLowerCase())
         );
-        if (onlinePlayers.length > 0) {
-          const onlineNames = new Set(onlinePlayers.map(o => String(o.username).toLowerCase()));
-          globalPlayers = globalPlayers.filter(g => !onlineNames.has(String(g.username).toLowerCase()));
-        }
       }
     } catch (e) { onlinePlayers = []; }
 
-    return realPlayers.concat(onlinePlayers, globalPlayers);
+    return realPlayers.concat(onlinePlayers);
   }
+
 
   getTopProfitPlayers() {
     const players = this.getAllPlayersData();

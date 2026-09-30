@@ -7,14 +7,17 @@
 class UpgraderEngine {
   constructor() {
     this.houseEdge = 0.12; // 12% balanced realistic esports house edge
-    this.direction = 'under'; // 'under' or 'over'
     this.sectorOffset = 0; // rotation angle of sector
     this.isSpinning = false;
-    this.isTurbo = false;
+    this.speedMode = 'normal'; // 'fast' (1.2s), 'normal' (2.8s), 'slow' (5.0s)
+    try {
+      this.speedMode = localStorage.getItem('simup_spin_speed') || 'normal';
+    } catch(e) {}
 
     // Bet configuration: SKINS ONLY
     this.selectedItems = []; // items from inventory sacrificed for upgrade
     this.targetSkin = null; // target skin to win
+    this.desiredMultiplier = 2.0;
 
     // Provably Fair state
     this.clientSeed = this.generateClientSeed();
@@ -64,8 +67,32 @@ class UpgraderEngine {
     return ((h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0')).repeat(4);
   }
 
-  setDirection(dir) {
-    this.direction = dir === 'over' ? 'over' : 'under';
+  setSpeedMode(mode) {
+    if (['fast', 'normal', 'slow'].includes(mode)) {
+      this.speedMode = mode;
+      try {
+        localStorage.setItem('simup_spin_speed', mode);
+      } catch(e) {}
+    }
+  }
+
+  rollRandomUpgrade() {
+    // Generate any multiplier from 1.1x up to 1000x!
+    const r = Math.random();
+    let mult;
+    if (r < 0.35) {
+      mult = +(1.2 + Math.random() * 1.8).toFixed(1); // 1.2x - 3.0x
+    } else if (r < 0.65) {
+      mult = +(3.0 + Math.random() * 7.0).toFixed(1); // 3.0x - 10.0x
+    } else if (r < 0.85) {
+      mult = +(10 + Math.random() * 40).toFixed(0); // 10x - 50x
+    } else if (r < 0.95) {
+      mult = +(50 + Math.random() * 150).toFixed(0); // 50x - 200x
+    } else {
+      mult = +(200 + Math.random() * 800).toFixed(0); // 200x - 1000x!
+    }
+    this.setDesiredMultiplier(mult);
+    return mult;
   }
 
   toggleItemSelection(item) {
@@ -258,15 +285,8 @@ class UpgraderEngine {
     const multiplier = this.calculateMultiplier();
     const { roll, hash } = await this.generateRollNumber();
 
-    // Determine win:
-    // If direction is UNDER: roll <= chance is WIN
-    // If direction is OVER: roll >= (100 - chance) is WIN
-    let isWin = false;
-    if (this.direction === 'under') {
-      isWin = roll <= chance;
-    } else {
-      isWin = roll >= (100 - chance);
-    }
+    // Determine win mathematically:
+    const isWin = (roll < chance);
 
     const currentServerSeed = this.serverSeed;
     const currentServerSeedHash = this.serverSeedHash;
@@ -285,26 +305,44 @@ class UpgraderEngine {
     }
 
     // Physical wheel spin calculation:
-    // 0.00 to 100.00 maps uniformly to 0 to 360 degrees
-    const rollDegree = (roll / 100) * 360;
+    // Win zone is CENTERED AT BOTTOM (180 degrees).
+    // If chance is 50%, angle span is 180° (90° left of bottom, 90° right of bottom).
+    const angleSpanDeg = (chance / 100) * 360;
+    const halfSpan = angleSpanDeg / 2;
+    const winStartDeg = 180 - halfSpan;
+    const winEndDeg = 180 + halfSpan;
 
-    // Continuous rotation angle accumulation (never resets needle, rotates smoothly from current angle)
+    // Guaranteed bijective mapping:
+    // If isWin === true: needle MUST land strictly within [winStartDeg, winEndDeg)
+    // If isWin === false: needle MUST land strictly outside [winStartDeg, winEndDeg)
+    let targetModDeg;
+    if (isWin) {
+      const u = Math.min(0.999, Math.max(0.001, roll / Math.max(0.001, chance)));
+      targetModDeg = winStartDeg + u * angleSpanDeg;
+    } else {
+      const lossSpan = 360 - angleSpanDeg;
+      const u = Math.min(0.999, Math.max(0.001, (roll - chance) / Math.max(0.001, 100 - chance)));
+      targetModDeg = winEndDeg + u * lossSpan;
+    }
+    targetModDeg = ((targetModDeg % 360) + 360) % 360;
+
+    // Continuous rotation angle accumulation
     this.currentNeedleAngle = typeof this.currentNeedleAngle === 'number' ? this.currentNeedleAngle : 0;
     const curMod = ((this.currentNeedleAngle % 360) + 360) % 360;
-    const forwardDist = (rollDegree - curMod + 360) % 360;
+    const forwardDist = (targetModDeg - curMod + 360) % 360;
 
-    // Dynamic duration based on chance:
-    // The lower the chance (higher multiplier), the longer and more dramatic the needle spins!
-    // In Turbo mode: fixed fast duration (1200ms)
-    const durationMs = this.isTurbo
-      ? 1200
-      : Math.round(3500 + (1 - (Math.min(75, Math.max(0.1, chance)) / 75)) * 4000);
+    // STRICT constant speed mode (independent of chance!):
+    let durationMs = 2800;
+    let baseSpins = 6;
+    if (this.speedMode === 'fast') {
+      durationMs = 1200;
+      baseSpins = 3;
+    } else if (this.speedMode === 'slow') {
+      durationMs = 5000;
+      baseSpins = 10;
+    }
 
-    const fullSpins = this.isTurbo
-      ? (3 + Math.floor(Math.random() * 2))
-      : (5 + Math.floor((1 - (Math.min(75, Math.max(0.1, chance)) / 75)) * 4) + Math.floor(Math.random() * 2));
-
-    const totalDelta = fullSpins * 360 + (forwardDist === 0 ? 360 : forwardDist);
+    const totalDelta = baseSpins * 360 + (forwardDist === 0 ? 360 : forwardDist);
     const startAngle = this.currentNeedleAngle;
     const targetAngle = startAngle + totalDelta;
 

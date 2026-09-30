@@ -62,21 +62,19 @@
     <div class="header-inner">
       <!-- LOGO -->
       <div class="brand-section" id="brand-logo-btn" title="На главную (Апгрейд)">
-        <div class="brand-logo-icon">
-          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 26px; height: 26px; filter: drop-shadow(0 0 6px rgba(255, 0, 77, 0.8));">
-            <polygon points="20,2 37,11 37,29 20,38 3,29 3,11" fill="url(#brandGrad)" />
-            <polygon points="20,5 34,13 34,27 20,35 6,27 6,13" fill="#080206" stroke="#ff004d" stroke-width="1.5" />
-            <path d="M20 9L29 21H22V31H18V21H11L20 9Z" fill="url(#brandGrad)" />
+        <div class="brand-logo-icon" style="width: 34px; height: 34px; border-radius: 9px; background: rgba(255, 0, 77, 0.12); border: 1px solid rgba(255, 0, 77, 0.4); display: flex; align-items: center; justify-content: center;">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; filter: drop-shadow(0 0 5px rgba(255, 0, 77, 0.9));">
+            <path d="M14 3L25 10V18L14 25L3 18V10L14 3Z" stroke="#ff004d" stroke-width="1.8" fill="#0d0408" />
+            <path d="M14 7L20 14H16V20H12V14H8L14 7Z" fill="url(#brandGradMini)" />
             <defs>
-              <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#ff3366" />
-                <stop offset="100%" stop-color="#b6003c" />
+              <linearGradient id="brandGradMini" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff2e5b" />
+                <stop offset="100%" stop-color="#ff004d" />
               </linearGradient>
             </defs>
           </svg>
         </div>
-        <div class="brand-logo-text">SIM<span>UP</span></div>
-        <span class="badge-sim">PRO</span>
+        <div class="brand-logo-text" style="font-size: 21px; font-weight: 900; letter-spacing: 1px; color: #ffffff; text-transform: uppercase;">SIMUP</div>
       </div>
 
       <!-- MAIN NAVIGATION (Play2Go Clean Minimalist Hub) -->
@@ -294,14 +292,12 @@
           <!-- 60fps Interactive Wheel Box -->
           <div class="upgrader-wheel-box">
             <!-- Brand Logo & Title in Top-Right Corner of Upgrader Arena -->
-            <div class="arena-brand-badge" style="position: absolute; top: 10px; right: 12px; display: flex; align-items: center; gap: 7px; z-index: 6; background: rgba(14, 7, 15, 0.85); border: 1px solid rgba(255, 0, 77, 0.35); padding: 5px 12px; border-radius: 999px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-              <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; filter: drop-shadow(0 0 6px rgba(255, 0, 77, 0.8));">
-                <polygon points="20,2 37,11 37,29 20,38 3,29 3,11" fill="url(#brandGrad)" />
-                <polygon points="20,5 34,13 34,27 20,35 6,27 6,13" fill="#080206" stroke="#ff004d" stroke-width="1.5" />
-                <path d="M20 9L29 21H22V31H18V21H11L20 9Z" fill="url(#brandGrad)" />
+            <div class="arena-brand-badge" style="position: absolute; top: 10px; right: 12px; display: flex; align-items: center; gap: 7px; z-index: 6; background: rgba(14, 7, 15, 0.88); border: 1px solid rgba(255, 0, 77, 0.4); padding: 5px 12px; border-radius: 999px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+              <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 17px; height: 17px; filter: drop-shadow(0 0 5px rgba(255, 0, 77, 0.9));">
+                <path d="M14 3L25 10V18L14 25L3 18V10L14 3Z" stroke="#ff004d" stroke-width="1.8" fill="#0d0408" />
+                <path d="M14 7L20 14H16V20H12V14H8L14 7Z" fill="#ff004d" />
               </svg>
-              <span style="font-size: 14px; font-weight: 900; letter-spacing: 0.5px; color: #fff;">SIM<span style="color: #ff004d;">UP</span></span>
-              <span style="font-size: 9.5px; font-weight: 900; color: #ff004d; background: rgba(255,0,77,0.18); border: 1px solid rgba(255,0,77,0.45); padding: 1px 5px; border-radius: 4px;">PRO</span>
+              <span style="font-size: 13.5px; font-weight: 900; letter-spacing: 0.8px; color: #ffffff; text-transform: uppercase;">SIMUP</span>
             </div>
 
             <canvas id="wheel-canvas" class="wheel-canvas" width="290" height="290"></canvas>

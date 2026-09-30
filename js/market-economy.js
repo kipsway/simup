@@ -31,8 +31,8 @@ class MarketEconomy {
     this.loadState();
     this.applyToDatabase();
 
-    // Run tick every 20 seconds
-    setInterval(() => this.tick(), 20000);
+    // Run tick every 10 seconds
+    setInterval(() => this.tick(), 10000);
   }
 
   loadState() {
@@ -53,27 +53,29 @@ class MarketEconomy {
   }
 
   tick() {
-    if (typeof SKINS_DATABASE === 'undefined' || SKINS_DATABASE.length < 2) return;
+    if (typeof SKINS_DATABASE === 'undefined' || SKINS_DATABASE.length < 4) return;
     // Mobile perf: never re-render while tab hidden (battery + fps)
     if (typeof document !== 'undefined' && document.hidden) return;
 
-    // Pick 2 random skins to form a balanced pair
-    const idxA = Math.floor(Math.random() * SKINS_DATABASE.length);
-    let idxB = Math.floor(Math.random() * SKINS_DATABASE.length);
-    while (idxB === idxA) {
-      idxB = Math.floor(Math.random() * SKINS_DATABASE.length);
+    // Pick 2 balanced pairs (4 skins total: 2 rise, 2 fall)
+    for (let p = 0; p < 2; p++) {
+      const idxA = Math.floor(Math.random() * SKINS_DATABASE.length);
+      let idxB = Math.floor(Math.random() * SKINS_DATABASE.length);
+      while (idxB === idxA) {
+        idxB = Math.floor(Math.random() * SKINS_DATABASE.length);
+      }
+
+      const skinA = SKINS_DATABASE[idxA];
+      const skinB = SKINS_DATABASE[idxB];
+
+      // Delta between 0.8% and 3.2%
+      const deltaPct = (Math.random() * 2.4 + 0.8) / 100;
+      const direction = Math.random() < 0.5 ? 1 : -1;
+
+      // Shift skin A in direction, skin B in opposite direction
+      this.shiftSkinPrice(skinA, direction * deltaPct);
+      this.shiftSkinPrice(skinB, -direction * deltaPct);
     }
-
-    const skinA = SKINS_DATABASE[idxA];
-    const skinB = SKINS_DATABASE[idxB];
-
-    // Delta between 0.8% and 2.8%
-    const deltaPct = (Math.random() * 2.0 + 0.8) / 100;
-    const direction = Math.random() < 0.5 ? 1 : -1;
-
-    // Shift skin A in direction, skin B in opposite direction
-    this.shiftSkinPrice(skinA, direction * deltaPct);
-    this.shiftSkinPrice(skinB, -direction * deltaPct);
 
     this.saveState();
 

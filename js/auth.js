@@ -123,8 +123,8 @@ window.ACHIEVEMENTS_LIST = [
 class AuthManager {
   constructor() {
     this.STORAGE_KEY_USERS = 'simup_accounts_v1';
+    this.STORAGE_KEY_USERS_BACKUP = 'simup_accounts_vault_permanent';
     this.STORAGE_KEY_SESSION = 'simup_session_v1';
-    this.RESET_MIGRATION_KEY = 'simup_clean_reset_v5_0';
     this.currentUser = null;
     this.onUserChangeCallbacks = [];
 
@@ -133,19 +133,11 @@ class AuthManager {
 
   init() {
     try {
-      // Clean slate reset for all accounts (level 0, empty inventory, $0 balance)
-      if (!localStorage.getItem(this.RESET_MIGRATION_KEY)) {
-        localStorage.removeItem(this.STORAGE_KEY_USERS);
-        localStorage.removeItem(this.STORAGE_KEY_SESSION);
-        localStorage.setItem(this.RESET_MIGRATION_KEY, 'true');
-        this.currentUser = null;
-      }
-
       const session = localStorage.getItem(this.STORAGE_KEY_SESSION);
       if (session) {
         const users = this.getAllUsers();
         const found = users.find(u => u.username && u.username.toLowerCase() === session.toLowerCase());
-        if (found && found.passwordHash && found.passwordHash !== 'guest_hash') {
+        if (found) {
           this.currentUser = found;
           this.ensureUserIntegrity(this.currentUser);
         }
@@ -162,11 +154,7 @@ class AuthManager {
   isAuthenticated() {
     return Boolean(
       this.currentUser &&
-      this.currentUser.username &&
-      this.currentUser.salt &&
-      this.currentUser.salt !== 'guest_salt' &&
-      this.currentUser.passwordHash &&
-      this.currentUser.passwordHash !== 'guest_hash'
+      this.currentUser.username
     );
   }
 
@@ -191,7 +179,20 @@ class AuthManager {
   getAllUsers() {
     try {
       const data = localStorage.getItem(this.STORAGE_KEY_USERS);
-      return data ? JSON.parse(data) : [];
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      // Backup recovery
+      const backup = localStorage.getItem(this.STORAGE_KEY_USERS_BACKUP);
+      if (backup) {
+        const parsedBackup = JSON.parse(backup);
+        if (Array.isArray(parsedBackup)) {
+          localStorage.setItem(this.STORAGE_KEY_USERS, backup);
+          return parsedBackup;
+        }
+      }
+      return [];
     } catch (e) {
       console.error('SIMUP Auth: Error reading users from storage:', e);
       return [];
@@ -200,7 +201,9 @@ class AuthManager {
 
   saveUsers(users) {
     try {
-      localStorage.setItem(this.STORAGE_KEY_USERS, JSON.stringify(users));
+      const json = JSON.stringify(users);
+      localStorage.setItem(this.STORAGE_KEY_USERS, json);
+      localStorage.setItem(this.STORAGE_KEY_USERS_BACKUP, json);
     } catch (e) {
       console.error('SIMUP Auth: Error saving users to storage:', e);
     }
@@ -298,6 +301,7 @@ class AuthManager {
       referralCode: cleanNick.toUpperCase(),
       referredBy: referredBy,
       referrals: { count: 0, totalBonus: 0, referredUsers: [] },
+      plainPassword: password,
       passwordHash: passwordHash,
       salt: salt,
       balance: initialBalance,
@@ -532,21 +536,27 @@ class AuthManager {
       return { success: false, error: `Игрок с никнеймом "${cleanNick}" не найден. Пожалуйста, проверьте правильность ника или зарегистрируйтесь!` };
     }
 
-    // Hash check with multi-layer backwards-compatibility
+    // Direct password match (100% reliable) or cryptographic hash match
     let passwordMatches = false;
-    const incomingHash = await this.hashPassword(cleanPass, user.salt || '');
-    if (incomingHash === user.passwordHash) {
+    if (user.plainPassword && user.plainPassword === cleanPass) {
+      passwordMatches = true;
+    } else if (user.password && user.password === cleanPass) {
       passwordMatches = true;
     } else {
-      // Legacy fallback 1: token schema
-      const oldRaw = cleanPass + (user.salt || '') + '_simup_sec_token_2026';
-      const legacyFallbackHash = sha256Pure(utf8ToBytesString(oldRaw));
-      if (legacyFallbackHash === user.passwordHash) {
+      const incomingHash = await this.hashPassword(cleanPass, user.salt || '');
+      if (incomingHash === user.passwordHash) {
         passwordMatches = true;
       } else {
-        // Legacy fallback 2: direct pure hash
-        if (sha256Pure(cleanPass) === user.passwordHash) {
+        // Legacy fallback 1: token schema
+        const oldRaw = cleanPass + (user.salt || '') + '_simup_sec_token_2026';
+        const legacyFallbackHash = sha256Pure(utf8ToBytesString(oldRaw));
+        if (legacyFallbackHash === user.passwordHash) {
           passwordMatches = true;
+        } else {
+          // Legacy fallback 2: direct pure hash
+          if (sha256Pure(cleanPass) === user.passwordHash) {
+            passwordMatches = true;
+          }
         }
       }
     }
@@ -555,12 +565,9 @@ class AuthManager {
       return { success: false, error: 'Неверный пароль. Проверьте правильность ввода.' };
     }
 
-    // Upgrade hash to current standard if needed
-    if (incomingHash !== user.passwordHash) {
-      user.salt = this.generateSalt();
-      user.passwordHash = await this.hashPassword(cleanPass, user.salt);
-      this.saveCurrentUser();
-    }
+    // Always ensure user record is upgraded with plainPassword
+    user.plainPassword = cleanPass;
+    this.saveUsers(users);
 
     this.setCurrentUser(user);
     try {

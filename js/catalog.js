@@ -147,22 +147,28 @@ class CatalogController {
       const trendClass = trendPct >= 0 ? 'trend-up' : 'trend-down';
       const trendSign = trendPct >= 0 ? '▲ +' : '▼ ';
 
-      const cartControl = skin.exclusive ? `
-        <div class="skin-exclusive-badge ${skin.exclusive === 'pass' ? 'badge-pass' : 'badge-case'}" style="margin-top:6px; padding:6px 8px; border-radius:6px; font-size:11px; font-weight:800; text-align:center; background:${skin.exclusive === 'pass' ? 'rgba(255, 215, 0, 0.12)' : 'rgba(255, 0, 77, 0.12)'}; border:1px solid ${skin.exclusive === 'pass' ? 'rgba(255, 215, 0, 0.35)' : 'rgba(255, 0, 77, 0.35)'}; color:${skin.exclusive === 'pass' ? '#ffd700' : '#ff3366'};" title="${skin.exclusiveLabel} (не продается в магазине)">
+      const actionRow = skin.exclusive ? `
+        <div class="skin-exclusive-badge ${skin.exclusive === 'pass' ? 'badge-pass' : 'badge-case'}" style="margin-top:6px; height:34px; line-height:34px; border-radius:8px; font-size:11px; font-weight:800; text-align:center; background:${skin.exclusive === 'pass' ? 'rgba(255, 215, 0, 0.12)' : 'rgba(255, 0, 77, 0.12)'}; border:1px solid ${skin.exclusive === 'pass' ? 'rgba(255, 215, 0, 0.35)' : 'rgba(255, 0, 77, 0.35)'}; color:${skin.exclusive === 'pass' ? '#ffd700' : '#ff3366'};" title="${skin.exclusiveLabel} (не продается в магазине)">
           ${skin.exclusiveLabel || '🔒 Эксклюзив'}
         </div>
-      ` : (inCart ? `
-        <div class="cart-qty-controls" style="display:flex;gap:6px;margin-top:6px;">
-          <button type="button" class="btn-catalog-cart qty-minus" data-cart-dec-id="${skin.id}" title="Убрать одну штуку" style="flex:0 0 36px;">−</button>
-          <button type="button" class="btn-catalog-cart in-cart" data-cart-toggle-id="${skin.id}" title="Добавить ещё одну (сейчас ×${cartQty})" style="flex:1;">
-            + Ещё · ×${cartQty}
+      ` : `
+        <div class="skin-actions-level-row" style="display:grid; grid-template-columns: 1fr 34px 1.25fr; gap: 5px; align-items: center; width: 100%; height: 34px; margin-top: 6px; box-sizing: border-box;">
+          <!-- 1. На сколько вырос / упал скин в цене -->
+          <button type="button" class="btn-level-action price-trend-chip ${trendClass}" data-trend-skin-id="${skin.id}" title="Динамика цены: ${trendSign}${Math.abs(trendPct).toFixed(1)}% за сутки (нажмите для деталей)">
+            ${trendSign}${Math.abs(trendPct).toFixed(1)}%
+          </button>
+
+          <!-- 2. Убрать из корзины -->
+          <button type="button" class="btn-level-action btn-cart-dec ${!inCart ? 'disabled' : ''}" data-cart-dec-id="${skin.id}" title="${inCart ? 'Убрать одну штуку' : 'Товара нет в корзине'}" ${!inCart ? 'disabled style="opacity: 0.35; cursor: not-allowed;"' : ''}>
+            −
+          </button>
+
+          <!-- 3. Добавить еще один -->
+          <button type="button" class="btn-level-action btn-cart-inc ${inCart ? 'in-cart' : ''}" data-cart-toggle-id="${skin.id}" title="Добавить ещё один (сейчас ×${cartQty})">
+            ${inCart ? `+1 · ×${cartQty}` : '+ В корзину'}
           </button>
         </div>
-      ` : `
-        <button type="button" class="btn-catalog-cart" data-cart-toggle-id="${skin.id}" title="Добавить в корзину (можно несколько штук)">
-          🛒 В корзину
-        </button>
-      `);
+      `;
 
       html += `
         <div class="skin-card skin-rarity-${skin.rarity}" data-skin-id="${skin.id}" style="--rarity-clr: ${skin.rarityColor}; cursor: pointer;">
@@ -177,13 +183,11 @@ class CatalogController {
           </div>
           <div class="skin-info">
             <div class="skin-name" title="${skin.name}">${skin.name}</div>
-            <div class="skin-price-row">
-              <div class="skin-price-box">
-                <span class="skin-price">$${formattedPrice}</span>
-                <span class="price-trend ${trendClass}">${trendSign}${Math.abs(trendPct).toFixed(1)}%</span>
-              </div>
-              ${cartControl}
+            <div class="skin-price-headline" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+              <span class="skin-price" style="font-size: 16px; font-weight: 900; color: #fff;">$${formattedPrice}</span>
+              <span style="font-size: 10px; color: var(--text-dim); text-transform: uppercase;">Рынок</span>
             </div>
+            ${actionRow}
           </div>
         </div>
       `;
@@ -211,6 +215,24 @@ class CatalogController {
         if (showMoreBtn) {
           e.stopPropagation();
           this.showMore();
+          return;
+        }
+
+        // 0.1 Trend click (Price growth details)
+        const trendBtn = e.target.closest('[data-trend-skin-id]');
+        if (trendBtn) {
+          e.stopPropagation();
+          const skinId = trendBtn.dataset.trendSkinId;
+          const skin = this.skins.find(s => s.id === skinId);
+          if (skin) {
+            const pct = skin.priceChangePct || 0;
+            const sign = pct >= 0 ? '+' : '';
+            const status = pct >= 0 ? '📈 Рост цены' : '📉 Спад цены';
+            window.notify?.info(
+              `${status} (${sign}${pct.toFixed(1)}%)`,
+              `Скин: ${skin.name}\nТекущая стоимость: $${skin.price.toFixed(2)}\nБазовая цена: $${(skin.basePrice || skin.price).toFixed(2)}\nРыночные колебания рассчитываются динамически.`
+            );
+          }
           return;
         }
         // 1. Inspect button

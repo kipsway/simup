@@ -726,18 +726,106 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   height: 34px;
 }
 
-.skin-price-row {
+.skin-price-headline {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  margin-bottom: 4px;
 }
 
 .skin-price {
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 900;
   color: #fff;
   letter-spacing: -0.3px;
+}
+
+/* 3-BUTTON ACTION ROW: STRICTLY ON THE EXACT SAME LEVEL */
+.skin-actions-level-row {
+  display: grid !important;
+  grid-template-columns: 1fr 34px 1.25fr !important;
+  gap: 5px !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  margin-top: 6px !important;
+  box-sizing: border-box !important;
+}
+
+.btn-level-action {
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  padding: 0 4px !important;
+  margin: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  user-select: none !important;
+  line-height: 1 !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #fff !important;
+  transition: all 0.16s ease !important;
+}
+
+.btn-level-action.price-trend-chip {
+  cursor: pointer !important;
+  font-size: 10.5px !important;
+  letter-spacing: -0.2px !important;
+}
+
+.btn-level-action.price-trend-chip.trend-up {
+  color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.btn-level-action.price-trend-chip.trend-down {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.btn-level-action.btn-cart-dec {
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+}
+
+.btn-level-action.btn-cart-dec:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: #ef4444 !important;
+  transform: scale(1.06) !important;
+}
+
+.btn-level-action.btn-cart-inc {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #10b981 !important;
+  font-weight: 800 !important;
+}
+
+.btn-level-action.btn-cart-inc.in-cart {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border-color: #10b981 !important;
+  color: #fff !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.35) !important;
+}
+
+.btn-level-action.btn-cart-inc:hover {
+  filter: brightness(1.15) !important;
+  transform: translateY(-1px) !important;
 }
 
 .btn-select-target {

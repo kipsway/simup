@@ -1785,7 +1785,89 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 10;
+}
+
+.wheel-controls-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.speed-switcher-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.btn-speed-pill {
+  background: transparent;
+  border: none;
+  border-radius: 16px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-speed-pill.active {
+  background: var(--accent-color) !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(255, 0, 77, 0.4);
+}
+
+/* MINIMALIST SIMUP BRAND BADGE (PINNED TO THE RIGHT OF WHEEL CONTROLS) */
+.arena-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 0, 77, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+  margin-left: auto;
+  user-select: none;
+  transition: all 0.2s ease;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.arena-brand-badge:hover {
+  background: rgba(255, 0, 77, 0.12);
+  border-color: rgba(255, 0, 77, 0.7);
+  box-shadow: 0 0 12px rgba(255, 0, 77, 0.3);
+  transform: translateY(-1px);
+}
+
+.arena-brand-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(255, 0, 77, 0.7));
+}
+
+.arena-brand-text {
+  font-size: 12.5px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  color: #ffffff;
+  text-transform: uppercase;
+  line-height: 1;
+  display: inline-block;
 }
 
 /* OVER / UNDER SWITCH */
@@ -6787,6 +6869,74 @@ html, body {
     font-size: 12.5px !important;
     white-space: nowrap !important;
   }
+
+  /* Wheel top controls on smartphones: speed + arrow on left, minimalist logo on right */
+  .wheel-top-controls {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    margin-bottom: 8px !important;
+    width: 100% !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+  }
+
+  .wheel-controls-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-shrink: 1 !important;
+  }
+
+  .wheel-controls-left::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .speed-switcher-pill {
+    padding: 2px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .speed-switcher-pill .btn-speed-pill {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+  }
+
+  #btn-quick-arrow-style,
+  #btn-random-upgrade {
+    padding: 3px 7px !important;
+    font-size: 10.5px !important;
+    flex-shrink: 0 !important;
+    height: 28px !important;
+    min-height: 28px !important;
+  }
+
+  /* Right-pinned minimalist brand badge */
+  .arena-brand-badge {
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+    padding: 4px 8px !important;
+    height: 28px !important;
+    box-sizing: border-box !important;
+    gap: 5px !important;
+  }
+
+  .arena-brand-icon {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .arena-brand-text {
+    font-size: 11.5px !important;
+    letter-spacing: 0.6px !important;
+  }
 }
 
 /* Extra small smartphones (down to 320px) */
@@ -6811,6 +6961,17 @@ html, body {
   .quick-multipliers-bar .btn-mult-chip {
     font-size: 11px !important;
     padding: 6px 2px !important;
+  }
+  .speed-switcher-pill .btn-speed-pill {
+    padding: 2px 4px !important;
+    font-size: 9px !important;
+  }
+  .arena-brand-badge {
+    padding: 3px 6px !important;
+    gap: 4px !important;
+  }
+  .arena-brand-text {
+    font-size: 10.5px !important;
   }
 }
 

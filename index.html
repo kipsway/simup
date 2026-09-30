@@ -269,37 +269,39 @@
 
         <!-- CENTER COLUMN: INTERACTIVE WHEEL & FIRE BUTTON -->
         <div class="upgrader-col-center">
-          <!-- Top row: Speed mode switcher & Random Upgrade & Arrow Style -->
-          <div class="wheel-top-controls" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-            <!-- Speed Switcher: Fast (1.2s), Standard (3.5s), Slow (7.6s) -->
-            <div class="speed-switcher-pill" id="speed-switcher" style="display: flex; background: rgba(0,0,0,0.45); border: 1px solid var(--border-color); border-radius: 20px; padding: 2px;">
-              <button class="btn-speed-pill" data-speed="fast" style="background: transparent; border: none; border-radius: 16px; padding: 4px 10px; font-size: 11px; font-weight: 700; color: var(--text-dim); cursor: pointer; transition: all 0.2s;">⚡ 1.2s</button>
-              <button class="btn-speed-pill active" data-speed="normal" style="background: var(--accent-color); color: #fff; border: none; border-radius: 16px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;">⚡ 3.5s</button>
-              <button class="btn-speed-pill" data-speed="slow" style="background: transparent; border: none; border-radius: 16px; padding: 4px 10px; font-size: 11px; font-weight: 700; color: var(--text-dim); cursor: pointer; transition: all 0.2s;">⚡ 7.6s</button>
-            </div>
+          <!-- Top row: Speed mode switcher & Arrow Style & Random Upgrade + Minimalist SIMUP Logo on the right -->
+          <div class="wheel-top-controls">
+            <div class="wheel-controls-left">
+              <!-- Speed Switcher: Fast (1.2s), Standard (3.5s), Slow (7.6s) -->
+              <div class="speed-switcher-pill" id="speed-switcher">
+                <button class="btn-speed-pill" data-speed="fast">⚡ 1.2s</button>
+                <button class="btn-speed-pill active" data-speed="normal">⚡ 3.5s</button>
+                <button class="btn-speed-pill" data-speed="slow">⚡ 7.6s</button>
+              </div>
 
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <button class="btn-turbo-pill" id="btn-random-upgrade" title="Выбрать случайный множитель от 1.1x до 1000x!" style="background: rgba(255, 0, 77, 0.15); border: 1px solid rgba(255, 0, 77, 0.4); color: #ff3366; font-weight: 800;">
-                <span>🎲 Рандом x</span>
-              </button>
-
-              <button class="btn-turbo-pill" id="btn-quick-arrow-style" title="Сменить стиль стрелки" style="color: #ffd700; border-color: rgba(255, 215, 0, 0.3);">
+              <!-- Arrow Style Selector -->
+              <button class="btn-turbo-pill" id="btn-quick-arrow-style" title="Сменить стиль стрелки">
                 <span id="label-arrow-style-name">🎯 Лазер</span>
               </button>
+
+              <!-- Random Upgrade Multiplier -->
+              <button class="btn-turbo-pill" id="btn-random-upgrade" title="Выбрать случайный множитель от 1.1x до 1000x!">
+                <span>🎲 Рандом x</span>
+              </button>
+            </div>
+
+            <!-- Minimalist SIMUP Brand Logo & Title on the RIGHT -->
+            <div class="arena-brand-badge" title="SIMUP Upgrader">
+              <svg class="arena-brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="12,2 22,7 22,17 12,22 2,17 2,7" stroke="#ff004d" stroke-width="2" fill="rgba(255, 0, 77, 0.12)" stroke-linejoin="round"/>
+                <path d="M12 7L16.5 12H13.5V17H10.5V12H7.5L12 7Z" fill="#ff004d"/>
+              </svg>
+              <span class="arena-brand-text">SIMUP</span>
             </div>
           </div>
 
-          <!-- 60fps Interactive Wheel Box -->
+          <!-- 60fps Interactive Wheel Box (Clean canvas without overlays) -->
           <div class="upgrader-wheel-box">
-            <!-- Brand Logo & Title in Top-Right Corner of Upgrader Arena -->
-            <div class="arena-brand-badge" style="position: absolute; top: 10px; right: 12px; display: flex; align-items: center; gap: 7px; z-index: 6; background: rgba(14, 7, 15, 0.88); border: 1px solid rgba(255, 0, 77, 0.4); padding: 5px 12px; border-radius: 999px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-              <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 17px; height: 17px; filter: drop-shadow(0 0 5px rgba(255, 0, 77, 0.9));">
-                <path d="M14 3L25 10V18L14 25L3 18V10L14 3Z" stroke="#ff004d" stroke-width="1.8" fill="#0d0408" />
-                <path d="M14 7L20 14H16V20H12V14H8L14 7Z" fill="#ff004d" />
-              </svg>
-              <span style="font-size: 13.5px; font-weight: 900; letter-spacing: 0.8px; color: #ffffff; text-transform: uppercase;">SIMUP</span>
-            </div>
-
             <canvas id="wheel-canvas" class="wheel-canvas" width="290" height="290"></canvas>
             
             <!-- Center readout display -->

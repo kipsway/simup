@@ -82,7 +82,14 @@ class LeaderboardManager {
       }
     } catch (e) { onlinePlayers = []; }
 
-    return realPlayers.concat(onlinePlayers);
+    let result = realPlayers.concat(onlinePlayers);
+    if (result.length < 25 && window.GlobalPlayersDB && typeof window.GlobalPlayersDB.getAll === 'function') {
+      const globalPlayers = window.GlobalPlayersDB.getAll().filter(
+        g => g && g.username && !seen.has(String(g.username).toLowerCase())
+      );
+      result = result.concat(globalPlayers);
+    }
+    return result;
   }
 
 

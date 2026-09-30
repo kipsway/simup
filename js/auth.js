@@ -243,11 +243,11 @@ class AuthManager {
         }
       }
       if (!this.currentUser) {
-        this.currentUser = null;
+        this.ensureGuestUser();
       }
     } catch (e) {
       console.error('SIMUP Auth: Error initializing session', e);
-      this.currentUser = null;
+      this.ensureGuestUser();
     }
   }
 
@@ -273,7 +273,76 @@ class AuthManager {
   }
 
   ensureGuestUser() {
-    return null;
+    if (this.currentUser) return this.currentUser;
+    const users = this.getAllUsers();
+    if (users && users.length > 0) {
+      const session = localStorage.getItem(this.STORAGE_KEY_SESSION);
+      let found = null;
+      if (session) {
+        found = users.find(u => u.username && u.username.toLowerCase() === session.toLowerCase());
+      }
+      if (!found) found = users[0];
+      if (found) {
+        this.currentUser = found;
+        this.ensureUserIntegrity(this.currentUser);
+        localStorage.setItem(this.STORAGE_KEY_SESSION, this.currentUser.username);
+        this.notifyListeners();
+        return this.currentUser;
+      }
+    }
+
+    // Default starter player with $500 balance
+    const randId = Math.floor(1000 + Math.random() * 9000);
+    const guestNick = `Игрок_${randId}`;
+    const guestUser = {
+      id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      username: guestNick,
+      referralCode: guestNick.toUpperCase(),
+      referredBy: null,
+      referrals: { count: 0, totalBonus: 0, referredUsers: [] },
+      plainPassword: 'guest',
+      passwordHash: '',
+      salt: '',
+      balance: 500.00,
+      inventory: [],
+      level: 1,
+      xp: 0,
+      equippedTitle: 'Новичок',
+      unlockedTitles: ['Новичок'],
+      achievements: {},
+      stats: {
+        totalUpgrades: 0,
+        wonUpgrades: 0,
+        lostUpgrades: 0,
+        casesOpened: 0,
+        coinflipsPlayed: 0,
+        battlesPlayed: 0,
+        battlesWon: 0,
+        bestWinSkin: null,
+        bestWinMultiplier: 0,
+        maxSingleBet: 0,
+        totalWagered: 0,
+        netProfit: 0,
+        contractsCount: 0,
+        hasTried90Pct: false
+      },
+      loans: {
+        currentDebt: 0,
+        totalBorrowed: 0,
+        totalRepaid: 0,
+        autoRepay: true
+      },
+      dailyStreak: {
+        currentStreak: 0,
+        lastClaimDate: null
+      },
+      history: [],
+      createdAt: Date.now()
+    };
+    users.push(guestUser);
+    this.saveUsers(users);
+    this.setCurrentUser(guestUser);
+    return guestUser;
   }
 
   getAllUsers() {
@@ -712,12 +781,17 @@ class AuthManager {
   saveCurrentUser() {
     if (!this.currentUser) return;
     const users = this.getAllUsers();
-    const index = users.findIndex(u => u.id === this.currentUser.id);
+    let index = users.findIndex(u => u.id === this.currentUser.id);
+    if (index === -1 && this.currentUser.username) {
+      index = users.findIndex(u => u.username && u.username.toLowerCase() === this.currentUser.username.toLowerCase());
+    }
     if (index !== -1) {
       users[index] = this.currentUser;
-      this.saveUsers(users);
-      this.notifyListeners();
+    } else {
+      users.push(this.currentUser);
     }
+    this.saveUsers(users);
+    this.notifyListeners();
   }
 
   updateBalance(delta) {

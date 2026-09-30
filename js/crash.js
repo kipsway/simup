@@ -101,13 +101,21 @@ class CrashEngine {
   }
 
   resizeCanvas() {
+    if (!this.canvas) {
+      this.canvas = document.getElementById('crash-canvas');
+      if (this.canvas) this.ctx = this.canvas.getContext('2d');
+    }
     if (!this.canvas || !this.canvas.parentElement) return;
-    const rect = this.canvas.parentElement.getBoundingClientRect();
-    const w = rect.width > 50 ? rect.width : (this.canvas.parentElement.clientWidth || 600);
-    const h = rect.height > 50 ? rect.height : 380;
-    const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = w * dpr;
-    this.canvas.height = h * dpr;
+    const parent = this.canvas.parentElement;
+    const rect = parent.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
+    const defaultW = isMobile ? Math.max(300, window.innerWidth - 32) : 600;
+    const defaultH = isMobile ? 220 : 380;
+    const w = rect.width > 50 ? rect.width : (parent.clientWidth > 50 ? parent.clientWidth : defaultW);
+    const h = rect.height > 50 ? rect.height : (parent.clientHeight > 50 ? parent.clientHeight : defaultH);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    this.canvas.width = Math.floor(w * dpr);
+    this.canvas.height = Math.floor(h * dpr);
     this.canvas.style.width = `${w}px`;
     this.canvas.style.height = `${h}px`;
     if (this.ctx) {
@@ -323,8 +331,31 @@ class CrashEngine {
     this.ctx.clearRect(0, 0, w, h);
     this.drawGrid(w, h);
 
-    // Large center status
+    const padLeft = 40;
+    const padBottom = 35;
+    const startX = padLeft + 16;
+    const startY = (h - padBottom) - 16;
+
+    // Draw launch platform & glowing idle rocket
     this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.arc(startX, startY + 14, 16, 0, Math.PI, false);
+    this.ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+    this.ctx.fill();
+    this.ctx.strokeStyle = '#10b981';
+    this.ctx.lineWidth = 2;
+    this.ctx.stroke();
+
+    this.ctx.save();
+    this.ctx.translate(startX, startY);
+    this.ctx.rotate(-0.45);
+    this.ctx.font = '34px Inter, sans-serif';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText('🚀', 0, 0);
+    this.ctx.restore();
+
+    // Large center status
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
 

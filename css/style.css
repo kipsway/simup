@@ -4426,9 +4426,11 @@ html, body {
     order: -1 !important;
   }
 
+  .crash-canvas-wrapper,
   .crash-canvas-wrap {
-    min-height: 210px !important;
-    height: 220px !important;
+    min-height: 220px !important;
+    height: 230px !important;
+    display: block !important;
   }
 
   /* Contracts on Mobile */
@@ -6647,12 +6649,24 @@ button:active,
   justify-content: center !important;
   text-align: center !important;
   pointer-events: none !important;
-  width: 140px !important;
-  height: 140px !important;
+  width: 130px;
+  height: 130px;
   border-radius: 50% !important;
-  background: radial-gradient(circle, rgba(16, 8, 17, 0.96) 0%, rgba(6, 2, 7, 0.88) 100%) !important;
+  background: radial-gradient(circle, rgba(18, 10, 24, 0.82) 0%, rgba(8, 4, 12, 0.88) 100%) !important;
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+@media (max-width: 768px) {
+  .wheel-center-display {
+    width: 104px !important;
+    height: 104px !important;
+    background: radial-gradient(circle, rgba(18, 10, 24, 0.72) 0%, rgba(8, 4, 12, 0.80) 100%) !important;
+  }
+  .wheel-center-chance {
+    font-size: 20px !important;
+  }
 }
 
 /* 7. Primary Upgrade Button (Glowing Ruby Cherry) */

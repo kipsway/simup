@@ -205,6 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openGamesHub() {
     window.SoundManager?.playClick();
+    gamesHubIsDragging = false;
+    gamesHubSuppressClicksUntil = 0;
     modalGamesHub?.classList.add('active');
   }
 
@@ -228,8 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('btn-mobile-games-hub')?.addEventListener('click', openGamesHub);
 
-  // Bulletproof mobile touch scroll tracking: never open a game on scroll/touch drag
-  let gamesHubTouchStartTime = 0;
+  // Bulletproof mobile touch scroll tracking: never open a game on scroll/touch drag, but always trigger on tap
   let gamesHubTouchStartX = 0;
   let gamesHubTouchStartY = 0;
   let gamesHubIsDragging = false;
@@ -240,7 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.touches && e.touches[0]) {
       gamesHubTouchStartX = e.touches[0].clientX;
       gamesHubTouchStartY = e.touches[0].clientY;
-      gamesHubTouchStartTime = Date.now();
       gamesHubIsDragging = false;
     }
   }, { passive: true });
@@ -249,17 +249,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.touches && e.touches[0]) {
       const deltaX = Math.abs(e.touches[0].clientX - gamesHubTouchStartX);
       const deltaY = Math.abs(e.touches[0].clientY - gamesHubTouchStartY);
-      if (deltaY > 6 || deltaX > 6) {
+      if (deltaY > 14 || deltaX > 14) {
         gamesHubIsDragging = true;
-        gamesHubSuppressClicksUntil = Date.now() + 450;
+        gamesHubSuppressClicksUntil = Date.now() + 250;
       }
     }
   }, { passive: true });
 
   gamesModal?.addEventListener('touchend', () => {
-    if (gamesHubIsDragging) {
-      gamesHubSuppressClicksUntil = Date.now() + 450;
-    }
+    setTimeout(() => {
+      gamesHubIsDragging = false;
+    }, 100);
   }, { passive: true });
 
   // Direct click handlers for games hub cards and dropdown items
@@ -1887,58 +1887,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 0. Textured Disc Background (Obsidian carbon texture with cyber radial lines)
     ctx.save();
-    const bgGrad = ctx.createRadialGradient(cx, cy, 30, cx, cy, radius + 22);
-    bgGrad.addColorStop(0, 'rgba(18, 10, 22, 0.45)');
-    bgGrad.addColorStop(0.7, 'rgba(10, 5, 14, 0.75)');
-    bgGrad.addColorStop(1, 'rgba(4, 2, 6, 0.95)');
+    const bgGrad = ctx.createRadialGradient(cx, cy, 25, cx, cy, radius + 22);
+    bgGrad.addColorStop(0, 'rgba(24, 12, 32, 0.65)');
+    bgGrad.addColorStop(0.6, 'rgba(14, 7, 20, 0.88)');
+    bgGrad.addColorStop(1, 'rgba(6, 3, 9, 0.98)');
     ctx.beginPath();
     ctx.arc(cx, cy, radius + 20, 0, Math.PI * 2);
     ctx.fillStyle = bgGrad;
     ctx.fill();
 
     // Concentric cyber grid rings (dashed technical rings)
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    [radius - 28, radius - 20, radius + 18].forEach(r => {
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+    [radius - 36, radius - 24, radius + 16].forEach(r => {
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.stroke();
     });
 
-    // Dashed tech accent ring
+    // Dashed tech accent ring (Cyber Ruby)
     ctx.beginPath();
-    ctx.setLineDash([4, 6]);
+    ctx.setLineDash([5, 5]);
     ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255, 0, 77, 0.25)';
+    ctx.strokeStyle = 'rgba(255, 0, 77, 0.55)';
     ctx.stroke();
 
+    // Dashed tech accent ring (Cyber Emerald)
     ctx.beginPath();
-    ctx.setLineDash([2, 8]);
-    ctx.arc(cx, cy, radius - 8, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0, 255, 170, 0.18)';
+    ctx.setLineDash([3, 6]);
+    ctx.arc(cx, cy, radius - 14, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0, 255, 170, 0.45)';
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Radial Cyber Spokes (12 primary technical spokes with neon pips)
-    for (let s = 0; s < 12; s++) {
-      const spAng = (s / 12) * Math.PI * 2;
-      const xStart = cx + Math.cos(spAng) * (radius - 25);
-      const yStart = cy + Math.sin(spAng) * (radius - 25);
-      const xEnd = cx + Math.cos(spAng) * (radius - 12);
-      const yEnd = cy + Math.sin(spAng) * (radius - 12);
+    // Radial Cyber Spokes (16 technical spokes with neon pips)
+    for (let s = 0; s < 16; s++) {
+      const spAng = (s / 16) * Math.PI * 2;
+      const xStart = cx + Math.cos(spAng) * (radius - 40);
+      const yStart = cy + Math.sin(spAng) * (radius - 40);
+      const xEnd = cx + Math.cos(spAng) * (radius - 10);
+      const yEnd = cy + Math.sin(spAng) * (radius - 10);
       ctx.beginPath();
       ctx.moveTo(xStart, yStart);
       ctx.lineTo(xEnd, yEnd);
-      ctx.lineWidth = 1.2;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = s % 2 === 0 ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 240, 255, 0.35)';
       ctx.stroke();
 
       // Outer illuminated tech pip
-      const px = cx + Math.cos(spAng) * (radius + 15);
-      const py = cy + Math.sin(spAng) * (radius + 15);
+      const px = cx + Math.cos(spAng) * (radius + 14);
+      const py = cy + Math.sin(spAng) * (radius + 14);
       ctx.beginPath();
-      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
-      ctx.fillStyle = s % 3 === 0 ? '#ff004d' : 'rgba(255, 255, 255, 0.35)';
+      ctx.arc(px, py, 2.2, 0, Math.PI * 2);
+      ctx.fillStyle = s % 4 === 0 ? '#ff004d' : (s % 2 === 0 ? '#00f0ff' : 'rgba(255, 255, 255, 0.75)');
       ctx.fill();
     }
     ctx.restore();
@@ -4838,7 +4839,12 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCoinflipUI();
       } else if (tabId === 'crash') {
         renderCrashUI();
-        window.crashEngine?.resizeCanvas();
+        requestAnimationFrame(() => {
+          window.crashEngine?.resizeCanvas();
+        });
+        setTimeout(() => {
+          window.crashEngine?.resizeCanvas();
+        }, 60);
       } else if (tabId === 'casebattle') {
         window.caseBattleEngine?.renderLobby();
       } else if (tabId === 'pass') {

@@ -1857,6 +1857,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const radius = 120;
     const thickness = 14;
 
+    const effectiveChance = (typeof chance === 'number' && chance > 0)
+      ? chance
+      : (window.upgraderEngine?.desiredChance || 50);
+
     ctx.clearRect(0, 0, w, h);
 
     // 1. Draw outer hairline ring
@@ -1922,12 +1926,12 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.stroke();
     ctx.restore();
 
-    if (chance <= 0) return;
+    if (effectiveChance <= 0) return;
 
     // 5. Draw winning glowing sector centered AT THE BOTTOM (180° / 6 o'clock)
     // Needle degrees: 0° is top, 90° is right, 180° is bottom, 270° is left.
     // Canvas radians: rad = (deg - 90) * PI / 180.
-    const angleSpanDeg = (chance / 100) * 360;
+    const angleSpanDeg = (effectiveChance / 100) * 360;
     const halfSpan = angleSpanDeg / 2;
     const winStartDeg = 180 - halfSpan;
     const winEndDeg = 180 + halfSpan;
@@ -2009,9 +2013,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const isMystery = window.upgraderEngine.isMysteryMode;
+    const currentMult = multiplier > 0 ? multiplier : (window.upgraderEngine.desiredMultiplier || 2.0);
+    const currentChance = chance > 0 ? chance : (window.upgraderEngine.desiredChance || 50);
 
-    if (wheelChanceVal) wheelChanceVal.textContent = isMystery ? '??? %' : `${chance.toFixed(2)}%`;
-    if (wheelMultVal) wheelMultVal.textContent = isMystery ? '??? x' : (multiplier > 0 ? `${multiplier.toFixed(2)}x` : '0.00x');
+    if (wheelChanceVal) wheelChanceVal.textContent = isMystery ? '??? %' : `${currentChance.toFixed(2)}%`;
+    if (wheelMultVal) wheelMultVal.textContent = isMystery ? '??? x' : `${currentMult.toFixed(2)}x`;
 
     // Target skin showcase
     if (isMystery) {
@@ -2046,7 +2052,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Update active multiplier chips & input
-    const currentMult = multiplier > 0 ? multiplier : (window.upgraderEngine.desiredMultiplier || 2.0);
     document.querySelectorAll('[data-quick-mult]').forEach(btn => {
       const chipVal = parseFloat(btn.dataset.quickMult);
       btn.classList.toggle('active', Math.abs(chipVal - currentMult) < 0.08);
@@ -2056,7 +2061,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Update active chance chips & slider
-    const currentChance = chance > 0 ? chance : (window.upgraderEngine.desiredChance || 50);
     const sliderCustomChance = document.getElementById('slider-custom-chance');
     const labelChanceSliderReadout = document.getElementById('label-chance-slider-readout');
     if (sliderCustomChance && document.activeElement !== sliderCustomChance) {
@@ -2075,7 +2079,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnDirOver) btnDirOver.classList.toggle('active', window.upgraderEngine.direction === 'over');
 
     // Draw Wheel
-    drawWheel(chance, window.upgraderEngine.direction);
+    drawWheel(currentChance, window.upgraderEngine.direction);
 
     // Render drawer only if full rebuild requested
     if (!skipDrawerRebuild) {

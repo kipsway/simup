@@ -158,6 +158,204 @@ class AdminPanelController {
     this.render();
   }
 
+  deductPlayerBalance(username, amount) {
+    if (!this.isAdmin()) {
+      window.notify?.error('Ошибка прав', 'Недостаточно прав для списания баланса.');
+      return;
+    }
+
+    const val = parseFloat(amount);
+    if (isNaN(val) || val <= 0) {
+      window.notify?.warning('Ошибка', 'Введите корректную положительную сумму для списания.');
+      return;
+    }
+
+    const users = window.authManager.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+
+    if (!target) {
+      window.notify?.error('Игрок не найден', `Пользователь ${username} отсутствует в базе.`);
+      return;
+    }
+
+    const oldBal = target.balance || 0;
+    target.balance = Math.max(0, Number((oldBal - val).toFixed(2)));
+    window.authManager.saveUsers(users);
+
+    if (window.authManager.currentUser?.id === target.id) {
+      window.authManager.currentUser.balance = target.balance;
+      window.authManager.saveCurrentUser();
+      window.updateHeaderUserUI?.(target);
+    }
+
+    if (window.onlineDb?.syncUserProfile) {
+      window.onlineDb.syncUserProfile(target);
+    }
+
+    window.notify?.info('Баланс списан 💸', `С баланса ${target.username} списано $${val.toFixed(2)} (Остаток: $${target.balance.toFixed(2)})`);
+    this.render();
+  }
+
+  setPlayerBalance(username, amount) {
+    if (!this.isAdmin()) {
+      window.notify?.error('Ошибка прав', 'Недостаточно прав для изменения баланса.');
+      return;
+    }
+
+    const val = parseFloat(amount);
+    if (isNaN(val) || val < 0) {
+      window.notify?.warning('Ошибка', 'Укажите корректную сумму баланса (0 или больше).');
+      return;
+    }
+
+    const users = window.authManager.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+
+    if (!target) {
+      window.notify?.error('Игрок не найден', `Пользователь ${username} отсутствует в базе.`);
+      return;
+    }
+
+    target.balance = Number(val.toFixed(2));
+    window.authManager.saveUsers(users);
+
+    if (window.authManager.currentUser?.id === target.id) {
+      window.authManager.currentUser.balance = target.balance;
+      window.authManager.saveCurrentUser();
+      window.updateHeaderUserUI?.(target);
+    }
+
+    if (window.onlineDb?.syncUserProfile) {
+      window.onlineDb.syncUserProfile(target);
+    }
+
+    window.notify?.success('Баланс установлен 💳', `Баланс игрока ${target.username} установлен на $${target.balance.toFixed(2)}`);
+    this.render();
+  }
+
+  clearPlayerDebt(username) {
+    if (!this.isAdmin()) {
+      window.notify?.error('Ошибка прав', 'Недостаточно прав для обнуления долга.');
+      return;
+    }
+
+    const users = window.authManager.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+
+    if (!target) {
+      window.notify?.error('Игрок не найден', `Пользователь ${username} отсутствует в базе.`);
+      return;
+    }
+
+    const previousDebt = target.loans?.currentDebt || 0;
+    if (!target.loans) {
+      target.loans = { currentDebt: 0, totalBorrowed: 0, totalRepaid: 0, autoRepay: true };
+    } else {
+      target.loans.currentDebt = 0;
+    }
+
+    window.authManager.saveUsers(users);
+
+    if (window.authManager.currentUser?.id === target.id) {
+      window.authManager.currentUser.loans = target.loans;
+      window.authManager.saveCurrentUser();
+      window.updateHeaderUserUI?.(target);
+      if (typeof window.renderBankPage === 'function') {
+        window.renderBankPage();
+      }
+    }
+
+    if (window.onlineDb?.syncUserProfile) {
+      window.onlineDb.syncUserProfile(target);
+    }
+
+    window.notify?.bigWin('Долг списан! 🏦', `Кредитная задолженность игрока ${target.username} ($${previousDebt.toFixed(2)}) успешно обнулена!`);
+    this.render();
+  }
+
+  clearPlayerInventory(username) {
+    if (!this.isAdmin()) {
+      window.notify?.error('Ошибка прав', 'Недостаточно прав для очистки инвентаря.');
+      return;
+    }
+
+    const users = window.authManager.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+
+    if (!target) {
+      window.notify?.error('Игрок не найден', `Пользователь ${username} отсутствует в базе.`);
+      return;
+    }
+
+    const count = (target.inventory || []).length;
+    target.inventory = [];
+    window.authManager.saveUsers(users);
+
+    if (window.authManager.currentUser?.id === target.id) {
+      window.authManager.currentUser.inventory = [];
+      window.authManager.saveCurrentUser();
+      if (typeof window.renderInventoryPage === 'function') {
+        window.renderInventoryPage();
+      }
+      if (typeof window.updateUpgraderUI === 'function') {
+        window.updateUpgraderUI();
+      }
+    }
+
+    if (window.onlineDb?.syncUserProfile) {
+      window.onlineDb.syncUserProfile(target);
+    }
+
+    window.notify?.info('Инвентарь очищен 🎒', `У игрока ${target.username} удалено предметов: ${count} шт.`);
+    this.render();
+  }
+
+  resetPlayerToStart(username) {
+    if (!this.isAdmin()) {
+      window.notify?.error('Ошибка прав', 'Недостаточно прав.');
+      return;
+    }
+
+    const users = window.authManager.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+
+    if (!target) {
+      window.notify?.error('Игрок не найден', `Пользователь ${username} отсутствует в базе.`);
+      return;
+    }
+
+    target.balance = 500.00;
+    target.inventory = [];
+    if (target.loans) {
+      target.loans.currentDebt = 0;
+    }
+    if (target.stats) {
+      target.stats.totalUpgrades = 0;
+      target.stats.totalWagered = 0;
+      target.stats.netProfit = 0;
+      target.stats.upgradesWon = 0;
+      target.stats.bestWinMultiplier = 0;
+      target.stats.maxSingleBet = 0;
+    }
+
+    window.authManager.saveUsers(users);
+
+    if (window.authManager.currentUser?.id === target.id) {
+      window.authManager.currentUser = target;
+      window.authManager.saveCurrentUser();
+      window.updateHeaderUserUI?.(target);
+      if (typeof window.renderInventoryPage === 'function') window.renderInventoryPage();
+      if (typeof window.updateUpgraderUI === 'function') window.updateUpgraderUI();
+    }
+
+    if (window.onlineDb?.syncUserProfile) {
+      window.onlineDb.syncUserProfile(target);
+    }
+
+    window.notify?.success('Сброс аккаунта выполнен', `Игрок ${target.username} сброшен к стартовым параметрам ($500.00 баланс, чистый инвентарь и 0 долга).`);
+    this.render();
+  }
+
   addBugReport(title, desc, priority = 'medium') {
     if (!title) {
       window.notify?.warning('Ошибка', 'Укажите заголовок ошибки.');
@@ -264,19 +462,32 @@ class AdminPanelController {
               <span>👥 Игроки и Права (${users.length})</span>
             </div>
 
-            <!-- Fast Credit Form -->
+            <!-- Fast Balance & Debt Management Form -->
             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
-              <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">⚡ Начисление баланса игроку:</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">⚡ Управление балансом и долгом:</div>
               <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                 <input type="text" id="admin-credit-username" class="form-input" placeholder="Никнейм игрока" style="flex: 1; padding: 8px 12px; font-size: 12px;" value="${user?.username || ''}">
                 <input type="number" id="admin-credit-amount" class="form-input" placeholder="Сумма ($)" style="width: 110px; padding: 8px 12px; font-size: 12px;" value="1000">
               </div>
-              <button id="btn-admin-submit-credit" class="btn-sm-action" style="width: 100%; background: linear-gradient(135deg, #b6004c, #590000); color: #fff; border: 1px solid #ff004d; font-weight: 800; padding: 8px; border-radius: 6px;">
-                + Начислить средства
-              </button>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <button id="btn-admin-submit-credit" class="btn-sm-action" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #10b981; font-weight: 800; padding: 8px; border-radius: 6px; cursor: pointer;">
+                  + Начислить
+                </button>
+                <button id="btn-admin-submit-deduct" class="btn-sm-action" style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; border: 1px solid #ef4444; font-weight: 800; padding: 8px; border-radius: 6px; cursor: pointer;">
+                  − Забрать (списать)
+                </button>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button id="btn-admin-submit-set-balance" class="btn-sm-action" style="background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 700; padding: 8px; border-radius: 6px; cursor: pointer;">
+                  💳 Задать баланс
+                </button>
+                <button id="btn-admin-submit-clear-debt" class="btn-sm-action" style="background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid #ffd700; font-weight: 800; padding: 8px; border-radius: 6px; cursor: pointer;">
+                  🏦 Обнулить долг
+                </button>
+              </div>
             </div>
 
-            <!-- Players List Table with Admin Toggle -->
+            <!-- Players List Table with Admin Actions -->
             <div style="display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto;">
               ${users.map(u => `
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid ${u.isAdmin ? 'rgba(255, 215, 0, 0.3)' : 'rgba(255,255,255,0.04)'}; border-radius: 10px; padding: 10px 12px;">
@@ -284,16 +495,22 @@ class AdminPanelController {
                     <div style="display: flex; align-items: center; gap: 6px;">
                       <div style="font-size: 13.5px; font-weight: 800; color: #fff;">${u.username}</div>
                       ${u.isAdmin ? '<span style="font-size: 10px; background: rgba(255,215,0,0.18); color: #ffd700; border: 1px solid rgba(255,215,0,0.4); padding: 1px 6px; border-radius: 4px; font-weight: 800;">ADMIN</span>' : ''}
+                      ${(u.loans?.currentDebt || 0) > 0 ? `<span style="font-size: 10px; background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid rgba(239,68,68,0.4); padding: 1px 6px; border-radius: 4px; font-weight: 800;">ДОЛГ: $${u.loans.currentDebt.toFixed(2)}</span>` : ''}
                     </div>
                     <div style="font-size: 14.5px; font-weight: 900; color: #10b981;">$${(u.balance || 0).toFixed(2)}</div>
                   </div>
 
-                  <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-dim);">
+                  <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-dim); flex-wrap: wrap; gap: 6px;">
                     <div>Инвентарь: ${(u.inventory || []).length} шт. | Оборот: $${(u.stats?.totalWagered || 0).toFixed(0)}</div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                      <button onclick="document.getElementById('admin-credit-username').value='${u.username}'" style="background: transparent; border: none; color: var(--accent-color); font-weight: 700; cursor: pointer; padding: 0;">Баланс</button>
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                      <button onclick="document.getElementById('admin-credit-username').value='${u.username}'; document.getElementById('admin-credit-amount').focus();" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer;">Выбрать</button>
+                      ${(u.loans?.currentDebt || 0) > 0 ? `
+                        <button onclick="window.AdminPanelController.clearPlayerDebt('${u.username}')" style="background: rgba(255,215,0,0.15); border: 1px solid #ffd700; color: #ffd700; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer; font-weight: 700;">Списать долг</button>
+                      ` : ''}
+                      <button onclick="if(confirm('Очистить инвентарь игрока ${u.username}?')) window.AdminPanelController.clearPlayerInventory('${u.username}')" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer;">Очистить инв.</button>
+                      <button onclick="if(confirm('Сбросить аккаунт игрока ${u.username} к старту ($500.00 баланс)?')) window.AdminPanelController.resetPlayerToStart('${u.username}')" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer;">Сброс ($500)</button>
                       ${isCreator ? `
-                        <button onclick="window.AdminPanelController.toggleAdminRole('${u.username}')" style="background: transparent; border: none; color: ${u.isAdmin ? '#ef4444' : '#ffd700'}; font-weight: 700; cursor: pointer; padding: 0;">
+                        <button onclick="window.AdminPanelController.toggleAdminRole('${u.username}')" style="background: transparent; border: none; color: ${u.isAdmin ? '#ef4444' : '#ffd700'}; font-weight: 700; cursor: pointer; padding: 0 4px; font-size: 10.5px;">
                           ${u.isAdmin ? 'Снять админа' : '+ Назначить админа'}
                         </button>
                       ` : ''}
@@ -353,6 +570,23 @@ class AdminPanelController {
       const u = document.getElementById('admin-credit-username')?.value.trim();
       const a = document.getElementById('admin-credit-amount')?.value;
       if (u) this.creditPlayerBalance(u, a);
+    });
+
+    document.getElementById('btn-admin-submit-deduct')?.addEventListener('click', () => {
+      const u = document.getElementById('admin-credit-username')?.value.trim();
+      const a = document.getElementById('admin-credit-amount')?.value;
+      if (u) this.deductPlayerBalance(u, a);
+    });
+
+    document.getElementById('btn-admin-submit-set-balance')?.addEventListener('click', () => {
+      const u = document.getElementById('admin-credit-username')?.value.trim();
+      const a = document.getElementById('admin-credit-amount')?.value;
+      if (u) this.setPlayerBalance(u, a);
+    });
+
+    document.getElementById('btn-admin-submit-clear-debt')?.addEventListener('click', () => {
+      const u = document.getElementById('admin-credit-username')?.value.trim();
+      if (u) this.clearPlayerDebt(u);
     });
 
     document.getElementById('btn-admin-add-bug')?.addEventListener('click', () => {

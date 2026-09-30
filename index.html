@@ -25,7 +25,7 @@
   <meta name="twitter:title" content="SIMUP 2.0 — Симулятор апгрейда скинов CS2, Dota 2, Rust">
   <meta name="twitter:description" content="Бесплатный симулятор апгрейда скинов и открытия кейсов без реальных денег.">
   
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpolygon points='20,2 37,11 37,29 20,38 3,29 3,11' fill='%23ff004d'/%3E%3Cpolygon points='20,5 34,13 34,27 20,35 6,27 6,13' fill='%23080206' stroke='%23ff004d' stroke-width='1.5'/%3E%3Cpath d='M20 8L29 20H22V31H18V20H11L20 8Z' fill='%23ff2a6d'/%3E%3C/svg%3E">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ff004d">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -61,16 +61,32 @@
   <header class="site-header">
     <div class="header-inner">
       <!-- LOGO -->
-      <div class="brand-section" id="brand-logo-btn">
-        <div class="brand-logo-icon">⚡</div>
+      <div class="brand-section" id="brand-logo-btn" title="На главную (Апгрейд)">
+        <div class="brand-logo-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 26px; height: 26px; filter: drop-shadow(0 0 6px rgba(255, 0, 77, 0.8));">
+            <polygon points="20,2 37,11 37,29 20,38 3,29 3,11" fill="url(#brandGrad)" />
+            <polygon points="20,5 34,13 34,27 20,35 6,27 6,13" fill="#080206" stroke="#ff004d" stroke-width="1.5" />
+            <path d="M20 9L29 21H22V31H18V21H11L20 9Z" fill="url(#brandGrad)" />
+            <defs>
+              <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff3366" />
+                <stop offset="100%" stop-color="#b6003c" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
         <div class="brand-logo-text">SIM<span>UP</span></div>
-        <span class="badge-sim">Simulator</span>
+        <span class="badge-sim">PRO</span>
       </div>
 
       <!-- MAIN NAVIGATION (Play2Go Clean Minimalist Hub) -->
       <nav class="nav-tabs desktop-nav-tabs" id="desktop-nav-scroller" aria-label="Навигация сайта">
         <button class="nav-tab-btn active" data-tab="upgrader">
           <span>🎯</span> Апгрейд
+        </button>
+
+        <button class="nav-tab-btn" data-tab="inventory">
+          <span>🎒</span> Инвентарь
         </button>
 
         <!-- Consolidated Games Dropdown -->
@@ -154,10 +170,16 @@
           <span class="action-badge" id="cart-badge-count" style="display:none;">0</span>
         </button>
 
+        <!-- Bank / Loan Button -->
+        <button class="btn-header-action" id="btn-header-bank" title="Виртуальный банк и кредиты" aria-label="Банк" data-tab="bank">
+          <span class="action-icon">🏦</span>
+          <span class="action-label">Банк</span>
+        </button>
+
         <!-- Cross-Device Sync Button -->
-        <button class="btn-sync-pill" id="btn-open-sync-modal" title="Синхронизация аккаунта (ПК ↔ Смартфон)" aria-label="Синхронизация">
-          <span class="sync-icon">📱</span>
-          <span class="sync-label">Синхронизация</span>
+        <button class="btn-header-action" id="btn-open-sync-modal" title="Синхронизация аккаунта (ПК ↔ Смартфон)" aria-label="Синхронизация">
+          <span class="action-icon">📱</span>
+          <span class="action-label">Синхро</span>
         </button>
 
         <!-- Simple Audio Toggle -->
@@ -171,13 +193,9 @@
         </button>
 
         <!-- Balance Card -->
-        <div class="balance-card">
-          <div class="balance-info">
-            <span class="balance-amount" id="header-balance">$0.00</span>
-          </div>
-          <button class="btn-deposit" id="btn-quick-deposit" title="Банк и кредитная система">
-            🏦 Кредит
-          </button>
+        <div class="balance-card" id="header-balance-card" title="Ваш текущий баланс">
+          <span class="balance-coin-icon">💎</span>
+          <span class="balance-amount" id="header-balance">$0.00</span>
         </div>
 
         <!-- User Profile Pill or Login Trigger -->
@@ -1089,6 +1107,77 @@
       </div>
     </section>
 
+    <!-- TAB: INVENTORY (DEDICATED FULL VIEW & SELLING HUB) -->
+    <section class="tab-content" id="tab-inventory">
+      <div class="inventory-page-wrap" style="max-width: 1200px; margin: 0 auto; padding-top: 10px;">
+        
+        <!-- Inventory Summary Card -->
+        <div class="inv-summary-banner" style="background: linear-gradient(135deg, rgba(255, 0, 77, 0.15) 0%, rgba(20, 6, 14, 0.95) 100%); border: 1px solid rgba(255, 0, 77, 0.35); border-radius: 20px; padding: 24px 28px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+          <div>
+            <div style="font-size: 11px; font-weight: 800; color: #ff004d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">🎒 ЛИЧНЫЙ ИНВЕНТАРЬ</div>
+            <h1 style="font-size: 26px; font-weight: 900; color: #fff; margin-bottom: 10px;">Коллекция скинов</h1>
+            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+              <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 14px;">
+                <span style="font-size: 12px; color: var(--text-dim);">Всего предметов:</span>
+                <span style="font-size: 15px; font-weight: 800; color: #fff; margin-left: 6px;" id="inv-page-count">0</span>
+              </div>
+              <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 14px;">
+                <span style="font-size: 12px; color: var(--text-dim);">Общая стоимость:</span>
+                <span style="font-size: 17px; font-weight: 900; color: #10b981; margin-left: 6px;" id="inv-page-total">$0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <button class="btn-upgrade-fire" id="btn-inv-page-sell-all" style="padding: 12px 22px; font-size: 13.5px; border-radius: 12px;">
+              <span>⚡ ПРОДАТЬ ВСЁ</span>
+              <span id="btn-inv-sell-all-badge">($0.00)</span>
+            </button>
+            <button class="game-pill-btn" data-tab="catalog" style="padding: 12px 18px; font-weight: 700; border-radius: 12px; background: rgba(255,255,255,0.06); color: #fff;">
+              🛒 В Каталог
+            </button>
+            <button class="game-pill-btn" data-tab="upgrader" style="padding: 12px 18px; font-weight: 700; border-radius: 12px; background: rgba(255,255,255,0.06); color: #fff;">
+              🎯 В Апгрейд
+            </button>
+          </div>
+        </div>
+
+        <!-- Inventory Filters & Search Toolbar -->
+        <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px 20px; margin-bottom: 22px;">
+          <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+            
+            <!-- Search -->
+            <div class="search-input-wrap" style="flex: 1; min-width: 240px; margin: 0;">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="inv-page-search" class="catalog-search-input" placeholder="Поиск скина в инвентаре...">
+            </div>
+
+            <!-- Game Filter Pills -->
+            <div class="game-filter-pills" id="inv-page-game-pills">
+              <button class="game-pill-btn active" data-inv-game="all">Все игры</button>
+              <button class="game-pill-btn" data-inv-game="cs2">🔫 CS2</button>
+              <button class="game-pill-btn" data-inv-game="dota2">🛡️ Dota 2</button>
+              <button class="game-pill-btn" data-inv-game="rust">☢️ Rust</button>
+            </div>
+
+            <!-- Sort Select -->
+            <select id="inv-page-sort" class="filter-select" style="min-width: 190px;">
+              <option value="price-desc">Сначала дорогие ($$$ → $)</option>
+              <option value="price-asc">Сначала дешевые ($ → $$$)</option>
+              <option value="name">По алфавиту (А-Я)</option>
+            </select>
+
+          </div>
+        </div>
+
+        <!-- Inventory Items Grid -->
+        <div class="skins-grid" id="inv-page-grid">
+          <!-- Injected via JavaScript -->
+        </div>
+
+      </div>
+    </section>
+
     <!-- TAB 5: PROFILE (BLOCK 2 ENHANCED) -->
     <section class="tab-content" id="tab-profile">
       <div id="profile-content-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 36px 24px; text-align: center; margin-top: 24px;">
@@ -1712,13 +1801,13 @@
       <span class="mobile-bottom-icon">🎮</span>
       <span class="mobile-bottom-label">Игры</span>
     </button>
+    <button class="mobile-bottom-tab" data-tab="inventory">
+      <span class="mobile-bottom-icon">🎒</span>
+      <span class="mobile-bottom-label">Инвентарь</span>
+    </button>
     <button class="mobile-bottom-tab" data-tab="catalog">
       <span class="mobile-bottom-icon">🛒</span>
       <span class="mobile-bottom-label">Каталог</span>
-    </button>
-    <button class="mobile-bottom-tab" data-tab="pass">
-      <span class="mobile-bottom-icon">👑</span>
-      <span class="mobile-bottom-label">PASS</span>
     </button>
     <button class="mobile-bottom-tab" data-tab="profile">
       <span class="mobile-bottom-icon">👤</span>

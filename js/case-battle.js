@@ -1,7 +1,13 @@
 /* ==========================================================================
    SIMUP - 1-ON-1 BATTLE ARENA (CASE BATTLE & UPGRADE BATTLE 1v1)
-   Play Case Battle or Upgrade Battle against Bot or real player via invite link.
-   Simultaneous spins, real-time value tracking, 50/50 split pot, winner takes all!
+   Complete real-time duel system:
+   - Creator selects total stake ($20, $50, $100, $250, $500, $1000, etc.)
+   - Both players pay 50% from main SIMUP balance
+   - System auto-allocates 10 starter skins (Upgrade Battle) or matching cases (Case Battle)
+   - Timer: 1.5m, 3m, or 5m
+   - During battle: players can sell skins/drops, upgrade, buy new skins/cases
+   - Winner is whoever has higher total net worth (Balance + Skins Value) at timer expiry!
+   - Winner takes the entire prize pot + kept skins!
    ========================================================================== */
 
 class CaseBattleController {
@@ -11,30 +17,34 @@ class CaseBattleController {
     this.opponentType = 'bot'; // 'bot' or 'player'
     this.botDifficulty = 'normal'; // 'easy', 'normal', 'hard'
 
-    // Case Battle state
-    this.selectedCases = [];
-    this.currentRoundIdx = 0;
-    this.player1Total = 0;
-    this.player2Total = 0;
-    this.player1Drops = [];
-    this.player2Drops = [];
-
-    // Upgrade Battle state
-    this.upgradePot = 50.0; // Total battle bank (e.g. $50, $100, $250)
-    this.upgradeP1Chips = 50.0;
-    this.upgradeP2Chips = 50.0;
-    this.upgradeRound = 1;
-    this.upgradeMaxRounds = 10;
-    this.upgradeTimeLeft = 60;
-    this.upgradeTimer = null;
-    this.upgradeP1Bet = 10.0;
-    this.upgradeP1Mult = 2.0;
-    this.upgradeP2Bet = 10.0;
-    this.upgradeP2Mult = 2.0;
-    this.isUpgradeSpinning = false;
-    this.upgradeHistory = [];
-
+    // Stake & Duration Configuration
+    this.totalStake = 100.0; // Total battle bank (both pay 50% = $50)
+    this.battleDuration = 180; // 180s = 3 minutes (default > 1 min)
+    this.timeLeft = 180;
+    this.battleTimer = null;
+    this.botAiTimer = null;
     this.battleId = null;
+
+    // UPGRADE BATTLE STATE
+    this.ubP1Balance = 0.0;
+    this.ubP1Skins = [];
+    this.ubP2Balance = 0.0;
+    this.ubP2Skins = [];
+    this.ubSelectedSkin = null;
+    this.ubMultiplier = 2.0;
+    this.ubSpeed = 1.8; // seconds
+    this.isUbSpinning = false;
+    this.ubLogs = [];
+
+    // CASE BATTLE STATE
+    this.cbP1Balance = 0.0;
+    this.cbP1Cases = [];
+    this.cbP1Skins = [];
+    this.cbP2Balance = 0.0;
+    this.cbP2Cases = [];
+    this.cbP2Skins = [];
+    this.isCbSpinning = false;
+    this.cbLogs = [];
   }
 
   init() {
@@ -45,18 +55,34 @@ class CaseBattleController {
   checkUrlForInvite() {
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      const battleParam = urlParams.get('battle');
-      const battleUpParam = urlParams.get('battle_up');
-      if (battleUpParam) {
+      const battleMode = urlParams.get('battle_mode');
+      const stakeParam = parseFloat(urlParams.get('stake'));
+      const timeParam = parseInt(urlParams.get('time'), 10);
+      const idParam = urlParams.get('battle_id') || urlParams.get('battle') || urlParams.get('battle_up');
+
+      if (battleMode === 'upgrade' || urlParams.get('battle_up')) {
         this.gameMode = 'upgrade';
         this.opponentType = 'player';
-        window.notify?.info('⚔️ Апгрейд-Батл 1v1', `Приглашение в дуэль #${battleUpParam}. Готовьтесь к битве!`);
-      } else if (battleParam) {
+      } else if (battleMode === 'case' || urlParams.get('battle')) {
         this.gameMode = 'case';
         this.opponentType = 'player';
-        window.notify?.info('⚔️ Кейс-Батл 1v1', `Приглашение в батл #${battleParam}. Настройте кейсы и начните бой!`);
       }
-    } catch(e) {}
+
+      if (!isNaN(stakeParam) && stakeParam >= 10) {
+        this.totalStake = stakeParam;
+      }
+      if (!isNaN(timeParam) && timeParam >= 60) {
+        this.battleDuration = timeParam;
+      }
+
+      if (idParam) {
+        this.battleId = idParam;
+        window.notify?.info(
+          '⚔️ Дуэль 1v1',
+          `Вы подключились к батлу #${idParam}. Банк: $${this.totalStake.toFixed(2)}.`
+        );
+      }
+    } catch (e) {}
   }
 
   setGameMode(mode) {
@@ -65,353 +91,177 @@ class CaseBattleController {
     this.renderLobby();
   }
 
-  // ==========================================
-  // CASE BATTLE HELPERS
-  // ==========================================
-  addCaseToBattle(caseObj) {
-    if (this.selectedCases.length >= 10) {
-      window.notify?.warning('Лимит кейсов', 'Максимум 10 кейсов в одном батле!');
-      return;
-    }
-    this.selectedCases.push(caseObj);
+  setStake(val) {
+    if (this.battleState === 'battling') return;
+    this.totalStake = Math.max(10, Number(val));
     this.renderLobby();
   }
 
-  removeCaseFromBattle(idx) {
-    this.selectedCases.splice(idx, 1);
+  setDuration(seconds) {
+    if (this.battleState === 'battling') return;
+    this.battleDuration = seconds;
     this.renderLobby();
-  }
-
-  clearCases() {
-    this.selectedCases = [];
-    this.renderLobby();
-  }
-
-  getTotalCost() {
-    return this.selectedCases.reduce((sum, c) => sum + (c.price || 0), 0);
   }
 
   generateInviteLink() {
-    this.battleId = (this.gameMode === 'upgrade' ? 'ub_' : 'cb_') + Math.random().toString(36).substring(2, 9);
-    const param = this.gameMode === 'upgrade' ? 'battle_up' : 'battle';
-    const url = `${window.location.origin}${window.location.pathname}?${param}=${this.battleId}`;
+    this.battleId = (this.gameMode === 'upgrade' ? 'ub_' : 'cb_') + Math.random().toString(36).substring(2, 8);
+    const url = `${window.location.origin}${window.location.pathname}?battle_mode=${this.gameMode}&stake=${this.totalStake}&time=${this.battleDuration}&battle_id=${this.battleId}`;
     navigator.clipboard?.writeText(url);
     window.notify?.bigWin('Ссылка скопирована! 📋', 'Отправьте ссылку другу: ' + url);
     return url;
   }
 
-  // ==========================================
-  // MAIN LOBBY DISPATCHER
-  // ==========================================
+  // =========================================================================
+  // MAIN LOBBY DISPATCHER & UI
+  // =========================================================================
   renderLobby() {
     const container = document.getElementById('casebattle-content-area');
     if (!container) return;
 
-    if (this.gameMode === 'upgrade') {
-      this.renderUpgradeLobby(container);
-    } else {
-      this.renderCaseLobby(container);
-    }
-  }
-
-  // Mode switcher markup for top of lobby
-  getModeHeaderHtml() {
-    return `
-      <!-- Mode Switcher -->
-      <div style="display: flex; gap: 10px; margin-bottom: 22px;">
-        <button class="game-pill-btn ${this.gameMode === 'case' ? 'active' : ''}" id="btn-mode-case" style="flex: 1; padding: 12px 16px; font-weight: 800; font-size: 14px;">
-          📦 Кейс-Батл 1v1
-        </button>
-        <button class="game-pill-btn ${this.gameMode === 'upgrade' ? 'active' : ''}" id="btn-mode-upgrade" style="flex: 1; padding: 12px 16px; font-weight: 800; font-size: 14px;">
-          ⚡ Апгрейд-Батл 1v1 <span class="drop-badge-new" style="font-size: 10px; margin-left: 6px;">NEW</span>
-        </button>
-      </div>
-    `;
-  }
-
-  bindModeHeaderEvents() {
-    document.getElementById('btn-mode-case')?.addEventListener('click', () => this.setGameMode('case'));
-    document.getElementById('btn-mode-upgrade')?.addEventListener('click', () => this.setGameMode('upgrade'));
-  }
-
-  // ==========================================
-  // 1. CASE BATTLE LOBBY
-  // ==========================================
-  renderCaseLobby(container) {
-    const allCases = window.CASES_DATABASE || [];
-    const totalCost = this.getTotalCost();
+    const entryFee = this.totalStake / 2;
+    const presets = [20, 50, 100, 250, 500, 1000, 2500];
 
     container.innerHTML = `
-      <div class="battle-lobby-wrap" style="max-width: 1040px; margin: 0 auto;">
+      <div class="battle-lobby-wrap" style="max-width: 1040px; margin: 0 auto; padding-top: 10px;">
         
-        ${this.getModeHeaderHtml()}
+        <!-- Mode Switcher Tabs -->
+        <div style="display: flex; gap: 10px; margin-bottom: 22px;">
+          <button class="game-pill-btn ${this.gameMode === 'case' ? 'active' : ''}" id="btn-mode-case" style="flex: 1; padding: 12px 16px; font-weight: 800; font-size: 14px; border-radius: 12px;">
+            📦 Кейс-Батл 1v1
+          </button>
+          <button class="game-pill-btn ${this.gameMode === 'upgrade' ? 'active' : ''}" id="btn-mode-upgrade" style="flex: 1; padding: 12px 16px; font-weight: 800; font-size: 14px; border-radius: 12px;">
+            ⚡ Апгрейд-Батл 1v1 <span class="drop-badge-new" style="font-size: 10px; margin-left: 6px;">NEW</span>
+          </button>
+        </div>
 
-        <!-- Header banner -->
-        <div style="background: linear-gradient(135deg, rgba(182, 0, 76, 0.22) 0%, rgba(89, 0, 0, 0.12) 100%); border: 1px solid rgba(255, 0, 77, 0.3); border-radius: 18px; padding: 24px; margin-bottom: 24px; text-align: center; position: relative; overflow: hidden;">
-          <div style="position: absolute; right: -30px; bottom: -30px; font-size: 140px; opacity: 0.05; pointer-events: none;">⚔️</div>
-          <span class="drop-badge-new" style="font-size: 11px; padding: 3px 8px; margin-bottom: 8px; display: inline-block;">PVP DUEL ARENA</span>
-          <h1 style="font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 6px;">Кейс-Батл 1 на 1</h1>
-          <p style="font-size: 13.5px; color: var(--text-dim); max-width: 580px; margin: 0 auto;">
-            Выберите кейсы для битвы, выберите оппонента (бот или друг по ссылке) и крутите одновременно! Победитель с наибольшей стоимостью лута забирает весь дроп.
+        <!-- Hero Banner -->
+        <div style="background: linear-gradient(135deg, rgba(255, 0, 77, 0.22) 0%, rgba(14, 4, 10, 0.95) 100%); border: 1px solid rgba(255, 0, 77, 0.35); border-radius: 20px; padding: 26px 28px; margin-bottom: 24px; text-align: center; position: relative; overflow: hidden;">
+          <div style="position: absolute; right: -25px; bottom: -25px; font-size: 150px; opacity: 0.05; pointer-events: none;">⚔️</div>
+          <span class="drop-badge-new" style="font-size: 11px; padding: 3px 8px; margin-bottom: 8px; display: inline-block;">1v1 ARENA • ПОБЕДИТЕЛЬ ЗАБИРАЕТ ВСЁ</span>
+          <h1 style="font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 8px;">
+            ${this.gameMode === 'case' ? 'Кейс-Батл 1 на 1' : 'Апгрейд-Батл 1 на 1'}
+          </h1>
+          <p style="font-size: 14px; color: var(--text-dim); max-width: 680px; margin: 0 auto; line-height: 1.5;">
+            ${this.gameMode === 'case'
+              ? 'Выберите сумму банка. Оба дуэлянта вносят ровно <b>50%</b>. Система закупает кейсы на всю сумму. Открывайте, продавайте скины и докупайте кейсы за отведенное время! Побеждает тот, у кого общая стоимость скинов и баланса больше.'
+              : 'Выберите сумму банка. Оба вносят ровно <b>50%</b>. Система выдает каждому по <b>10 стартовых скинов</b>. Делайте апгрейды, продавайте или покупайте скины! Победитель с наибольшей стоимостью к концу таймера забирает весь банк!'}
           </p>
         </div>
 
-        <!-- Battle Config Bar -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <!-- Setup Configuration Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 18px; margin-bottom: 24px;">
           
-          <!-- Opponent Selector -->
-          <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px;">
-            <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-              <span>👤</span> Выбор соперника
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button class="game-pill-btn ${this.opponentType === 'bot' ? 'active' : ''}" id="btn-cb-opt-bot" style="flex: 1; padding: 10px;">
-                🤖 Против Бота
-              </button>
-              <button class="game-pill-btn ${this.opponentType === 'player' ? 'active' : ''}" id="btn-cb-opt-player" style="flex: 1; padding: 10px;">
-                🔗 По ссылке
-              </button>
-            </div>
-
-            <div id="cb-opponent-detail" style="margin-top: 14px;">
-              ${this.opponentType === 'bot' ? `
-                <div style="display: flex; gap: 6px;">
-                  <button class="bet-chip ${this.botDifficulty === 'easy' ? 'active' : ''}" data-bot-diff="easy" style="flex: 1;">Новичок</button>
-                  <button class="bet-chip ${this.botDifficulty === 'normal' ? 'active' : ''}" data-bot-diff="normal" style="flex: 1;">Опытный</button>
-                  <button class="bet-chip ${this.botDifficulty === 'hard' ? 'active' : ''}" data-bot-diff="hard" style="flex: 1;">Магнат 👑</button>
-                </div>
-              ` : `
-                <button class="btn-sm-action" id="btn-cb-create-link" style="width: 100%; background: rgba(255, 0, 77, 0.2); border: 1px solid rgba(255, 0, 77, 0.4); color: #fff; padding: 8px; border-radius: 8px; font-weight: 700;">
-                  📋 Скопировать ссылку-приглашение
-                </button>
-              `}
-            </div>
-          </div>
-
-          <!-- Battle Summary & Fire -->
-          <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-              <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
-                Стоимость участия:
-              </div>
-              <div style="font-size: 26px; font-weight: 900; color: #ff004d;">
-                $${totalCost.toFixed(2)}
-                <span style="font-size: 13px; color: var(--text-dim); font-weight: 600;">(Раундов: ${this.selectedCases.length})</span>
-              </div>
-            </div>
-
-            <button class="btn-upgrade-fire" id="btn-cb-start-battle" ${this.selectedCases.length === 0 ? 'disabled' : ''} style="margin-top: 12px; width: 100%;">
-              <span>⚔️ НАЧАТЬ КЕЙС-БАТЛ</span>
-              <span>($${totalCost.toFixed(2)})</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Selected Cases Queue -->
-        <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; margin-bottom: 24px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-            <div style="font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase;">
-              Очередь раундов (${this.selectedCases.length}/10)
-            </div>
-            ${this.selectedCases.length > 0 ? `
-              <button id="btn-cb-clear-cases" style="background: transparent; border: none; color: #ef4444; font-size: 12px; font-weight: 700; cursor: pointer;">
-                Очистить всё ✕
-              </button>
-            ` : ''}
-          </div>
-
-          <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; min-height: 90px; align-items: center;">
-            ${this.selectedCases.length === 0 ? `
-              <div style="color: var(--text-dim); font-size: 13px; padding: 20px; text-align: center; width: 100%;">
-                Кейсы ещё не выбраны. Нажмите на кейсы ниже, чтобы добавить их в батл!
-              </div>
-            ` : this.selectedCases.map((c, i) => `
-              <div style="flex: 0 0 110px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255, 0, 77, 0.3); border-radius: 10px; padding: 8px; text-align: center; position: relative;">
-                <button onclick="window.CaseBattleController.removeCaseFromBattle(${i})" style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer;">✕</button>
-                <div style="font-size: 10px; color: var(--text-dim); font-weight: 800;">Р-${i+1}</div>
-                <img src="${c.image}" alt="${c.name}" style="width: 50px; height: 50px; object-fit: contain; margin: 4px auto;">
-                <div style="font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.name}</div>
-                <div style="font-size: 11px; font-weight: 800; color: #ff004d;">$${c.price.toFixed(2)}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- Available Cases Catalog -->
-        <div>
-          <div style="font-size: 14px; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 12px;">
-            Добавить кейсы в батл:
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
-            ${allCases.map(c => `
-              <div class="case-card" style="padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s;" onclick="window.CaseBattleController.addCaseToBattle(window.CASES_DATABASE.find(x => x.id === '${c.id}'))">
-                <img src="${c.image}" alt="${c.name}" style="width: 70px; height: 70px; object-fit: contain; margin: 0 auto 8px;">
-                <div style="font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.name}</div>
-                <div style="font-size: 13px; font-weight: 900; color: #ff004d; margin-bottom: 8px;">$${c.price.toFixed(2)}</div>
-                <button class="btn-sm-action" style="width: 100%; font-size: 11px; padding: 4px 8px; background: rgba(255, 0, 77, 0.15); border: 1px solid rgba(255, 0, 77, 0.3); color: #ff3366; font-weight: 700; border-radius: 6px;">+ Добавить</button>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-      </div>
-    `;
-
-    this.bindModeHeaderEvents();
-    document.getElementById('btn-cb-opt-bot')?.addEventListener('click', () => {
-      this.opponentType = 'bot';
-      this.renderLobby();
-    });
-    document.getElementById('btn-cb-opt-player')?.addEventListener('click', () => {
-      this.opponentType = 'player';
-      this.renderLobby();
-    });
-    document.querySelectorAll('[data-bot-diff]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        this.botDifficulty = btn.dataset.botDiff;
-        this.renderLobby();
-      });
-    });
-    document.getElementById('btn-cb-create-link')?.addEventListener('click', () => {
-      this.generateInviteLink();
-    });
-    document.getElementById('btn-cb-clear-cases')?.addEventListener('click', () => {
-      this.clearCases();
-    });
-    document.getElementById('btn-cb-start-battle')?.addEventListener('click', () => {
-      this.startCaseBattle();
-    });
-  }
-
-  // ==========================================
-  // 2. UPGRADE BATTLE LOBBY (1v1 DUEL)
-  // ==========================================
-  renderUpgradeLobby(container) {
-    const entryFee = this.upgradePot / 2;
-    const presets = [20, 50, 100, 250, 500, 1000];
-
-    container.innerHTML = `
-      <div class="battle-lobby-wrap" style="max-width: 1040px; margin: 0 auto;">
-        
-        ${this.getModeHeaderHtml()}
-
-        <!-- Header banner -->
-        <div style="background: linear-gradient(135deg, rgba(182, 0, 76, 0.28) 0%, rgba(89, 0, 0, 0.15) 100%); border: 1px solid rgba(255, 0, 77, 0.35); border-radius: 18px; padding: 26px; margin-bottom: 24px; text-align: center; position: relative; overflow: hidden;">
-          <div style="position: absolute; right: -20px; bottom: -20px; font-size: 150px; opacity: 0.05; pointer-events: none;">⚡</div>
-          <span class="drop-badge-new" style="font-size: 11px; padding: 3px 8px; margin-bottom: 8px; display: inline-block;">1v1 UPGRADE DUEL</span>
-          <h1 style="font-size: 30px; font-weight: 900; color: #fff; margin-bottom: 6px;">Апгрейд-Батл 1 на 1</h1>
-          <p style="font-size: 13.5px; color: var(--text-dim); max-width: 620px; margin: 0 auto; line-height: 1.5;">
-            Выбирайте призовой банк битвы! Каждый игрок оплачивает ровно <b>50%</b> от суммы банка. Оба получают стартовые фишки дуэли. Игра длится 60 секунд (10 раундов) или до <b>полного нокаута ($0)</b>. Победитель забирает весь реальный банк!
-          </p>
-        </div>
-
-        <!-- Pot & Opponent Selector -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; margin-bottom: 24px;">
-          
-          <!-- Pot Selector Card -->
+          <!-- Column 1: Stake / Bank Selection -->
           <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;">
             <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-              <span>💰</span> Выберите призовой банк дуэли
+              <span>💰</span> Призовой банк дуэли
             </div>
 
-            <!-- Preset chips -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
+            <!-- Chips -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px;">
               ${presets.map(p => `
-                <button class="bet-chip ${this.upgradePot === p ? 'active' : ''}" onclick="window.CaseBattleController.setUpgradePot(${p})" style="padding: 10px; font-weight: 800; font-size: 13.5px;">
+                <button class="bet-chip ${this.totalStake === p ? 'active' : ''}" data-stake-preset="${p}" style="padding: 9px 0; font-weight: 800; font-size: 13px;">
                   $${p}
                 </button>
               `).join('')}
             </div>
 
-            <!-- Custom pot input -->
-            <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 6px 12px;">
-              <span style="color: var(--text-dim); font-size: 13px; font-weight: 700;">Банк ($):</span>
-              <input type="number" id="input-custom-pot" value="${this.upgradePot}" min="10" max="10000" step="5" style="background: transparent; border: none; color: #fff; font-size: 16px; font-weight: 900; width: 100%; outline: none;">
+            <!-- Custom Input -->
+            <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 12px; margin-bottom: 14px;">
+              <span style="color: var(--text-dim); font-size: 13px; font-weight: 700;">Банк:</span>
+              <input type="number" id="input-battle-stake" value="${this.totalStake}" min="10" max="50000" step="10" style="background: transparent; border: none; color: #fff; font-size: 16px; font-weight: 900; width: 100%; outline: none;">
             </div>
 
-            <!-- Economics Split Breakdown -->
-            <div style="margin-top: 16px; background: rgba(255, 0, 77, 0.06); border: 1px solid rgba(255, 0, 77, 0.2); border-radius: 10px; padding: 12px;">
-              <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 6px;">
-                <span style="color: var(--text-dim);">Общий призовой банк:</span>
-                <span style="font-weight: 900; color: #ffd700;">$${this.upgradePot.toFixed(2)}</span>
+            <!-- Financial Split Details -->
+            <div style="background: rgba(255, 0, 77, 0.06); border: 1px solid rgba(255, 0, 77, 0.2); border-radius: 10px; padding: 12px; font-size: 12.5px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <span style="color: var(--text-dim);">Общий банк победителю:</span>
+                <span style="font-weight: 900; color: #ffd700;">$${this.totalStake.toFixed(2)}</span>
               </div>
-              <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 6px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                 <span style="color: var(--text-dim);">Ваш взнос (50% с баланса):</span>
                 <span style="font-weight: 800; color: #ff004d;">-$${entryFee.toFixed(2)}</span>
               </div>
-              <div style="display: flex; justify-content: space-between; font-size: 12.5px;">
+              <div style="display: flex; justify-content: space-between;">
                 <span style="color: var(--text-dim);">Взнос оппонента (50%):</span>
                 <span style="font-weight: 800; color: #38bdf8;">-$${entryFee.toFixed(2)}</span>
               </div>
             </div>
           </div>
 
-          <!-- Opponent Selector & Launch Card -->
+          <!-- Column 2: Opponent & Duration -->
           <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
             <div>
-              <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-                <span>👤</span> Выбор соперника для дуэли
+              <!-- Opponent -->
+              <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <span>👤</span> Оппонент
               </div>
-
               <div style="display: flex; gap: 8px; margin-bottom: 14px;">
-                <button class="game-pill-btn ${this.opponentType === 'bot' ? 'active' : ''}" id="btn-ub-opt-bot" style="flex: 1; padding: 10px;">
-                  🤖 Бот-дуэлянт
+                <button class="game-pill-btn ${this.opponentType === 'bot' ? 'active' : ''}" id="btn-opt-bot" style="flex: 1; padding: 9px;">
+                  🤖 Против Бота
                 </button>
-                <button class="game-pill-btn ${this.opponentType === 'player' ? 'active' : ''}" id="btn-ub-opt-player" style="flex: 1; padding: 10px;">
-                  🔗 Друг по ссылке
+                <button class="game-pill-btn ${this.opponentType === 'player' ? 'active' : ''}" id="btn-opt-player" style="flex: 1; padding: 9px;">
+                  🔗 По ссылке
                 </button>
               </div>
 
               ${this.opponentType === 'bot' ? `
-                <div style="display: flex; gap: 6px;">
-                  <button class="bet-chip ${this.botDifficulty === 'easy' ? 'active' : ''}" data-ub-bot="easy" style="flex: 1;">Новичок</button>
-                  <button class="bet-chip ${this.botDifficulty === 'normal' ? 'active' : ''}" data-ub-bot="normal" style="flex: 1;">Опытный</button>
-                  <button class="bet-chip ${this.botDifficulty === 'hard' ? 'active' : ''}" data-ub-bot="hard" style="flex: 1;">Магнат 👑</button>
-                </div>
-                <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 8px;">
-                  ${this.botDifficulty === 'easy' ? 'Осторожный бот: ставит аккуратно на множители 1.5x - 2.0x.' : this.botDifficulty === 'normal' ? 'Сбалансированный бот: варьирует ставки на 2.0x - 3.0x.' : 'Агрессивный бот: рискует крупными ставками на 3.0x - 5.0x!'}
+                <div style="display: flex; gap: 6px; margin-bottom: 14px;">
+                  <button class="bet-chip ${this.botDifficulty === 'easy' ? 'active' : ''}" data-bot-diff="easy" style="flex: 1; font-size: 12px;">Новичок</button>
+                  <button class="bet-chip ${this.botDifficulty === 'normal' ? 'active' : ''}" data-bot-diff="normal" style="flex: 1; font-size: 12px;">Опытный</button>
+                  <button class="bet-chip ${this.botDifficulty === 'hard' ? 'active' : ''}" data-bot-diff="hard" style="flex: 1; font-size: 12px;">Магнат 👑</button>
                 </div>
               ` : `
-                <button class="btn-sm-action" id="btn-ub-create-link" style="width: 100%; background: rgba(255, 0, 77, 0.2); border: 1px solid rgba(255, 0, 77, 0.4); color: #fff; padding: 10px; border-radius: 8px; font-weight: 700;">
-                  📋 Скопировать ссылку на Апгрейд-Батл
+                <button class="btn-sm-action" id="btn-create-invite" style="width: 100%; background: rgba(255, 0, 77, 0.2); border: 1px solid rgba(255, 0, 77, 0.4); color: #fff; padding: 9px; border-radius: 8px; font-weight: 700; margin-bottom: 14px;">
+                  📋 Скопировать ссылку другу
                 </button>
               `}
+
+              <!-- Duration Selector -->
+              <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <span>⏱️</span> Время дуэли
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="bet-chip ${this.battleDuration === 90 ? 'active' : ''}" data-duration="90" style="flex: 1; font-size: 12px;">1.5 мин (90с)</button>
+                <button class="bet-chip ${this.battleDuration === 180 ? 'active' : ''}" data-duration="180" style="flex: 1; font-size: 12px;">3 мин (180с)</button>
+                <button class="bet-chip ${this.battleDuration === 300 ? 'active' : ''}" data-duration="300" style="flex: 1; font-size: 12px;">5 мин (300с)</button>
+              </div>
             </div>
 
-            <!-- Start Battle Button -->
-            <button class="btn-upgrade-fire" id="btn-ub-start-battle" style="margin-top: 18px; width: 100%;">
-              <span>⚡ НАЧАТЬ АПГРЕЙД-БАТЛ</span>
-              <span>($${entryFee.toFixed(2)})</span>
+            <!-- Start Action Button (Ready to fire immediately!) -->
+            <button class="btn-upgrade-fire" id="btn-start-battle" style="margin-top: 18px; width: 100%; padding: 14px; font-size: 14px; border-radius: 12px;">
+              <span>⚔️ НАЧАТЬ БАТЛ</span>
+              <span>(Взнос: $${entryFee.toFixed(2)})</span>
             </button>
           </div>
 
         </div>
 
-        <!-- Rules Information -->
+        <!-- Duel System Rules Footer -->
         <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;">
           <div style="font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 12px;">
-            Правила Апгрейд-Батла:
+            Правила и особенности дуэли 1v1:
           </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; font-size: 12.5px; color: var(--text-dim);">
-            <div style="display: flex; gap: 10px; align-items: flex-start;">
-              <span style="font-size: 20px;">⏱️</span>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; font-size: 12.5px; color: var(--text-dim); line-height: 1.45;">
+            <div style="display: flex; gap: 10px;">
+              <span style="font-size: 20px;">🎒</span>
               <div>
-                <strong style="color: #fff;">Лимит времени</strong><br>
-                На матч отводится 60 секунд (до 10 раундов круток).
+                <strong style="color: #fff;">10 скинов / Кейсы</strong><br>
+                Система автоматически закупает стартовые предметы на сумму взноса.
               </div>
             </div>
-            <div style="display: flex; gap: 10px; align-items: flex-start;">
-              <span style="font-size: 20px;">💥</span>
+            <div style="display: flex; gap: 10px;">
+              <span style="font-size: 20px;">💵</span>
               <div>
-                <strong style="color: #fff;">Правило Нокаута ($0)</strong><br>
-                Если фишки одного из дуэлянтов опускаются до $0, он сразу выбывает!
+                <strong style="color: #fff;">Продажа и покупки</strong><br>
+                Вы можете продавать скины и дроп прямо в ходе матча, чтобы брать более дорогие цели!
               </div>
             </div>
-            <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <div style="display: flex; gap: 10px;">
               <span style="font-size: 20px;">🏆</span>
               <div>
-                <strong style="color: #fff;">Главный приз</strong><br>
-                Победитель забирает весь реальный банк ($${this.upgradePot.toFixed(2)}) на свой баланс!
+                <strong style="color: #fff;">Победитель забирает всё</strong><br>
+                У кого к концу времени больше <b>Баланс + Скины</b>, тот забирает весь денежный банк ($${this.totalStake.toFixed(2)})!
               </div>
             </div>
           </div>
@@ -420,92 +270,149 @@ class CaseBattleController {
       </div>
     `;
 
-    this.bindModeHeaderEvents();
-    document.getElementById('btn-ub-opt-bot')?.addEventListener('click', () => {
+    this.bindLobbyEvents();
+  }
+
+  bindLobbyEvents() {
+    document.getElementById('btn-mode-case')?.addEventListener('click', () => this.setGameMode('case'));
+    document.getElementById('btn-mode-upgrade')?.addEventListener('click', () => this.setGameMode('upgrade'));
+
+    document.querySelectorAll('[data-stake-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.setStake(parseFloat(btn.dataset.stakePreset));
+      });
+    });
+
+    document.getElementById('input-battle-stake')?.addEventListener('change', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val >= 10) this.setStake(val);
+    });
+
+    document.getElementById('btn-opt-bot')?.addEventListener('click', () => {
       this.opponentType = 'bot';
       this.renderLobby();
     });
-    document.getElementById('btn-ub-opt-player')?.addEventListener('click', () => {
+    document.getElementById('btn-opt-player')?.addEventListener('click', () => {
       this.opponentType = 'player';
       this.renderLobby();
     });
-    document.querySelectorAll('[data-ub-bot]').forEach(btn => {
+
+    document.querySelectorAll('[data-bot-diff]').forEach(btn => {
       btn.addEventListener('click', () => {
-        this.botDifficulty = btn.dataset.ubBot;
+        this.botDifficulty = btn.dataset.botDiff;
         this.renderLobby();
       });
     });
-    document.getElementById('input-custom-pot')?.addEventListener('change', (e) => {
-      const val = parseFloat(e.target.value);
-      if (!isNaN(val) && val >= 10) {
-        this.setUpgradePot(val);
-      }
+
+    document.querySelectorAll('[data-duration]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.setDuration(parseInt(btn.dataset.duration, 10));
+      });
     });
-    document.getElementById('btn-ub-create-link')?.addEventListener('click', () => {
+
+    document.getElementById('btn-create-invite')?.addEventListener('click', () => {
       this.generateInviteLink();
     });
-    document.getElementById('btn-ub-start-battle')?.addEventListener('click', () => {
-      this.startUpgradeBattle();
+
+    document.getElementById('btn-start-battle')?.addEventListener('click', () => {
+      this.startDuel();
     });
   }
 
-  setUpgradePot(val) {
-    this.upgradePot = Number(val);
-    this.renderLobby();
-  }
-
-  // ==========================================
-  // START & PLAY UPGRADE BATTLE
-  // ==========================================
-  startUpgradeBattle() {
+  // =========================================================================
+  // DUEL INITIALIZATION & START
+  // =========================================================================
+  startDuel() {
     const user = window.authManager?.currentUser;
     if (!user) {
       window.showAuthModal?.('login');
       return;
     }
 
-    const entryFee = this.upgradePot / 2;
+    const entryFee = this.totalStake / 2;
     if (user.balance < entryFee) {
-      window.notify?.error('Недостаточно средств', `Для входа требуется $${entryFee.toFixed(2)} (50% от банка $${this.upgradePot.toFixed(2)}). Ваш баланс: $${user.balance.toFixed(2)}`);
+      window.notify?.error(
+        'Недостаточно средств',
+        `Для участия требуется $${entryFee.toFixed(2)} (50% от банка $${this.totalStake.toFixed(2)}). Ваш баланс: $${user.balance.toFixed(2)}`
+      );
       return;
     }
 
-    // Deduct entry fee (50%)
+    // Deduct entry fee
     user.balance = Number((user.balance - entryFee).toFixed(2));
     user.stats.wagered = Number(((user.stats.wagered || 0) + entryFee).toFixed(2));
     window.authManager.saveCurrentUser();
     window.updateHeaderUserUI?.(user);
 
-    // Initial duel state
     this.battleState = 'battling';
-    this.upgradeP1Chips = this.upgradePot;
-    this.upgradeP2Chips = this.upgradePot;
-    this.upgradeRound = 1;
-    this.upgradeMaxRounds = 10;
-    this.upgradeTimeLeft = 60;
-    this.upgradeHistory = [];
-    this.upgradeP1Bet = Math.min(10, Math.floor(this.upgradeP1Chips * 0.2));
-    this.upgradeP1Mult = 2.0;
+    this.timeLeft = this.battleDuration;
 
-    // Start timer interval
-    if (this.upgradeTimer) clearInterval(this.upgradeTimer);
-    this.upgradeTimer = setInterval(() => {
-      this.upgradeTimeLeft--;
-      const timerEl = document.getElementById('ub-match-timer');
-      if (timerEl) {
-        timerEl.textContent = `${this.upgradeTimeLeft}s`;
-        if (this.upgradeTimeLeft <= 10) {
-          timerEl.style.color = '#ef4444';
-          timerEl.style.animation = 'pulse 0.8s infinite';
-        }
-      }
-      if (this.upgradeTimeLeft <= 0) {
-        clearInterval(this.upgradeTimer);
-        this.finishUpgradeBattle('time_up');
-      }
-    }, 1000);
+    if (this.gameMode === 'upgrade') {
+      this.setupUpgradeBattle(entryFee);
+    } else {
+      this.setupCaseBattle(entryFee);
+    }
+  }
 
+  // =========================================================================
+  // UPGRADE BATTLE 1v1 IMPLEMENTATION
+  // =========================================================================
+  setupUpgradeBattle(budgetPerPlayer) {
+    // Generate 10 starter skins for each player from SKINS_DATABASE
+    const allSkins = window.SKINS_DATABASE || [];
+    const validPool = allSkins.filter(s => s.price > 0.2 && s.price <= (budgetPerPlayer * 0.4));
+    const pool = validPool.length > 0 ? validPool : allSkins;
+
+    const generate10Skins = () => {
+      const skins = [];
+      let spent = 0;
+      const targetPerSkin = budgetPerPlayer / 10;
+      for (let i = 0; i < 10; i++) {
+        // Pick skin close to target
+        const candidates = pool.filter(s => Math.abs(s.price - targetPerSkin) < targetPerSkin * 1.5);
+        const pick = candidates.length > 0
+          ? candidates[Math.floor(Math.random() * candidates.length)]
+          : pool[Math.floor(Math.random() * pool.length)];
+
+        skins.push({
+          ...pick,
+          instanceId: `ub_item_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          price: Number(pick.price.toFixed(2))
+        });
+        spent += pick.price;
+      }
+      const leftover = Math.max(0, Number((budgetPerPlayer - spent).toFixed(2)));
+      return { skins, leftover };
+    };
+
+    const p1Data = generate10Skins();
+    const p2Data = generate10Skins();
+
+    this.ubP1Skins = p1Data.skins;
+    this.ubP1Balance = p1Data.leftover;
+    this.ubP2Skins = p2Data.skins;
+    this.ubP2Balance = p2Data.leftover;
+
+    this.ubSelectedSkin = this.ubP1Skins[0] || null;
+    this.ubMultiplier = 2.0;
+    this.isUbSpinning = false;
+    this.ubLogs = [
+      `⚔️ Дуэль началась! Каждому выдано по 10 скинов. Призовой банк: $${this.totalStake.toFixed(2)}.`
+    ];
+
+    this.startBattleTimer(() => this.finishUpgradeBattle('time_up'));
+    this.startBotUpgradeLoop();
     this.renderUpgradeArena();
+  }
+
+  getUbP1Total() {
+    const skinsVal = this.ubP1Skins.reduce((s, it) => s + (it.price || 0), 0);
+    return Number((this.ubP1Balance + skinsVal).toFixed(2));
+  }
+
+  getUbP2Total() {
+    const skinsVal = this.ubP2Skins.reduce((s, it) => s + (it.price || 0), 0);
+    return Number((this.ubP2Balance + skinsVal).toFixed(2));
   }
 
   renderUpgradeArena() {
@@ -514,332 +421,506 @@ class CaseBattleController {
 
     const user = window.authManager?.currentUser;
     const botNames = { easy: 'Бот Новичок 🤖', normal: 'Бот Профи 🤖', hard: 'Бот Магнат 👑' };
-    const p2Name = this.opponentType === 'bot' ? botNames[this.botDifficulty] : 'Игрок 2';
+    const p2Name = this.opponentType === 'bot' ? botNames[this.botDifficulty] : 'Оппонент ⚔️';
+
+    const p1Total = this.getUbP1Total();
+    const p2Total = this.getUbP2Total();
+    const isLeading = p1Total >= p2Total;
+
+    const min = Math.floor(this.timeLeft / 60);
+    const sec = this.timeLeft % 60;
+    const timeStr = `${min}:${sec < 10 ? '0' : ''}${sec}`;
 
     container.innerHTML = `
-      <div style="max-width: 1040px; margin: 0 auto;">
+      <div style="max-width: 1100px; margin: 0 auto; padding-top: 6px;">
         
-        <!-- Live Header Info -->
-        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; margin-bottom: 22px; background: rgba(14, 8, 14, 0.9); border: 1px solid var(--border-color); border-radius: 18px; padding: 18px 24px;">
+        <!-- Top Duel Header & Live Scoreboard -->
+        <div style="background: rgba(14, 8, 14, 0.95); border: 1px solid var(--border-color); border-radius: 18px; padding: 18px 24px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center;">
           
-          <!-- P1 Overview -->
+          <!-- Player 1 Scoreboard -->
           <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(255, 0, 77, 0.15); border: 2px solid #ff004d; display: flex; align-items: center; justify-content: center; font-size: 24px;">👤</div>
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(255, 0, 77, 0.15); border: 2px solid #ff004d; display: flex; align-items: center; justify-content: center; font-size: 26px;">👤</div>
             <div>
               <div style="font-size: 13.5px; font-weight: 800; color: #fff;">${user.username} (ВЫ)</div>
-              <div style="font-size: 24px; font-weight: 900; color: #ff004d;" id="ub-p1-chips">$${this.upgradeP1Chips.toFixed(2)}</div>
+              <div style="font-size: 24px; font-weight: 900; color: #ff004d;" id="ub-p1-networth">$${p1Total.toFixed(2)}</div>
+              <div style="font-size: 11px; color: var(--text-dim);">
+                Баланс: <strong style="color: #10b981;">$${this.ubP1Balance.toFixed(2)}</strong> • Скинов: ${this.ubP1Skins.length}
+              </div>
             </div>
           </div>
 
           <!-- Match Center Hub -->
           <div style="text-align: center;">
             <div style="font-size: 11px; font-weight: 800; color: #ffd700; text-transform: uppercase; letter-spacing: 1px;">
-              🏆 Призовой Банк: $${this.upgradePot.toFixed(2)}
+              🏆 Банк: $${this.totalStake.toFixed(2)}
             </div>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 4px;">
-              <span id="ub-round-indicator" style="font-size: 13px; font-weight: 800; color: #fff; background: rgba(255,255,255,0.06); padding: 4px 10px; border-radius: 6px;">Раунд ${this.upgradeRound}/${this.upgradeMaxRounds}</span>
-              <span id="ub-match-timer" style="font-size: 14px; font-weight: 900; color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 12px; border-radius: 6px;">${this.upgradeTimeLeft}s</span>
+            <div style="font-size: 22px; font-weight: 900; color: ${this.timeLeft < 30 ? '#ef4444' : '#10b981'}; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 4px 16px; border-radius: 8px; margin: 4px 0;" id="ub-timer-val">
+              ⏱️ ${timeStr}
+            </div>
+            <div style="font-size: 11.5px; font-weight: 800; color: ${isLeading ? '#10b981' : '#f59e0b'};" id="ub-leader-indicator">
+              ${isLeading ? '👑 ВЫ ЛИДИРУЕТЕ' : '⚠️ ОППОНЕНТ ВПЕРЕДИ'}
             </div>
           </div>
 
-          <!-- P2 Overview -->
+          <!-- Player 2 Scoreboard -->
           <div style="display: flex; align-items: center; justify-content: flex-end; gap: 14px;">
             <div style="text-align: right;">
               <div style="font-size: 13.5px; font-weight: 800; color: #fff;">${p2Name}</div>
-              <div style="font-size: 24px; font-weight: 900; color: #38bdf8;" id="ub-p2-chips">$${this.upgradeP2Chips.toFixed(2)}</div>
+              <div style="font-size: 24px; font-weight: 900; color: #38bdf8;" id="ub-p2-networth">$${p2Total.toFixed(2)}</div>
+              <div style="font-size: 11px; color: var(--text-dim);">
+                Баланс: <strong style="color: #38bdf8;">$${this.ubP2Balance.toFixed(2)}</strong> • Скинов: ${this.ubP2Skins.length}
+              </div>
             </div>
-            <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 2px solid #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 24px;">🤖</div>
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 2px solid #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 26px;">🤖</div>
           </div>
 
         </div>
 
-        <!-- Duel Stations (Left P1, Right P2) -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 22px;">
+        <!-- Main Arena Grid: Left Upgrader Wheel & Bet, Right Duel Inventory & Bot Activity -->
+        <div style="display: grid; grid-template-columns: 1fr 1.1fr; gap: 20px; margin-bottom: 20px;">
           
-          <!-- Station P1 -->
-          <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid rgba(255, 0, 77, 0.35); border-radius: 18px; padding: 20px; text-align: center; position: relative;">
-            <div style="font-size: 12px; font-weight: 800; color: #ff004d; text-transform: uppercase; margin-bottom: 12px;">Ваша станция апгрейда</div>
+          <!-- LEFT: UPGRADER CONSOLE -->
+          <div style="background: rgba(14, 8, 14, 0.9); border: 1px solid var(--border-color); border-radius: 18px; padding: 20px; text-align: center;">
+            <div style="font-size: 12px; font-weight: 800; color: #ff004d; text-transform: uppercase; margin-bottom: 12px;">
+              Арена апгрейда
+            </div>
 
-            <!-- SVG Wheel Station P1 -->
-            <div style="position: relative; width: 170px; height: 170px; margin: 0 auto 16px;">
-              <svg id="ub-svg-p1" viewBox="0 0 100 100" style="width: 100%; height: 100%; transform: rotate(0deg); transition: transform 1.8s cubic-bezier(0.12, 0.8, 0.32, 1);">
-                <circle cx="50" cy="50" r="45" fill="#140a12" stroke="rgba(255,255,255,0.08)" stroke-width="4"/>
-                <path id="ub-p1-slice" d="" fill="rgba(255, 0, 77, 0.65)" stroke="#ff004d" stroke-width="1.5"/>
-                <circle cx="50" cy="50" r="16" fill="#060307" stroke="#ff004d" stroke-width="2"/>
-              </svg>
-              <!-- Bottom Center Pointer Indicator -->
-              <div style="position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 14px solid #ff004d; filter: drop-shadow(0 0 8px #ff004d); z-index: 10;"></div>
-              <div id="ub-p1-center-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 11px; font-weight: 900; color: #fff; pointer-events: none;">
-                ${this.upgradeP1Mult}x
+            <!-- Upgrader Wheel Canvas -->
+            <div style="position: relative; width: 180px; height: 180px; margin: 0 auto 16px;">
+              <canvas id="ub-wheel-canvas" width="180" height="180" style="width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0 25px rgba(255, 0, 77, 0.25);"></canvas>
+              <div id="ub-wheel-needle" style="position: absolute; top: 50%; left: 50%; width: 4px; height: 75px; background: linear-gradient(to top, #ff004d, #fff); transform-origin: 50% 100%; transform: translate(-50%, -100%) rotate(0deg); border-radius: 2px; box-shadow: 0 0 10px #ff004d; z-index: 5;"></div>
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; background: #080206; border: 2px solid #ff004d; z-index: 6; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff;">
+                <span id="ub-wheel-mult-text">${this.ubMultiplier}x</span>
               </div>
             </div>
 
-            <!-- Bet Controls for P1 -->
-            <div style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11.5px;">
-                <span style="color: var(--text-dim);">Ставка фишек:</span>
-                <span style="font-weight: 800; color: #fff;" id="ub-p1-bet-val">$${this.upgradeP1Bet.toFixed(2)}</span>
+            <!-- Selected Bet Skin Display -->
+            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
+                ${this.ubSelectedSkin ? `
+                  <img src="${this.ubSelectedSkin.image}" alt="" style="width: 38px; height: 38px; object-fit: contain;">
+                  <div>
+                    <div style="font-size: 12px; font-weight: 800; color: #fff; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.ubSelectedSkin.name}</div>
+                    <div style="font-size: 12px; font-weight: 900; color: #ff004d;">$${this.ubSelectedSkin.price.toFixed(2)}</div>
+                  </div>
+                ` : `
+                  <div style="font-size: 12px; color: var(--text-dim);">Выберите скин из инвентаря справа 👉</div>
+                `}
               </div>
-
-              <!-- Quick chips percentages -->
-              <div style="display: flex; gap: 4px; margin-bottom: 8px;">
-                <button class="bet-chip" onclick="window.CaseBattleController.setUpgradeBetPct(0.1)" style="flex: 1; padding: 4px 0; font-size: 11px;">10%</button>
-                <button class="bet-chip" onclick="window.CaseBattleController.setUpgradeBetPct(0.25)" style="flex: 1; padding: 4px 0; font-size: 11px;">25%</button>
-                <button class="bet-chip" onclick="window.CaseBattleController.setUpgradeBetPct(0.5)" style="flex: 1; padding: 4px 0; font-size: 11px;">50%</button>
-                <button class="bet-chip" onclick="window.CaseBattleController.setUpgradeBetPct(1.0)" style="flex: 1; padding: 4px 0; font-size: 11px; color: #ff004d;">ALL-IN</button>
-              </div>
-
-              <!-- Multipliers -->
-              <div style="display: flex; gap: 4px;">
-                <button class="bet-chip ${this.upgradeP1Mult === 1.5 ? 'active' : ''}" onclick="window.CaseBattleController.setUpgradeMult(1.5)" style="flex: 1; font-size: 11px; padding: 6px 0;">1.5x</button>
-                <button class="bet-chip ${this.upgradeP1Mult === 2.0 ? 'active' : ''}" onclick="window.CaseBattleController.setUpgradeMult(2.0)" style="flex: 1; font-size: 11px; padding: 6px 0;">2.0x</button>
-                <button class="bet-chip ${this.upgradeP1Mult === 3.0 ? 'active' : ''}" onclick="window.CaseBattleController.setUpgradeMult(3.0)" style="flex: 1; font-size: 11px; padding: 6px 0;">3.0x</button>
-                <button class="bet-chip ${this.upgradeP1Mult === 5.0 ? 'active' : ''}" onclick="window.CaseBattleController.setUpgradeMult(5.0)" style="flex: 1; font-size: 11px; padding: 6px 0;">5.0x</button>
+              <div style="text-align: right;">
+                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Шанс победы:</div>
+                <div style="font-size: 15px; font-weight: 900; color: #10b981;" id="ub-chance-val">
+                  ${(Math.min(90, (100 / this.ubMultiplier) * 0.95)).toFixed(1)}%
+                </div>
               </div>
             </div>
 
-            <!-- Spin Fire Action Button -->
-            <button class="btn-upgrade-fire" id="btn-ub-spin-round" onclick="window.CaseBattleController.spinUpgradeRound()" style="width: 100%; padding: 12px;">
-              <span>⚡ КРУТИТЬ РАУНД</span>
+            <!-- Multiplier Selector Chips (1.5x, 2x, 5x, 10x, 20x, Random) -->
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 14px;">
+              ${[1.5, 2.0, 5.0, 10.0, 20.0].map(m => `
+                <button class="bet-chip ${this.ubMultiplier === m ? 'active' : ''}" data-ub-mult="${m}" style="padding: 6px 0; font-size: 11px;">
+                  ${m}x
+                </button>
+              `).join('')}
+              <button class="bet-chip ${this.ubMultiplier === 'random' ? 'active' : ''}" data-ub-mult="random" style="padding: 6px 0; font-size: 11px; color: #ffd700;" title="Случайный икс">
+                ?X
+              </button>
+            </div>
+
+            <!-- Fire Spin Button -->
+            <button class="btn-upgrade-fire" id="btn-ub-fire-spin" ${!this.ubSelectedSkin || this.isUbSpinning ? 'disabled' : ''} style="width: 100%; padding: 13px; font-size: 14px; border-radius: 12px;">
+              <span>⚡ КРУТИТЬ АПГРЕЙД</span>
             </button>
           </div>
 
-          <!-- Station P2 (Opponent) -->
-          <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 18px; padding: 20px; text-align: center; position: relative;">
-            <div style="font-size: 12px; font-weight: 800; color: #38bdf8; text-transform: uppercase; margin-bottom: 12px;">Станция соперника</div>
-
-            <!-- SVG Wheel Station P2 -->
-            <div style="position: relative; width: 170px; height: 170px; margin: 0 auto 16px;">
-              <svg id="ub-svg-p2" viewBox="0 0 100 100" style="width: 100%; height: 100%; transform: rotate(0deg); transition: transform 1.8s cubic-bezier(0.12, 0.8, 0.32, 1);">
-                <circle cx="50" cy="50" r="45" fill="#08131d" stroke="rgba(255,255,255,0.08)" stroke-width="4"/>
-                <path id="ub-p2-slice" d="" fill="rgba(56, 189, 248, 0.65)" stroke="#38bdf8" stroke-width="1.5"/>
-                <circle cx="50" cy="50" r="16" fill="#060307" stroke="#38bdf8" stroke-width="2"/>
-              </svg>
-              <!-- Bottom Center Pointer Indicator -->
-              <div style="position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 14px solid #38bdf8; filter: drop-shadow(0 0 8px #38bdf8); z-index: 10;"></div>
-              <div id="ub-p2-center-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 11px; font-weight: 900; color: #fff; pointer-events: none;">
-                ${this.upgradeP2Mult}x
+          <!-- RIGHT: DUEL INVENTORY & BOT ACTIVITY -->
+          <div style="background: rgba(14, 8, 14, 0.9); border: 1px solid var(--border-color); border-radius: 18px; padding: 20px; display: flex; flex-direction: column;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div style="font-size: 12px; font-weight: 800; color: #fff; text-transform: uppercase;">
+                🎒 Скины в дуэли (${this.ubP1Skins.length})
+              </div>
+              <div style="font-size: 11px; color: var(--text-dim);">
+                Нажмите «Продать» или «Выбрать»
               </div>
             </div>
 
-            <!-- Opponent Status Readout -->
-            <div style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 16px; margin-bottom: 14px; min-height: 98px; display: flex; flex-direction: column; justify-content: center;">
-              <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 4px;">Выбор соперника:</div>
-              <div style="font-size: 15px; font-weight: 900; color: #38bdf8;" id="ub-p2-choice-text">
-                Ставка: $${this.upgradeP2Bet.toFixed(2)} на ${this.upgradeP2Mult}x
-              </div>
-              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="ub-p2-status-hint">Ожидает вашего хода...</div>
+            <!-- Skins List Scrollable -->
+            <div id="ub-skins-list" style="flex: 1; max-height: 290px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; margin-bottom: 14px;">
+              ${this.ubP1Skins.length === 0 ? `
+                <div style="text-align: center; color: var(--text-dim); padding: 30px 10px; font-size: 13px;">
+                  У вас нет скинов! Используйте баланс $${this.ubP1Balance.toFixed(2)} чтобы докупить скин на бирже.
+                </div>
+              ` : this.ubP1Skins.map(skin => `
+                <div class="ub-skin-item-row ${this.ubSelectedSkin?.instanceId === skin.instanceId ? 'active' : ''}" data-ub-select="${skin.instanceId}" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); border: 1px solid ${this.ubSelectedSkin?.instanceId === skin.instanceId ? 'var(--accent-color)' : 'rgba(255,255,255,0.06)'}; border-radius: 8px; padding: 6px 10px; cursor: pointer; transition: all 0.2s;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="${skin.image}" alt="" style="width: 32px; height: 32px; object-fit: contain;">
+                    <div>
+                      <div style="font-size: 12px; font-weight: 700; color: #fff; max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${skin.name}</div>
+                      <div style="font-size: 12px; font-weight: 900; color: #ff004d;">$${skin.price.toFixed(2)}</div>
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 6px;">
+                    <button class="btn-sm-action" data-ub-sell="${skin.instanceId}" title="Продать скин в баланс дуэли" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 800; font-size: 11px; padding: 4px 8px; border-radius: 6px;">
+                      💵 $${skin.price.toFixed(2)}
+                    </button>
+                    <button class="btn-sm-action" data-ub-pick="${skin.instanceId}" style="background: rgba(255, 0, 77, 0.15); border: 1px solid rgba(255, 0, 77, 0.4); color: #ff004d; font-weight: 800; font-size: 11px; padding: 4px 8px; border-radius: 6px;">
+                      🎯 Выбрать
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
             </div>
 
-            <!-- Locked bot status pill -->
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 8px; font-size: 12px; font-weight: 800; color: var(--text-dim);">
-              🤖 Автоматический спин соперника
+            <!-- Quick Duel Market Buy -->
+            <div style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 12px;">
+              <span style="font-size: 11px; color: var(--text-dim); flex: 1;">
+                Докупить скин за баланс дуэли ($${this.ubP1Balance.toFixed(2)}):
+              </span>
+              <button class="game-pill-btn" id="btn-ub-buy-cheap" ${this.ubP1Balance < 1 ? 'disabled' : ''} style="padding: 4px 8px; font-size: 11px;">+$2</button>
+              <button class="game-pill-btn" id="btn-ub-buy-mid" ${this.ubP1Balance < 5 ? 'disabled' : ''} style="padding: 4px 8px; font-size: 11px;">+$10</button>
+              <button class="game-pill-btn" id="btn-ub-buy-max" ${this.ubP1Balance < 1 ? 'disabled' : ''} style="padding: 4px 8px; font-size: 11px; color: #ffd700;">MAX</button>
             </div>
+
           </div>
 
         </div>
 
-        <!-- Round History -->
-        <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px;">
-          <div style="font-size: 12px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px;">
-            История раундов дуэли
+        <!-- Live Battle Activity Log -->
+        <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px 18px;">
+          <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+            Лента событий дуэли
           </div>
-          <div id="ub-history-list" style="display: flex; flex-direction: column; gap: 8px;">
-            <div style="text-align: center; color: var(--text-dim); font-size: 12px; padding: 10px;">Раунды появятся здесь после спина...</div>
+          <div id="ub-logs-feed" style="max-height: 90px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-dim);">
+            ${this.ubLogs.map(log => `<div>${log}</div>`).join('')}
           </div>
         </div>
 
       </div>
     `;
 
-    this.updateWheelSlices();
+    this.drawUbWheel();
+    this.bindUbArenaEvents();
   }
 
-  setUpgradeBetPct(pct) {
-    if (this.isUpgradeSpinning) return;
-    this.upgradeP1Bet = Math.max(1, Number((this.upgradeP1Chips * pct).toFixed(2)));
-    const el = document.getElementById('ub-p1-bet-val');
-    if (el) el.textContent = `$${this.upgradeP1Bet.toFixed(2)}`;
+  drawUbWheel() {
+    const canvas = document.getElementById('ub-wheel-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = cx - 6;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Multiplier & Chance calculation
+    const mult = typeof this.ubMultiplier === 'number' ? this.ubMultiplier : 2.0;
+    const chancePct = Math.min(90, (100 / mult) * 0.95);
+    const winAngle = (chancePct / 100) * (Math.PI * 2);
+
+    // Background track (Lose area)
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#140810';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.stroke();
+
+    // Win sector starting from 12 o'clock (-PI/2)
+    const startAngle = -Math.PI / 2;
+    const endAngle = startAngle + winAngle;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, radius, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255, 0, 77, 0.8)';
+    ctx.fill();
+    ctx.strokeStyle = '#ff004d';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Sector boundary pins
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + radius * Math.cos(startAngle), cy + radius * Math.sin(startAngle));
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + radius * Math.cos(endAngle), cy + radius * Math.sin(endAngle));
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   }
 
-  setUpgradeMult(mult) {
-    if (this.isUpgradeSpinning) return;
-    this.upgradeP1Mult = mult;
+  bindUbArenaEvents() {
+    // Multiplier chips
+    document.querySelectorAll('[data-ub-mult]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (this.isUbSpinning) return;
+        const val = btn.dataset.ubMult;
+        this.ubMultiplier = val === 'random' ? 'random' : parseFloat(val);
+        this.renderUpgradeArena();
+      });
+    });
+
+    // Pick skin for bet
+    document.querySelectorAll('[data-ub-pick], [data-ub-select]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('[data-ub-sell]')) return;
+        if (this.isUbSpinning) return;
+        const id = el.dataset.ubPick || el.dataset.ubSelect;
+        const found = this.ubP1Skins.find(s => s.instanceId === id);
+        if (found) {
+          this.ubSelectedSkin = found;
+          this.renderUpgradeArena();
+        }
+      });
+    });
+
+    // Sell individual skin to duel balance
+    document.querySelectorAll('[data-ub-sell]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.isUbSpinning) return;
+        const id = btn.dataset.ubSell;
+        this.sellUbSkin(id);
+      });
+    });
+
+    // Buy skin options
+    document.getElementById('btn-ub-buy-cheap')?.addEventListener('click', () => this.buyUbSkin(2.0));
+    document.getElementById('btn-ub-buy-mid')?.addEventListener('click', () => this.buyUbSkin(10.0));
+    document.getElementById('btn-ub-buy-max')?.addEventListener('click', () => this.buyUbSkin(this.ubP1Balance));
+
+    // Spin button
+    document.getElementById('btn-ub-fire-spin')?.addEventListener('click', () => {
+      this.spinUbRound();
+    });
+  }
+
+  sellUbSkin(instanceId) {
+    const idx = this.ubP1Skins.findIndex(s => s.instanceId === instanceId);
+    if (idx === -1) return;
+    const skin = this.ubP1Skins[idx];
+    this.ubP1Skins.splice(idx, 1);
+    this.ubP1Balance = Number((this.ubP1Balance + skin.price).toFixed(2));
+
+    if (this.ubSelectedSkin?.instanceId === instanceId) {
+      this.ubSelectedSkin = this.ubP1Skins[0] || null;
+    }
+
+    this.addUbLog(`💵 Вы продали ${skin.name} за +$${skin.price.toFixed(2)} в баланс дуэли.`);
+    window.SoundManager?.playCash?.();
     this.renderUpgradeArena();
   }
 
-  updateWheelSlices() {
-    // Sector path drawing: bottom-centered win zone
-    const p1Chance = Math.min(95, (100 / this.upgradeP1Mult) * 0.95);
-    const p2Chance = Math.min(95, (100 / this.upgradeP2Mult) * 0.95);
+  buyUbSkin(targetPrice) {
+    if (this.ubP1Balance < 0.5) return;
+    const actualSpend = Math.min(this.ubP1Balance, targetPrice);
+    const all = window.SKINS_DATABASE || [];
+    const candidates = all.filter(s => s.price <= actualSpend && s.price >= actualSpend * 0.6);
+    const chosen = candidates.length > 0
+      ? candidates[Math.floor(Math.random() * candidates.length)]
+      : all.find(s => s.price <= actualSpend) || all[all.length - 1];
 
-    this.drawWheelSlice('ub-p1-slice', p1Chance);
-    this.drawWheelSlice('ub-p2-slice', p2Chance);
+    if (!chosen) return;
+    this.ubP1Balance = Number((this.ubP1Balance - chosen.price).toFixed(2));
+    const newSkin = {
+      ...chosen,
+      instanceId: `ub_buy_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      price: Number(chosen.price.toFixed(2))
+    };
+    this.ubP1Skins.unshift(newSkin);
+    this.ubSelectedSkin = newSkin;
+
+    this.addUbLog(`🛒 Вы купили скин ${newSkin.name} за $${newSkin.price.toFixed(2)}.`);
+    window.SoundManager?.playClick?.();
+    this.renderUpgradeArena();
   }
 
-  drawWheelSlice(elementId, chancePct) {
-    const el = document.getElementById(elementId);
-    if (!el) return;
+  spinUbRound() {
+    if (this.isUbSpinning || !this.ubSelectedSkin) return;
+    this.isUbSpinning = true;
 
-    const angleDeg = (chancePct / 100) * 360;
-    // Bottom-center win zone: centered at 90 deg (bottom)
-    const startAngle = 90 - (angleDeg / 2);
-    const endAngle = 90 + (angleDeg / 2);
+    // Resolve multiplier
+    let effectiveMult = this.ubMultiplier;
+    if (effectiveMult === 'random') {
+      const options = [1.5, 2.0, 3.5, 5.0, 10.0, 20.0];
+      effectiveMult = options[Math.floor(Math.random() * options.length)];
+    }
 
-    const startRad = (startAngle * Math.PI) / 180;
-    const endRad = (endAngle * Math.PI) / 180;
+    const chancePct = Math.min(90, (100 / effectiveMult) * 0.95);
+    const rand = Math.random() * 100;
+    const isWin = rand < chancePct;
 
-    const x1 = 50 + 45 * Math.cos(startRad);
-    const y1 = 50 + 45 * Math.sin(startRad);
-    const x2 = 50 + 45 * Math.cos(endRad);
-    const y2 = 50 + 45 * Math.sin(endRad);
+    // Target skin calculation
+    const betPrice = this.ubSelectedSkin.price;
+    const targetPrice = Number((betPrice * effectiveMult).toFixed(2));
+    const allSkins = window.SKINS_DATABASE || [];
+    const candidates = allSkins.filter(s => s.price >= targetPrice * 0.8 && s.price <= targetPrice * 1.3);
+    const wonSkin = candidates.length > 0
+      ? candidates[Math.floor(Math.random() * candidates.length)]
+      : {
+          ...this.ubSelectedSkin,
+          price: targetPrice,
+          name: `${this.ubSelectedSkin.name} (x${effectiveMult})`
+        };
 
-    const largeArc = angleDeg > 180 ? 1 : 0;
-    const d = `M 50 50 L ${x1} ${y1} A 45 45 0 ${largeArc} 1 ${x2} ${y2} Z`;
-    el.setAttribute('d', d);
-  }
-
-  async spinUpgradeRound() {
-    if (this.isUpgradeSpinning || this.battleState !== 'battling') return;
-    this.isUpgradeSpinning = true;
-
-    const spinBtn = document.getElementById('btn-ub-spin-round');
+    // Animate Needle
+    const needle = document.getElementById('ub-wheel-needle');
+    const spinBtn = document.getElementById('btn-ub-fire-spin');
     if (spinBtn) spinBtn.disabled = true;
 
-    // AI chooses Opponent Bet & Multiplier
-    if (this.opponentType === 'bot') {
-      const p2Frac = this.botDifficulty === 'easy' ? 0.15 : this.botDifficulty === 'normal' ? 0.25 : 0.35;
-      this.upgradeP2Bet = Math.max(1, Math.min(this.upgradeP2Chips, Number((this.upgradeP2Chips * p2Frac).toFixed(2))));
-      const multPool = this.botDifficulty === 'easy' ? [1.5, 2.0] : this.botDifficulty === 'normal' ? [2.0, 3.0] : [2.0, 3.0, 5.0];
-      this.upgradeP2Mult = multPool[Math.floor(Math.random() * multPool.length)];
+    window.SoundManager?.playSpinWheel?.();
+
+    // Winning angle corresponds to top sector [0, chancePct / 100 * 360]
+    const winAngleSpan = (chancePct / 100) * 360;
+    const finalAngle = isWin
+      ? Math.random() * (winAngleSpan - 4) + 2
+      : Math.random() * (360 - winAngleSpan - 4) + winAngleSpan + 2;
+
+    const fullSpins = 4 * 360;
+    const totalRotation = fullSpins + finalAngle;
+
+    if (needle) {
+      needle.style.transition = `transform ${this.ubSpeed}s cubic-bezier(0.12, 0.8, 0.32, 1)`;
+      needle.style.transform = `translate(-50%, -100%) rotate(${totalRotation}deg)`;
     }
 
-    const p2Text = document.getElementById('ub-p2-choice-text');
-    if (p2Text) p2Text.textContent = `Ставка: $${this.upgradeP2Bet.toFixed(2)} на ${this.upgradeP2Mult}x`;
+    setTimeout(() => {
+      this.isUbSpinning = false;
+      const betSkin = this.ubSelectedSkin;
 
-    this.updateWheelSlices();
+      // Remove bet skin from duel inventory
+      const idx = this.ubP1Skins.findIndex(s => s.instanceId === betSkin.instanceId);
+      if (idx !== -1) this.ubP1Skins.splice(idx, 1);
 
-    window.SoundManager?.playCaseOpening?.();
+      if (isWin) {
+        window.SoundManager?.playWin?.();
+        const upgraded = {
+          ...wonSkin,
+          instanceId: `ub_won_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          price: targetPrice
+        };
+        this.ubP1Skins.unshift(upgraded);
+        this.ubSelectedSkin = upgraded;
+        this.addUbLog(`🎉 ВЫИГРЫШ! ${betSkin.name} ➔ ${upgraded.name} ($${targetPrice.toFixed(2)})!`);
+      } else {
+        window.SoundManager?.playLoss?.();
+        this.ubSelectedSkin = this.ubP1Skins[0] || null;
+        this.addUbLog(`❌ Проигрыш: скин ${betSkin.name} ($${betSkin.price.toFixed(2)}) сгорел.`);
+      }
 
-    // Determine outcomes mathematically
-    const p1Chance = Math.min(95, (100 / this.upgradeP1Mult) * 0.95);
-    const p2Chance = Math.min(95, (100 / this.upgradeP2Mult) * 0.95);
+      this.renderUpgradeArena();
+    }, this.ubSpeed * 1000 + 150);
+  }
 
-    const p1Roll = Math.random() * 100;
-    const p2Roll = Math.random() * 100;
+  // Simulated bot moves every 3.5s
+  startBotUpgradeLoop() {
+    if (this.botAiTimer) clearInterval(this.botAiTimer);
+    if (this.opponentType !== 'bot') return;
 
-    const p1Won = p1Roll <= p1Chance;
-    const p2Won = p2Roll <= p2Chance;
+    this.botAiTimer = setInterval(() => {
+      if (this.battleState !== 'battling' || this.ubP2Skins.length === 0) return;
 
-    // Animate wheels rotation
-    const baseRot = 1440; // 4 full revolutions
-    const p1Rot = baseRot + (p1Won ? (90 - (p1Chance / 2) + Math.random() * p1Chance) : (270 + Math.random() * 60));
-    const p2Rot = baseRot + (p2Won ? (90 - (p2Chance / 2) + Math.random() * p2Chance) : (270 + Math.random() * 60));
+      // Bot picks a skin to bet
+      const skinIdx = Math.floor(Math.random() * this.ubP2Skins.length);
+      const skin = this.ubP2Skins[skinIdx];
 
-    const svgP1 = document.getElementById('ub-svg-p1');
-    const svgP2 = document.getElementById('ub-svg-p2');
-    if (svgP1) svgP1.style.transform = `rotate(${p1Rot}deg)`;
-    if (svgP2) svgP2.style.transform = `rotate(${p2Rot}deg)`;
+      // Multipliers based on difficulty
+      let mult = 2.0;
+      if (this.botDifficulty === 'easy') {
+        mult = Math.random() < 0.7 ? 1.5 : 2.0;
+      } else if (this.botDifficulty === 'hard') {
+        mult = Math.random() < 0.4 ? 2.0 : Math.random() < 0.7 ? 5.0 : 10.0;
+      } else {
+        mult = Math.random() < 0.5 ? 2.0 : 3.5;
+      }
 
-    // Wait 1.8s for spin animation
-    await new Promise(r => setTimeout(r, 1850));
+      const chance = Math.min(90, (100 / mult) * 0.95);
+      const isWin = (Math.random() * 100) < chance;
 
-    // Update chips balances
-    if (p1Won) {
-      const profit = Number((this.upgradeP1Bet * this.upgradeP1Mult - this.upgradeP1Bet).toFixed(2));
-      this.upgradeP1Chips = Number((this.upgradeP1Chips + profit).toFixed(2));
-    } else {
-      this.upgradeP1Chips = Math.max(0, Number((this.upgradeP1Chips - this.upgradeP1Bet).toFixed(2)));
+      this.ubP2Skins.splice(skinIdx, 1);
+
+      if (isWin) {
+        const newPrice = Number((skin.price * mult).toFixed(2));
+        this.ubP2Skins.push({
+          ...skin,
+          price: newPrice,
+          name: `${skin.name} (+)`
+        });
+        this.addUbLog(`🤖 Бот апгрейдил ${skin.name} (${mult}x) ➔ УСПЕХ! (+$${newPrice.toFixed(2)})`);
+      } else {
+        this.addUbLog(`🤖 Бот крутил ${skin.name} (${mult}x) ➔ Промах (-$${skin.price.toFixed(2)})`);
+      }
+
+      // If bot has low skins and high cash, buy skin
+      if (this.ubP2Skins.length < 3 && this.ubP2Balance > 5) {
+        const buyAmount = Number((this.ubP2Balance * 0.5).toFixed(2));
+        this.ubP2Balance -= buyAmount;
+        this.ubP2Skins.push({
+          name: 'AK-47 Tactical (Bot)',
+          price: buyAmount,
+          image: skin.image
+        });
+      }
+
+      // Live update net worth badges
+      const p2Net = document.getElementById('ub-p2-networth');
+      if (p2Net) p2Net.textContent = `$${this.getUbP2Total().toFixed(2)}`;
+
+      const leaderEl = document.getElementById('ub-leader-indicator');
+      if (leaderEl) {
+        const isLeading = this.getUbP1Total() >= this.getUbP2Total();
+        leaderEl.textContent = isLeading ? '👑 ВЫ ЛИДИРУЕТЕ' : '⚠️ ОППОНЕНТ ВПЕРЕДИ';
+        leaderEl.style.color = isLeading ? '#10b981' : '#f59e0b';
+      }
+    }, 3600);
+  }
+
+  addUbLog(text) {
+    const time = new Date().toLocaleTimeString('ru-RU', { minute: '2-digit', second: '2-digit' });
+    this.ubLogs.unshift(`[${time}] ${text}`);
+    if (this.ubLogs.length > 25) this.ubLogs.pop();
+    const feed = document.getElementById('ub-logs-feed');
+    if (feed) {
+      feed.innerHTML = this.ubLogs.map(l => `<div>${l}</div>`).join('');
     }
-
-    if (p2Won) {
-      const profit = Number((this.upgradeP2Bet * this.upgradeP2Mult - this.upgradeP2Bet).toFixed(2));
-      this.upgradeP2Chips = Number((this.upgradeP2Chips + profit).toFixed(2));
-    } else {
-      this.upgradeP2Chips = Math.max(0, Number((this.upgradeP2Chips - this.upgradeP2Bet).toFixed(2)));
-    }
-
-    // Play sounds
-    if (p1Won) window.SoundManager?.playWin?.();
-    else window.SoundManager?.playLoss?.();
-
-    // Update chips display
-    const p1ChipsEl = document.getElementById('ub-p1-chips');
-    const p2ChipsEl = document.getElementById('ub-p2-chips');
-    if (p1ChipsEl) p1ChipsEl.textContent = `$${this.upgradeP1Chips.toFixed(2)}`;
-    if (p2ChipsEl) p2ChipsEl.textContent = `$${this.upgradeP2Chips.toFixed(2)}`;
-
-    // Append to history
-    const histEl = document.getElementById('ub-history-list');
-    if (histEl) {
-      if (this.upgradeRound === 1) histEl.innerHTML = '';
-      const row = document.createElement('div');
-      row.style.cssText = 'display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);';
-      row.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="color: ${p1Won ? '#10b981' : '#ef4444'}; font-weight: 800;">${p1Won ? '+' : '-'}$${p1Won ? (this.upgradeP1Bet * this.upgradeP1Mult - this.upgradeP1Bet).toFixed(2) : this.upgradeP1Bet.toFixed(2)}</span>
-          <span style="font-size: 11px; color: var(--text-dim);">(${this.upgradeP1Mult}x)</span>
-        </div>
-        <div style="font-size: 11px; font-weight: 800; color: var(--text-dim);">Раунд ${this.upgradeRound}</div>
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
-          <span style="font-size: 11px; color: var(--text-dim);">(${this.upgradeP2Mult}x)</span>
-          <span style="color: ${p2Won ? '#10b981' : '#ef4444'}; font-weight: 800;">${p2Won ? '+' : '-'}$${p2Won ? (this.upgradeP2Bet * this.upgradeP2Mult - this.upgradeP2Bet).toFixed(2) : this.upgradeP2Bet.toFixed(2)}</span>
-        </div>
-      `;
-      histEl.prepend(row);
-    }
-
-    // Check Knockout condition ($0)
-    if (this.upgradeP1Chips <= 0) {
-      if (this.upgradeTimer) clearInterval(this.upgradeTimer);
-      this.finishUpgradeBattle('knockout_p1');
-      return;
-    }
-    if (this.upgradeP2Chips <= 0) {
-      if (this.upgradeTimer) clearInterval(this.upgradeTimer);
-      this.finishUpgradeBattle('knockout_p2');
-      return;
-    }
-
-    this.upgradeRound++;
-    if (this.upgradeRound > this.upgradeMaxRounds) {
-      if (this.upgradeTimer) clearInterval(this.upgradeTimer);
-      this.finishUpgradeBattle('rounds_done');
-      return;
-    }
-
-    const roundEl = document.getElementById('ub-round-indicator');
-    if (roundEl) roundEl.textContent = `Раунд ${this.upgradeRound}/${this.upgradeMaxRounds}`;
-
-    this.isUpgradeSpinning = false;
-    if (spinBtn) spinBtn.disabled = false;
   }
 
   finishUpgradeBattle(reason) {
     this.battleState = 'finished';
-    if (this.upgradeTimer) clearInterval(this.upgradeTimer);
+    this.stopTimers();
 
     const user = window.authManager?.currentUser;
-    const isP1Winner = this.upgradeP1Chips > this.upgradeP2Chips || reason === 'knockout_p2';
-    const isTie = this.upgradeP1Chips === this.upgradeP2Chips && reason !== 'knockout_p2' && reason !== 'knockout_p1';
+    const p1Total = this.getUbP1Total();
+    const p2Total = this.getUbP2Total();
+    const isP1Winner = p1Total > p2Total;
+    const isTie = p1Total === p2Total;
 
     if (isP1Winner && user) {
-      // Award the entire real prize pot
-      user.balance = Number((user.balance + this.upgradePot).toFixed(2));
-      const netGain = Number((this.upgradePot / 2).toFixed(2));
+      // Award real prize pot
+      user.balance = Number((user.balance + this.totalStake).toFixed(2));
+      const netGain = Number((this.totalStake / 2).toFixed(2));
       user.stats.netProfit = Number(((user.stats.netProfit || 0) + netGain).toFixed(2));
       user.stats.upgradesWon = (user.stats.upgradesWon || 0) + 1;
 
-      // Pass XP reward
-      if (window.SimupPassController?.addXp) {
-        window.SimupPassController.addXp(500);
-      }
+      // Add kept duel skins to real inventory!
+      const keptSkins = this.ubP1Skins.map(s => ({
+        ...s,
+        instanceId: `ub_won_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        acquiredAt: Date.now()
+      }));
+      if (!user.inventory) user.inventory = [];
+      user.inventory.unshift(...keptSkins);
 
-      // Quests triggers
-      window.questsManager?.recordAction('upgrade_wins', 1);
-      window.questsManager?.recordAction('case_battle_win', 1);
-      window.questsManager?.recordPassAction('pq_upgrade_battle', 1);
-      window.questsManager?.recordPassAction('pq_total_wager_2k', this.upgradePot / 2);
+      // Quests & Pass
+      window.SimupPassController?.addXp?.(500);
+      window.questsManager?.recordAction?.('upgrade_wins', 1);
+      window.questsManager?.recordAction?.('case_battle_win', 1);
+      window.questsManager?.recordPassAction?.('pq_upgrade_battle', 1);
 
       window.authManager.saveCurrentUser();
       window.updateHeaderUserUI?.(user);
@@ -847,70 +928,79 @@ class CaseBattleController {
       window.SoundManager?.playJackpot?.() || window.SoundManager?.playWin?.();
       window.confettiEffect?.();
 
-      const reasonMsg = reason === 'knockout_p2' ? '💥 НОКАУТ СОПЕРНИКА ($0)!' : '🏆 ПОБЕДА ПО БАЛАНСУ ФИШЕК!';
       window.notify?.bigWin(
-        reasonMsg,
-        `Вы выиграли Апгрейд-Батл и забрали весь банк $${this.upgradePot.toFixed(2)} (Чистая прибыль: +$${netGain.toFixed(2)})!`
+        '🏆 ПОБЕДА В АПГРЕЙД-БАТЛЕ!',
+        `Ваш счет: $${p1Total.toFixed(2)} против $${p2Total.toFixed(2)} соперника! Вы выиграли весь банк $${this.totalStake.toFixed(2)} и сохранили ${keptSkins.length} скинов!`
       );
     } else if (isTie && user) {
-      // Return 50% stake to user
-      const refund = this.upgradePot / 2;
+      const refund = this.totalStake / 2;
       user.balance = Number((user.balance + refund).toFixed(2));
       window.authManager.saveCurrentUser();
       window.updateHeaderUserUI?.(user);
-      window.notify?.info('Ничья!', `Балансы фишек равны. Ваш взнос $${refund.toFixed(2)} возвращён.`);
+      window.notify?.info('Ничья!', `Счета равны ($${p1Total.toFixed(2)}). Ваш взнос $${refund.toFixed(2)} возвращён.`);
     } else {
       window.SoundManager?.playLoss?.();
-      const reasonMsg = reason === 'knockout_p1' ? '💥 НОКАУТ! У вас закончились фишки ($0).' : 'Поражение по балансу фишек.';
-      window.notify?.error(reasonMsg, `Соперник набрал $${this.upgradeP2Chips.toFixed(2)}, ваш баланс: $${this.upgradeP1Chips.toFixed(2)}.`);
+      window.notify?.error(
+        'Поражение в дуэли',
+        `Соперник набрал $${p2Total.toFixed(2)}, ваш результат: $${p1Total.toFixed(2)}. Попробуйте снова!`
+      );
     }
 
-    const spinBtn = document.getElementById('btn-ub-spin-round');
-    if (spinBtn) {
-      spinBtn.outerHTML = `
-        <div style="background: ${isP1Winner ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; border: 1px solid ${isP1Winner ? '#10b981' : '#ef4444'}; border-radius: 10px; padding: 12px; text-align: center; margin-top: 10px;">
-          <div style="font-size: 16px; font-weight: 900; color: ${isP1Winner ? '#10b981' : '#ef4444'}; margin-bottom: 8px;">
-            ${isP1Winner ? '🎉 ВЫ ПОБЕДИЛИ!' : isTie ? '⚖️ НИЧЬЯ' : '✕ ПОРАЖЕНИЕ'}
-          </div>
-          <button class="btn-sm-action" onclick="window.CaseBattleController.renderLobby()" style="background: var(--accent-color); color: #000; font-weight: 800; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer;">
-            Сыграть новый батл
-          </button>
-        </div>
-      `;
-    }
+    this.renderLobby();
   }
 
-  // ==========================================
-  // CASE BATTLE EXECUTION
-  // ==========================================
-  async startCaseBattle() {
-    const user = window.authManager?.currentUser;
-    if (!user) {
-      window.showAuthModal?.('login');
-      return;
-    }
+  // =========================================================================
+  // CASE BATTLE 1v1 IMPLEMENTATION
+  // =========================================================================
+  setupCaseBattle(budgetPerPlayer) {
+    const allCases = window.CASES_DATABASE || [];
+    // Auto-select cases matching the budget
+    const affordable = allCases.filter(c => c.price <= budgetPerPlayer);
+    const chosenBaseCase = affordable.length > 0
+      ? affordable[affordable.length - 1] // Highest affordable tier
+      : allCases[0];
 
-    const totalCost = this.getTotalCost();
-    if (user.balance < totalCost) {
-      window.notify?.error('Недостаточно средств', `Для участия в батле требуется $${totalCost.toFixed(2)}, ваш баланс: $${user.balance.toFixed(2)}`);
-      return;
-    }
+    const count = Math.max(2, Math.floor(budgetPerPlayer / chosenBaseCase.price));
+    const spent = count * chosenBaseCase.price;
+    const leftover = Math.max(0, Number((budgetPerPlayer - spent).toFixed(2)));
 
-    // Deduct entry fee
-    user.balance = Number((user.balance - totalCost).toFixed(2));
-    user.stats.wagered = Number(((user.stats.wagered || 0) + totalCost).toFixed(2));
-    window.authManager.saveCurrentUser();
-    window.updateHeaderUserUI?.(user);
+    const createCasePack = () => {
+      const pack = [];
+      for (let i = 0; i < count; i++) {
+        pack.push({
+          ...chosenBaseCase,
+          instanceId: `cb_case_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
+        });
+      }
+      return pack;
+    };
 
-    this.battleState = 'battling';
-    this.currentRoundIdx = 0;
-    this.player1Total = 0;
-    this.player2Total = 0;
-    this.player1Drops = [];
-    this.player2Drops = [];
+    this.cbP1Cases = createCasePack();
+    this.cbP1Balance = leftover;
+    this.cbP1Skins = [];
 
+    this.cbP2Cases = createCasePack();
+    this.cbP2Balance = leftover;
+    this.cbP2Skins = [];
+
+    this.isCbSpinning = false;
+    this.cbLogs = [
+      `⚔️ Кейс-Батл начался! Выдано по ${count} шт. «${chosenBaseCase.name}». Банк: $${this.totalStake.toFixed(2)}.`
+    ];
+
+    this.startBattleTimer(() => this.finishCaseBattle('time_up'));
+    this.startBotCaseLoop();
     this.renderCaseBattleArena();
-    this.playNextCaseRound();
+  }
+
+  getCbP1Total() {
+    const dropsVal = this.cbP1Skins.reduce((s, it) => s + (it.price || 0), 0);
+    return Number((this.cbP1Balance + dropsVal).toFixed(2));
+  }
+
+  getCbP2Total() {
+    const dropsVal = this.cbP2Skins.reduce((s, it) => s + (it.price || 0), 0);
+    return Number((this.cbP2Balance + dropsVal).toFixed(2));
   }
 
   renderCaseBattleArena() {
@@ -918,227 +1008,388 @@ class CaseBattleController {
     if (!container) return;
 
     const user = window.authManager?.currentUser;
-    const botNames = { easy: 'Бот Вася', normal: 'Бот Профи', hard: 'Бот Магнат 👑' };
-    const p2Name = this.opponentType === 'bot' ? botNames[this.botDifficulty] : 'Игрок 2';
+    const botNames = { easy: 'Бот Новичок 🤖', normal: 'Бот Профи 🤖', hard: 'Бот Магнат 👑' };
+    const p2Name = this.opponentType === 'bot' ? botNames[this.botDifficulty] : 'Оппонент ⚔️';
+
+    const p1Total = this.getCbP1Total();
+    const p2Total = this.getCbP2Total();
+    const isLeading = p1Total >= p2Total;
+
+    const min = Math.floor(this.timeLeft / 60);
+    const sec = this.timeLeft % 60;
+    const timeStr = `${min}:${sec < 10 ? '0' : ''}${sec}`;
 
     container.innerHTML = `
-      <div style="max-width: 980px; margin: 0 auto;">
+      <div style="max-width: 1100px; margin: 0 auto; padding-top: 6px;">
         
-        <!-- Live Battle Scoreboard -->
-        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; margin-bottom: 24px; background: rgba(14, 8, 14, 0.9); border: 1px solid var(--border-color); border-radius: 18px; padding: 20px;">
+        <!-- Scoreboard Header -->
+        <div style="background: rgba(14, 8, 14, 0.95); border: 1px solid var(--border-color); border-radius: 18px; padding: 18px 24px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center;">
           
-          <!-- Player 1 Score -->
-          <div style="text-align: left; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(255, 0, 77, 0.15); border: 2px solid #ff004d; display: flex; align-items: center; justify-content: center; font-size: 24px;">👤</div>
+          <!-- P1 Info -->
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(255, 0, 77, 0.15); border: 2px solid #ff004d; display: flex; align-items: center; justify-content: center; font-size: 26px;">👤</div>
             <div>
-              <div style="font-size: 14px; font-weight: 800; color: #fff;">${user.username} (ВЫ)</div>
-              <div style="font-size: 24px; font-weight: 900; color: #ff004d;" id="cb-p1-score">$0.00</div>
+              <div style="font-size: 13.5px; font-weight: 800; color: #fff;">${user.username} (ВЫ)</div>
+              <div style="font-size: 24px; font-weight: 900; color: #ff004d;" id="cb-p1-networth">$${p1Total.toFixed(2)}</div>
+              <div style="font-size: 11px; color: var(--text-dim);">
+                Баланс: <strong style="color: #10b981;">$${this.cbP1Balance.toFixed(2)}</strong> • Дропов: ${this.cbP1Skins.length} • Кейсов: ${this.cbP1Cases.length}
+              </div>
             </div>
           </div>
 
-          <!-- VS Emblem & Round Indicator -->
+          <!-- Timer Hub -->
           <div style="text-align: center;">
-            <div style="font-size: 26px; font-weight: 900; color: #ffd700; text-shadow: 0 0 16px rgba(255,215,0,0.5);">VS</div>
-            <div style="font-size: 12px; font-weight: 800; color: var(--text-dim); margin-top: 4px;" id="cb-round-status">
-              Раунд 1 из ${this.selectedCases.length}
+            <div style="font-size: 11px; font-weight: 800; color: #ffd700; text-transform: uppercase; letter-spacing: 1px;">
+              🏆 Банк: $${this.totalStake.toFixed(2)}
+            </div>
+            <div style="font-size: 22px; font-weight: 900; color: ${this.timeLeft < 30 ? '#ef4444' : '#10b981'}; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 4px 16px; border-radius: 8px; margin: 4px 0;" id="cb-timer-val">
+              ⏱️ ${timeStr}
+            </div>
+            <div style="font-size: 11.5px; font-weight: 800; color: ${isLeading ? '#10b981' : '#f59e0b'};" id="cb-leader-indicator">
+              ${isLeading ? '👑 ВЫ ЛИДИРУЕТЕ' : '⚠️ ОППОНЕНТ ВПЕРЕДИ'}
             </div>
           </div>
 
-          <!-- Player 2 Score -->
-          <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 14px;">
-            <div>
-              <div style="font-size: 14px; font-weight: 800; color: #fff;">${p2Name}</div>
-              <div style="font-size: 24px; font-weight: 900; color: #38bdf8;" id="cb-p2-score">$0.00</div>
+          <!-- P2 Info -->
+          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 14px;">
+            <div style="text-align: right;">
+              <div style="font-size: 13.5px; font-weight: 800; color: #fff;">${p2Name}</div>
+              <div style="font-size: 24px; font-weight: 900; color: #38bdf8;" id="cb-p2-networth">$${p2Total.toFixed(2)}</div>
+              <div style="font-size: 11px; color: var(--text-dim);">
+                Баланс: <strong style="color: #38bdf8;">$${this.cbP2Balance.toFixed(2)}</strong> • Дропов: ${this.cbP2Skins.length} • Кейсов: ${this.cbP2Cases.length}
+              </div>
             </div>
-            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 2px solid #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 24px;">🤖</div>
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 2px solid #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 26px;">🤖</div>
           </div>
 
         </div>
 
-        <!-- Duel Spin Rails -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px;">
+        <!-- Case Battle Arena Interactive Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1.1fr; gap: 20px; margin-bottom: 20px;">
           
-          <!-- Rail P1 -->
-          <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; text-align: center;">
-            <div style="font-size: 12px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px;">Ваш дроп</div>
-            <div id="cb-rail-p1" style="height: 160px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-              <div style="font-size: 40px; animation: pulse 1.2s infinite;">📦</div>
-              <div style="font-size: 13px; color: var(--text-dim); margin-top: 8px;">Приготовьтесь...</div>
+          <!-- LEFT: CASE OPENING CONSOLE -->
+          <div style="background: rgba(14, 8, 14, 0.9); border: 1px solid var(--border-color); border-radius: 18px; padding: 20px; text-align: center;">
+            <div style="font-size: 12px; font-weight: 800; color: #ff004d; text-transform: uppercase; margin-bottom: 14px;">
+              Открытие кейсов
+            </div>
+
+            <!-- Active Case Showcase & Reel Window -->
+            <div id="cb-reel-window" style="background: #080206; border: 1px solid rgba(255, 0, 77, 0.35); border-radius: 14px; height: 160px; display: flex; align-items: center; justify-content: center; flex-direction: column; position: relative; overflow: hidden; margin-bottom: 16px;">
+              ${this.cbP1Cases.length > 0 ? `
+                <img src="${this.cbP1Cases[0].image}" alt="" style="width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 4px 14px rgba(255, 0, 77, 0.5)); margin-bottom: 8px;">
+                <div style="font-size: 13.5px; font-weight: 800; color: #fff;">${this.cbP1Cases[0].name}</div>
+                <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">Осталось в очереди: ${this.cbP1Cases.length} шт.</div>
+              ` : `
+                <div style="font-size: 40px; margin-bottom: 6px;">📦</div>
+                <div style="font-size: 13px; color: var(--text-dim);">Кейсы закончились! Докупите за баланс ниже 👇</div>
+              `}
+            </div>
+
+            <!-- Open Case Action Button -->
+            <button class="btn-upgrade-fire" id="btn-cb-open-case" ${this.cbP1Cases.length === 0 || this.isCbSpinning ? 'disabled' : ''} style="width: 100%; padding: 13px; font-size: 14px; border-radius: 12px; margin-bottom: 12px;">
+              <span>📦 ОТКРЫТЬ КЕЙС</span>
+            </button>
+
+            <!-- Buy More Cases with Duel Balance -->
+            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 11.5px; color: var(--text-dim);">Докупить кейс ($${this.cbP1Balance.toFixed(2)}):</span>
+              <button class="game-pill-btn active" id="btn-cb-rebuy-case" ${this.cbP1Balance < 2.5 ? 'disabled' : ''} style="padding: 6px 12px; font-size: 11px;">
+                +1 Кейс ($2.50)
+              </button>
             </div>
           </div>
 
-          <!-- Rail P2 -->
-          <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; text-align: center;">
-            <div style="font-size: 12px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px;">Дроп соперника</div>
-            <div id="cb-rail-p2" style="height: 160px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-              <div style="font-size: 40px; animation: pulse 1.2s infinite;">📦</div>
-              <div style="font-size: 13px; color: var(--text-dim); margin-top: 8px;">Приготовьтесь...</div>
+          <!-- RIGHT: DROPPED LOOT & SELLING IN BATTLE -->
+          <div style="background: rgba(14, 8, 14, 0.9); border: 1px solid var(--border-color); border-radius: 18px; padding: 20px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div style="font-size: 12px; font-weight: 800; color: #fff; text-transform: uppercase;">
+                Выпавший дроп (${this.cbP1Skins.length})
+              </div>
+              <div style="font-size: 11px; color: var(--text-dim);">
+                Продавайте ненужный лут, чтобы докупать кейсы!
+              </div>
+            </div>
+
+            <!-- Drops List -->
+            <div id="cb-drops-list" style="flex: 1; max-height: 290px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+              ${this.cbP1Skins.length === 0 ? `
+                <div style="text-align: center; color: var(--text-dim); padding: 36px 10px; font-size: 13px;">
+                  Открывайте кейсы слева, чтобы выбивать скины!
+                </div>
+              ` : this.cbP1Skins.map(skin => `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 6px 10px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="${skin.image}" alt="" style="width: 32px; height: 32px; object-fit: contain;">
+                    <div>
+                      <div style="font-size: 12px; font-weight: 700; color: #fff; max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${skin.name}</div>
+                      <div style="font-size: 12px; font-weight: 900; color: #ff004d;">$${skin.price.toFixed(2)}</div>
+                    </div>
+                  </div>
+                  <button class="btn-sm-action" data-cb-sell="${skin.instanceId}" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 800; font-size: 11px; padding: 4px 8px; border-radius: 6px;">
+                    💵 Продать за $${skin.price.toFixed(2)}
+                  </button>
+                </div>
+              `).join('')}
             </div>
           </div>
 
         </div>
 
-        <!-- History of drops list -->
-        <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px;">
-          <div style="font-size: 12px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px;">
-            История выпавшего оружия
+        <!-- Duel Activity Log Feed -->
+        <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px 18px;">
+          <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+            Лента событий Кейс-Батла
           </div>
-          <div id="cb-history-list" style="display: flex; flex-direction: column; gap: 8px;">
+          <div id="cb-logs-feed" style="max-height: 90px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-dim);">
+            ${this.cbLogs.map(l => `<div>${l}</div>`).join('')}
           </div>
         </div>
 
       </div>
     `;
+
+    this.bindCbArenaEvents();
   }
 
-  async playNextCaseRound() {
-    if (this.currentRoundIdx >= this.selectedCases.length) {
-      this.finishCaseBattle();
-      return;
-    }
+  bindCbArenaEvents() {
+    document.getElementById('btn-cb-open-case')?.addEventListener('click', () => {
+      this.openCbCase();
+    });
 
-    const currentCase = this.selectedCases[this.currentRoundIdx];
-    const roundNumber = this.currentRoundIdx + 1;
+    document.getElementById('btn-cb-rebuy-case')?.addEventListener('click', () => {
+      this.rebuyCbCase();
+    });
 
-    const roundStatusEl = document.getElementById('cb-round-status');
-    if (roundStatusEl) {
-      roundStatusEl.textContent = `Раунд ${roundNumber} из ${this.selectedCases.length} (${currentCase.name})`;
-    }
+    document.querySelectorAll('[data-cb-sell]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.cbSell;
+        this.sellCbDrop(id);
+      });
+    });
+  }
+
+  openCbCase() {
+    if (this.isCbSpinning || this.cbP1Cases.length === 0) return;
+    this.isCbSpinning = true;
+
+    const caseObj = this.cbP1Cases.shift();
+    const dropItem = this.rollCaseItem(caseObj);
 
     window.SoundManager?.playCaseOpening?.();
 
-    const drop1 = this.rollCaseItem(currentCase);
-    const drop2 = this.rollCaseItem(currentCase);
-
-    const rail1 = document.getElementById('cb-rail-p1');
-    const rail2 = document.getElementById('cb-rail-p2');
-
-    if (rail1) {
-      rail1.innerHTML = `<div style="font-size: 46px; animation: spin 0.6s linear infinite;">↻</div><div style="color: #ff004d; font-weight: 800; margin-top: 8px;">Крутится...</div>`;
-    }
-    if (rail2) {
-      rail2.innerHTML = `<div style="font-size: 46px; animation: spin 0.6s linear infinite;">↻</div><div style="color: #38bdf8; font-weight: 800; margin-top: 8px;">Крутится...</div>`;
-    }
-
-    await new Promise(r => setTimeout(r, 2200));
-
-    window.SoundManager?.playWin?.();
-
-    this.player1Total = Number((this.player1Total + drop1.price).toFixed(2));
-    this.player2Total = Number((this.player2Total + drop2.price).toFixed(2));
-    this.player1Drops.push(drop1);
-    this.player2Drops.push(drop2);
-
-    const p1ScoreEl = document.getElementById('cb-p1-score');
-    const p2ScoreEl = document.getElementById('cb-p2-score');
-    if (p1ScoreEl) p1ScoreEl.textContent = `$${this.player1Total.toFixed(2)}`;
-    if (p2ScoreEl) p2ScoreEl.textContent = `$${this.player2Total.toFixed(2)}`;
-
-    if (rail1) {
-      rail1.innerHTML = `
-        <img src="${drop1.image || drop1.fallbackSvg}" alt="${drop1.name}" style="width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 0 14px ${drop1.rarityColor || '#ff004d'});" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${drop1.id || ''}', '${drop1.name?.replace(/['\"\\]/g, '') || ''}', '${drop1.rarity || 'milspec'}', '${drop1.category || 'weapon'}', '${drop1.game || 'cs2'}');">
-        <div style="font-size: 13px; font-weight: 800; color: #fff; margin-top: 6px;">${drop1.name}</div>
-        <div style="font-size: 16px; font-weight: 900; color: #ff004d;">$${drop1.price.toFixed(2)}</div>
+    const reelWin = document.getElementById('cb-reel-window');
+    if (reelWin) {
+      reelWin.innerHTML = `
+        <div style="font-size: 44px; animation: spin 0.6s linear infinite;">↻</div>
+        <div style="color: #ff004d; font-weight: 800; margin-top: 8px;">Открытие ${caseObj.name}...</div>
       `;
     }
 
-    if (rail2) {
-      rail2.innerHTML = `
-        <img src="${drop2.image || drop2.fallbackSvg}" alt="${drop2.name}" style="width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 0 14px ${drop2.rarityColor || '#38bdf8'});" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${drop2.id || ''}', '${drop2.name?.replace(/['\"\\]/g, '') || ''}', '${drop2.rarity || 'milspec'}', '${drop2.category || 'weapon'}', '${drop2.game || 'cs2'}');">
-        <div style="font-size: 13px; font-weight: 800; color: #fff; margin-top: 6px;">${drop2.name}</div>
-        <div style="font-size: 16px; font-weight: 900; color: #38bdf8;">$${drop2.price.toFixed(2)}</div>
-      `;
-    }
-
-    const historyList = document.getElementById('cb-history-list');
-    if (historyList) {
-      const row = document.createElement('div');
-      row.style.cssText = 'display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);';
-      row.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="color: #ff004d; font-weight: 800;">$${drop1.price.toFixed(2)}</span>
-          <span style="font-size: 12px; color: #fff;">${drop1.name}</span>
-        </div>
-        <div style="font-size: 11px; font-weight: 800; color: var(--text-dim);">Раунд ${roundNumber}</div>
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
-          <span style="font-size: 12px; color: #fff;">${drop2.name}</span>
-          <span style="color: #38bdf8; font-weight: 800;">$${drop2.price.toFixed(2)}</span>
-        </div>
-      `;
-      historyList.prepend(row);
-    }
-
-    this.currentRoundIdx++;
     setTimeout(() => {
-      this.playNextCaseRound();
+      this.isCbSpinning = false;
+      this.cbP1Skins.unshift({
+        ...dropItem,
+        instanceId: `cb_drop_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
+      });
+
+      this.addCbLog(`🎁 Вы открыли ${caseObj.name} и выбили ${dropItem.name} ($${dropItem.price.toFixed(2)})!`);
+      window.SoundManager?.playWin?.();
+
+      this.renderCaseBattleArena();
     }, 1600);
+  }
+
+  sellCbDrop(instanceId) {
+    const idx = this.cbP1Skins.findIndex(s => s.instanceId === instanceId);
+    if (idx === -1) return;
+    const item = this.cbP1Skins[idx];
+    this.cbP1Skins.splice(idx, 1);
+    this.cbP1Balance = Number((this.cbP1Balance + item.price).toFixed(2));
+
+    this.addCbLog(`💵 Вы продали дроп ${item.name} за +$${item.price.toFixed(2)}.`);
+    window.SoundManager?.playCash?.();
+    this.renderCaseBattleArena();
+  }
+
+  rebuyCbCase() {
+    const price = 2.50;
+    if (this.cbP1Balance < price) return;
+    this.cbP1Balance = Number((this.cbP1Balance - price).toFixed(2));
+
+    const allCases = window.CASES_DATABASE || [];
+    const cheap = allCases.find(c => c.price <= 2.5) || allCases[0];
+
+    this.cbP1Cases.push({
+      ...cheap,
+      instanceId: `cb_case_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
+    });
+
+    this.addCbLog(`🛒 Вы докупили кейс «${cheap.name}» за $${price.toFixed(2)}.`);
+    window.SoundManager?.playClick?.();
+    this.renderCaseBattleArena();
+  }
+
+  startBotCaseLoop() {
+    if (this.botAiTimer) clearInterval(this.botAiTimer);
+    if (this.opponentType !== 'bot') return;
+
+    this.botAiTimer = setInterval(() => {
+      if (this.battleState !== 'battling') return;
+
+      if (this.cbP2Cases.length > 0) {
+        // Bot opens a case
+        const caseObj = this.cbP2Cases.shift();
+        const drop = this.rollCaseItem(caseObj);
+        this.cbP2Skins.unshift({
+          ...drop,
+          instanceId: `bot_drop_${Date.now()}`
+        });
+        this.addCbLog(`🤖 Бот открыл ${caseObj.name} ➔ ${drop.name} ($${drop.price.toFixed(2)})!`);
+      } else if (this.cbP2Balance >= 2.5 || (this.cbP2Skins.length > 0 && Math.random() < 0.6)) {
+        // Bot sells cheap drop to buy another case
+        if (this.cbP2Skins.length > 0) {
+          const sold = this.cbP2Skins.pop();
+          this.cbP2Balance += sold.price;
+          this.addCbLog(`🤖 Бот продал дроп ${sold.name} и купил новый кейс!`);
+        }
+        if (this.cbP2Balance >= 2.5) {
+          this.cbP2Balance -= 2.5;
+          const all = window.CASES_DATABASE || [];
+          this.cbP2Cases.push(all[0]);
+        }
+      }
+
+      // Update UI networths
+      const p2Net = document.getElementById('cb-p2-networth');
+      if (p2Net) p2Net.textContent = `$${this.getCbP2Total().toFixed(2)}`;
+
+      const leaderEl = document.getElementById('cb-leader-indicator');
+      if (leaderEl) {
+        const isLeading = this.getCbP1Total() >= this.getCbP2Total();
+        leaderEl.textContent = isLeading ? '👑 ВЫ ЛИДИРУЕТЕ' : '⚠️ ОППОНЕНТ ВПЕРЕДИ';
+        leaderEl.style.color = isLeading ? '#10b981' : '#f59e0b';
+      }
+    }, 4200);
+  }
+
+  addCbLog(text) {
+    const time = new Date().toLocaleTimeString('ru-RU', { minute: '2-digit', second: '2-digit' });
+    this.cbLogs.unshift(`[${time}] ${text}`);
+    if (this.cbLogs.length > 25) this.cbLogs.pop();
+    const feed = document.getElementById('cb-logs-feed');
+    if (feed) {
+      feed.innerHTML = this.cbLogs.map(l => `<div>${l}</div>`).join('');
+    }
   }
 
   rollCaseItem(caseObj) {
     const items = caseObj.items || [];
     if (items.length === 0) {
-      const all = window.catalogController?.skins || window.SKINS_DATABASE || [];
+      const all = window.SKINS_DATABASE || [];
       return all[Math.floor(Math.random() * all.length)];
     }
-    const totalWeight = items.reduce((s, it) => s + (it.chance || 1), 0);
+    const allSkins = window.SKINS_DATABASE || [];
+    const totalWeight = items.reduce((s, it) => s + (it.weight || it.chance || 1), 0);
     let rand = Math.random() * totalWeight;
+
     for (const it of items) {
-      rand -= (it.chance || 1);
-      if (rand <= 0) return it;
+      rand -= (it.weight || it.chance || 1);
+      if (rand <= 0) {
+        const found = allSkins.find(s => s.id === it.skinId);
+        return found || allSkins[0];
+      }
     }
-    return items[0];
+    const fallback = allSkins.find(s => s.id === items[0].skinId);
+    return fallback || allSkins[0];
   }
 
-  finishCaseBattle() {
+  finishCaseBattle(reason) {
     this.battleState = 'finished';
-    const isP1Winner = this.player1Total >= this.player2Total;
+    this.stopTimers();
+
     const user = window.authManager?.currentUser;
+    const p1Total = this.getCbP1Total();
+    const p2Total = this.getCbP2Total();
+    const isP1Winner = p1Total > p2Total;
+    const isTie = p1Total === p2Total;
 
     if (isP1Winner && user) {
-      const wonItems = [...this.player1Drops, ...this.player2Drops].map(it => ({
-        ...it,
-        instanceId: `cb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        obtainedDate: Date.now()
-      }));
-
-      if (!user.inventory) user.inventory = [];
-      user.inventory.push(...wonItems);
-
-      const netProfit = Number(((this.player1Total + this.player2Total) - this.getTotalCost()).toFixed(2));
-      user.stats.netProfit = Number(((user.stats.netProfit || 0) + netProfit).toFixed(2));
+      user.balance = Number((user.balance + this.totalStake).toFixed(2));
+      const netGain = Number((this.totalStake / 2).toFixed(2));
+      user.stats.netProfit = Number(((user.stats.netProfit || 0) + netGain).toFixed(2));
       user.stats.upgradesWon = (user.stats.upgradesWon || 0) + 1;
 
-      // Pass XP reward
-      if (window.SimupPassController?.addXp) {
-        window.SimupPassController.addXp(400);
-      }
+      // Add kept drops to real inventory!
+      const keptDrops = this.cbP1Skins.map(s => ({
+        ...s,
+        instanceId: `cb_drop_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        acquiredAt: Date.now()
+      }));
+      if (!user.inventory) user.inventory = [];
+      user.inventory.unshift(...keptDrops);
 
-      // Quests triggers
-      window.questsManager?.recordAction('case_battle_win', 1);
-      window.questsManager?.recordPassAction('pq_upgrade_battle', 1);
+      window.SimupPassController?.addXp?.(500);
+      window.questsManager?.recordAction?.('case_battle_win', 1);
 
       window.authManager.saveCurrentUser();
+      window.updateHeaderUserUI?.(user);
 
-      window.SoundManager?.playWin?.();
+      window.SoundManager?.playJackpot?.() || window.SoundManager?.playWin?.();
       window.confettiEffect?.();
-      window.notify?.bigWin('🏆 ПОБЕДА В КЕЙС-БАТЛЕ!', `Вы набрали $${this.player1Total.toFixed(2)} против $${this.player2Total.toFixed(2)} соперника! Все ${wonItems.length} скинов зачислены в ваш инвентарь!`);
+
+      window.notify?.bigWin(
+        '🏆 ПОБЕДА В КЕЙС-БАТЛЕ!',
+        `Ваш счет: $${p1Total.toFixed(2)} против $${p2Total.toFixed(2)} соперника! Вы выиграли весь банк $${this.totalStake.toFixed(2)} и забрали ${keptDrops.length} скинов!`
+      );
+    } else if (isTie && user) {
+      const refund = this.totalStake / 2;
+      user.balance = Number((user.balance + refund).toFixed(2));
+      window.authManager.saveCurrentUser();
+      window.updateHeaderUserUI?.(user);
+      window.notify?.info('Ничья!', `Счета равны ($${p1Total.toFixed(2)}). Взнос $${refund.toFixed(2)} возвращён.`);
     } else {
       window.SoundManager?.playLoss?.();
-      window.notify?.error('Поражение в батле', `Соперник набрал $${this.player2Total.toFixed(2)}, ваш счёт: $${this.player1Total.toFixed(2)}. Попробуйте ещё раз!`);
+      window.notify?.error(
+        'Поражение в батле',
+        `Соперник набрал $${p2Total.toFixed(2)}, ваш результат: $${p1Total.toFixed(2)}. Сыграйте реванш!`
+      );
     }
 
-    const roundStatusEl = document.getElementById('cb-round-status');
-    if (roundStatusEl) {
-      roundStatusEl.innerHTML = `
-        <div style="font-size: 16px; font-weight: 900; color: ${isP1Winner ? '#10b981' : '#ef4444'}; margin-bottom: 8px;">
-          ${isP1Winner ? '🎉 ВЫ ПОБЕДИЛИ!' : '✕ ПОРАЖЕНИЕ'}
-        </div>
-        <button class="btn-sm-action" onclick="window.CaseBattleController.renderLobby()" style="background: var(--accent-color); color: #000; font-weight: 800; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer;">
-          Сыграть новый батл
-        </button>
-      `;
-    }
+    this.renderLobby();
+  }
+
+  // =========================================================================
+  // TIMER HELPER
+  // =========================================================================
+  startBattleTimer(onExpire) {
+    this.stopTimers();
+    this.battleTimer = setInterval(() => {
+      this.timeLeft--;
+
+      const min = Math.floor(this.timeLeft / 60);
+      const sec = this.timeLeft % 60;
+      const timeStr = `⏱️ ${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+      const t1 = document.getElementById('ub-timer-val');
+      const t2 = document.getElementById('cb-timer-val');
+      if (t1) t1.textContent = timeStr;
+      if (t2) t2.textContent = timeStr;
+
+      if (this.timeLeft <= 0) {
+        this.stopTimers();
+        onExpire();
+      }
+    }, 1000);
+  }
+
+  stopTimers() {
+    if (this.battleTimer) clearInterval(this.battleTimer);
+    if (this.botAiTimer) clearInterval(this.botAiTimer);
+    this.battleTimer = null;
+    this.botAiTimer = null;
   }
 }
 
-window.CaseBattleController = new CaseBattleController();
+if (typeof window !== 'undefined') {
+  window.CaseBattleController = new CaseBattleController();
+}

@@ -17,6 +17,7 @@ const CASES_DATABASE = [
     nameEn: 'Budget Rush Case',
     price: 2.50,
     icon: '⚡',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQNqhpOSV-fRPasw8rsUFJ5KBFZv668FFU1nfbOIj8W7oWzkYLdlPOsMOmIk2du-sNz3-2SpN3wigew_0A-Z2qmJoedcwA3ZAvV-VG-kO_n05e0vszLziBq6yN27XbYyR3i0hxMcKUx0n_vVz1b/360fx360f',
     color: '#10b981',
     description: 'Доступный кейс с шансом выбить AK-47 Redline и AWP Asiimov.',
     items: [
@@ -37,6 +38,7 @@ const CASES_DATABASE = [
     nameEn: 'Sniper Elite Case',
     price: 15.00,
     icon: '🎯',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQNqhpOSV-fRPasw8rsUFJ5KBFZv668FFU2nfadJjl958-6nIGZkrujMeqJxD8GupIo27uU992k2Faw-0dtZ2ymIoSWdwQ3aAvW81m7xOi70560vZzKyXBi6CMg5izYnUfji0wccKUx0lC04Llh/360fx360f',
     color: '#00d2ff',
     description: 'Всё для снайперов: от Atheris и Hyper Beast до легендарного Dragon Lore.',
     items: [
@@ -58,6 +60,7 @@ const CASES_DATABASE = [
     nameEn: 'Covert Beast Case',
     price: 40.00,
     icon: '🐉',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQNqhpOSV-fRPasw8rsUFJ5KBFZv668FFUwnfbODjxN_8u5gIGZkrujMeqJwz4D65dwj-jE89P33QPt-xFlam-mco-TewBtMA7V-Fm8w-y9g560vMnKzHBi6CIg5izclhbji0pMcKUx0vFOUl8k/360fx360f',
     color: '#eb4b4b',
     description: 'Тайные штурмовые винтовки и пистолеты высшего ранга.',
     items: [
@@ -79,6 +82,7 @@ const CASES_DATABASE = [
     nameEn: 'Vintage Legends Case',
     price: 75.00,
     icon: '👑',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQNqhpOSV-fRPasw8rsUFJ5KBFZv668FFUx1fCYI2USu921n4XZg_jmMqjfqWdQ-sJ0xOzAot-jiQa2_EdkN2-iLI-TdQ45YlnV_1ntxevn0Z-_6Z_KyHpq6yVwtiuIyxO2n1gSOeM3c_V0/360fx360f',
     color: '#e4ae39',
     description: 'Легендарные классические раритеты первой эры CS: Howl, Fire Serpent и Dragon Lore.',
     items: [
@@ -100,6 +104,7 @@ const CASES_DATABASE = [
     nameEn: 'Knife Dream Case',
     price: 130.00,
     icon: '🗡️',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQNqhpOSV-fRPasw8rsUFJ5KBFZv668FFU21nyQITh95864kYXZg_jmMqjfqWdQ-sJ0xOzAot-jiQa2_EdkN2-iLI-TdQ45YlnV_1ntxevn0Z-_6Z_KyHpq6yVwtiuIyxO2n1gSOV-8-qJt/360fx360f',
     color: '#ffd700',
     description: 'Охота за редкими ножами Karambit, Butterfly Fade и перчатками Vice.',
     items: [
@@ -125,6 +130,7 @@ const CASES_DATABASE = [
     nameEn: 'Support Soul Case',
     price: 2.00,
     icon: '🕊️',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ5BhMYY49vR10TJjCSO2w0t3VVk12Kg1Qub6pKg411KPEdHMR7NrkxIbfk6T2a7nQkztSscMm2rrCoIms3AS1rRVkMGimI9edcAFvZwzZ-lm5wO6-hMXv6cuYnCRm6yd253vYyxPigngfcKUx0sc3F82f/360fx360f',
     color: '#34d399',
     description: 'Бюджетное сокровище с шансом на Драгонклав Хук и Аркану.',
     items: [
@@ -143,6 +149,7 @@ const CASES_DATABASE = [
     nameEn: 'Midlane Glory Case',
     price: 6.00,
     icon: '🔥',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ5BhMYY49vR10TJjCSO2w0t3VVk12Kg1Qub6pKg411KPEdHMR7NrkxIbfk6T2a7nQkztSscMh3LiT94it3ATtrhJka2P2LNSccwFsYgnZqVfvl-jo0JG67pnInm026yIgsnrdgVXp1kZtP-qP/360fx360f',
     color: '#ff9900',
     description: 'Снаряжение для хардлайнеров и мидеров с Immortal скинами.',
     items: [
@@ -162,6 +169,7 @@ const CASES_DATABASE = [
     nameEn: 'Immortal Dominion Case',
     price: 15.00,
     icon: '🛡️',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ5BhMYY49vR10TJjCSO2w0t3VVk12Kg1Qub6pKg411KPEdHMR7NrkxIbfk6T2a7nQkztSscMh2r_Coo73jQe3_0U4ZmmndYPAcwZqMwzW-AK8k-e-gse5up2bnCYy6CVy5i6Iyhe_0h9McKUx0szY1b14/360fx360f',
     color: '#eb4b4b',
     description: 'Immortal предметы для Sven, Void, Lion и снайпера.',
     items: [
@@ -181,6 +189,7 @@ const CASES_DATABASE = [
     nameEn: 'Arcana Vault Case',
     price: 32.00,
     icon: '🔮',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ5BhMYY49vR10TJjCSO2w0t3VVk12Kg1Qub6pKg411KPEdHMR7NrkxIbfk6T2a7nQkztSscMm37yUpNms21bkrUVoZmmgd4OTJwVsZQ6G8gTtxey8g8fp7pqamCRn7nd25CvczxO00hBPcKUx0tz11181/360fx360f',
     color: '#a855f7',
     description: 'Собрание Аркан высшего ранга: Phantom Assassin, Juggernaut и Pudge.',
     items: [
@@ -200,6 +209,7 @@ const CASES_DATABASE = [
     nameEn: 'Roshan Treasure Case',
     price: 85.00,
     icon: '💎',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ5BhMYY49vR10TJjCSO2w0t3VVk12Kg1Qub6pKg411KPEdHMR7NrkxIbfk6T2a7nQkztSscMm37yUpNms21bkrUVoZmmgd4OTJwVsZQ6G8gTtxey8g8fp7pqamCRn7nd25CvczxO00hBPcKUx0tz11181/360fx360f',
     color: '#ffd700',
     description: 'Золотой малыш Рошан, Булава Эонов и Dragonclaw Hook.',
     items: [
@@ -222,6 +232,7 @@ const CASES_DATABASE = [
     nameEn: 'Scrap Fortune Case',
     price: 1.50,
     icon: '🔩',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXA6Q1PB549vRpdSWPEEbvw46vdWVlzIgZUsq-2JQJi0vP3ZjhG7821nI-ZmvLwOq7cqWdQ-sJ0xOyUoN2s2QC3qBVlamD6JYWWJwZqZwvVqVjsye_n05O_vZrKyHRj5nF3t3qJzUe0004ccKUx0lC04586/360fx360f',
     color: '#6b7280',
     description: 'Начальный кейс из металлолома с шансом выбить Tempered AK-47.',
     items: [
@@ -240,6 +251,7 @@ const CASES_DATABASE = [
     nameEn: 'Toxic Wasteland Case',
     price: 5.00,
     icon: '☢️',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXA6Q1PB549vRpdSWPEEbvw46vdWVlzIgZUsq-2JQJk3_zNYzBH_d21nI-ZmvLwOq7cqWdQ-sJ0xOyUoN2s2QC3qBVlamD6JYWWJwZqZwvVqVjsye_n05O_vZrKyHRj5nF3t3qJzUe0004ccKUx0lC04586/360fx360f',
     color: '#f59e0b',
     description: 'Радиационное снаряжение и двери выживания пустоши.',
     items: [
@@ -258,6 +270,7 @@ const CASES_DATABASE = [
     nameEn: 'Raiders Armory Case',
     price: 18.00,
     icon: '🔫',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXA6Q1PB549vRpdSWPEEbvw46vdWVlzIgZUsq-2JQJh1vL3dTNH-92xk4WOkvWgZu6Fxz0EvJwh37zA9dyi3QftrkE-Zj37Jo-ccQ83NFrVrFTvw-bpg8LpvpnOyiFj6CV04yvczkPn1UwecKUx0s413s01/360fx360f',
     color: '#eb4b4b',
     description: 'Боевая броня, армированные двери и культовый Alien Red.',
     items: [
@@ -277,6 +290,7 @@ const CASES_DATABASE = [
     nameEn: 'Glowing Night Case',
     price: 40.00,
     icon: '💡',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXA6Q1PB549vRpdSWPEEbvw46vdWVlzIgZUsq-2JQJq3vT3fzBH-dW3gI6ZmvLwOq7cqWdQ-sJ0xOyUoN2s2QC3qBVlamD6JYWWJwZqZwvVqVjsye_n05O_vZrKyHRj5nF3t3qJzUe0004ccKUx0lC04586/360fx360f',
     color: '#00ff88',
     description: 'Светящиеся в ночи двери, легендарный автомат Glory и Alien Red.',
     items: [
@@ -296,6 +310,7 @@ const CASES_DATABASE = [
     nameEn: 'Mask Collector Case',
     price: 90.00,
     icon: '👺',
+    image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXA6Q1PB549vRpdSWPEEbvw46vdWVlzIgZUsq-2JQJr1vr3fz9G6Nu5nYXZg_jmMqjfqWdQ-sJ0xOyUoN2s2QC3qBVlamD6JYWWJwZqZwvVqVjsye_n05O_vZrKyHRj5nF3t3qJzUe0004ccKUx0lC04586/360fx360f',
     color: '#ffd700',
     description: 'Эксклюзивные маски Rust: Punishment Mask и легендарная Big Grin.',
     items: [

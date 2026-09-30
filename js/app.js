@@ -274,6 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (tabId === 'profile') {
       renderProfilePage();
+    } else if (tabId === 'inventory') {
+      renderInventoryPage();
     } else if (tabId === 'leaderboard') {
       if (typeof renderLeaderboard === 'function') renderLeaderboard();
     } else if (tabId === 'catalog') {
@@ -563,6 +565,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const loanAutoRepayToggle = document.getElementById('loan-auto-repay-toggle');
 
   // Quick header & profile buttons redirect directly to Bank
+  document.getElementById('btn-header-bank')?.addEventListener('click', () => {
+    switchTab('bank');
+  });
+  document.getElementById('header-balance-card')?.addEventListener('click', () => {
+    switchTab('bank');
+  });
   document.getElementById('btn-quick-deposit')?.addEventListener('click', () => {
     switchTab('bank');
   });
@@ -808,6 +816,8 @@ document.addEventListener('DOMContentLoaded', () => {
     closeSellAllModal();
     if (res.success) {
       renderProfilePage();
+      renderInventoryPage();
+      if (typeof updateUpgraderUI === 'function') updateUpgraderUI();
     }
   });
 
@@ -1508,6 +1518,184 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // =========================================================================
+  // DEDICATED INVENTORY TAB CONTROLLER (FULL VIEW & SELLING)
+  // =========================================================================
+  let invSelectedGame = 'all';
+  let invSearchQuery = '';
+  let invSortOrder = 'price-desc';
+
+  const invPageCount = document.getElementById('inv-page-count');
+  const invPageTotal = document.getElementById('inv-page-total');
+  const invPageGrid = document.getElementById('inv-page-grid');
+  const btnInvPageSellAll = document.getElementById('btn-inv-page-sell-all');
+  const btnInvSellAllBadge = document.getElementById('btn-inv-sell-all-badge');
+  const invPageSearch = document.getElementById('inv-page-search');
+  const invPageGamePills = document.querySelectorAll('#inv-page-game-pills .game-pill-btn');
+  const invPageSort = document.getElementById('inv-page-sort');
+
+  invPageGamePills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      invPageGamePills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      invSelectedGame = pill.dataset.invGame;
+      renderInventoryPage();
+    });
+  });
+
+  invPageSearch?.addEventListener('input', (e) => {
+    invSearchQuery = e.target.value.toLowerCase().trim();
+    renderInventoryPage();
+  });
+
+  invPageSort?.addEventListener('change', (e) => {
+    invSortOrder = e.target.value;
+    renderInventoryPage();
+  });
+
+  btnInvPageSellAll?.addEventListener('click', () => {
+    openSellAllModal();
+  });
+
+  function renderInventoryPage() {
+    const user = window.authManager?.currentUser;
+    if (!invPageGrid) return;
+
+    if (!user) {
+      invPageGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 60px 20px; text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 12px;">🔒</div>
+          <h2 style="font-size: 22px; color: #fff; margin-bottom: 8px;">Инвентарь заблокирован</h2>
+          <p style="color: var(--text-muted); margin-bottom: 20px;">Авторизуйтесь в системе, чтобы увидеть свои скины.</p>
+          <button class="btn-deposit" onclick="window.showAuthModal('login')" style="padding: 10px 24px;">Войти в аккаунт</button>
+        </div>
+      `;
+      return;
+    }
+
+    const inventory = user.inventory || [];
+    const totalCount = inventory.length;
+    const totalVal = inventory.reduce((sum, item) => sum + (item.price || 0), 0);
+
+    if (invPageCount) invPageCount.textContent = totalCount;
+    if (invPageTotal) invPageTotal.textContent = `$${totalVal.toFixed(2)}`;
+    if (btnInvSellAllBadge) btnInvSellAllBadge.textContent = `(+$${totalVal.toFixed(2)})`;
+    if (btnInvPageSellAll) btnInvPageSellAll.disabled = (totalCount === 0);
+
+    if (totalCount === 0) {
+      invPageGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 60px 20px; text-align: center; background: rgba(14, 8, 14, 0.6); border: 1px dashed var(--border-color); border-radius: 18px;">
+          <div style="font-size: 50px; margin-bottom: 12px;">🎒</div>
+          <h2 style="font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 6px;">Инвентарь пуст</h2>
+          <p style="color: var(--text-dim); font-size: 13.5px; max-width: 440px; margin: 0 auto 20px;">
+            У вас пока нет скинов. Вы можете приобрести их на бирже или выиграть в кейсах и апгрейде!
+          </p>
+          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button class="game-pill-btn active" onclick="switchTab('catalog')" style="padding: 10px 18px;">🛒 Купить в Каталоге</button>
+            <button class="game-pill-btn" onclick="switchTab('cases')" style="padding: 10px 18px;">📦 Открыть Кейс</button>
+            <button class="game-pill-btn" onclick="switchTab('upgrader')" style="padding: 10px 18px;">🎯 В Апгрейд</button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    // Filter by game
+    let filtered = [...inventory];
+    if (invSelectedGame !== 'all') {
+      filtered = filtered.filter(item => (item.game || 'cs2') === invSelectedGame);
+    }
+
+    // Filter by search query
+    if (invSearchQuery) {
+      filtered = filtered.filter(item => 
+        (item.name && item.name.toLowerCase().includes(invSearchQuery)) ||
+        (item.nameEn && item.nameEn.toLowerCase().includes(invSearchQuery))
+      );
+    }
+
+    // Sort
+    if (invSortOrder === 'price-desc') {
+      filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+    } else if (invSortOrder === 'price-asc') {
+      filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (invSortOrder === 'name') {
+      filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }
+
+    if (filtered.length === 0) {
+      invPageGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: var(--text-dim);">
+          По запросу «${invSearchQuery}» ничего не найдено в инвентаре.
+        </div>
+      `;
+      return;
+    }
+
+    invPageGrid.innerHTML = filtered.map(item => `
+      <div class="skin-card skin-rarity-${item.rarity}" id="inv-card-${item.instanceId}" style="--rarity-clr: ${item.rarityColor || '#888'};">
+        <div class="skin-card-header">
+          <span class="game-badge game-${item.game || 'cs2'}">${(item.game || 'CS2').toUpperCase()}</span>
+          ${item.wear && item.wear !== 'STANDARD' ? `<span class="wear-pill">${item.wear}</span>` : ''}
+        </div>
+        <div class="skin-img-wrap">
+          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="skin-img" loading="lazy" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
+        </div>
+        <div class="skin-info">
+          <div class="skin-name" title="${item.name}">${item.name}</div>
+          <div class="skin-price" style="font-size: 15px; margin: 4px 0; color: #ff004d; font-weight: 800;">$${item.price.toFixed(2)}</div>
+          <div class="inv-card-actions" style="display: flex; gap: 6px; margin-top: 6px;">
+            <button class="btn-inv-sell-card" data-sell-instance="${item.instanceId}" style="flex: 1; padding: 7px 6px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 800; font-size: 11.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+              💵 Продать
+            </button>
+            <button class="btn-inv-upgrade-card" data-upgrade-instance="${item.instanceId}" title="Использовать для апгрейда" style="padding: 7px 10px; background: rgba(255, 0, 77, 0.15); border: 1px solid rgba(255, 0, 77, 0.4); color: #ff004d; font-weight: 800; font-size: 11.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+              🎯 В апгрейд
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Attach individual sell and upgrade handlers
+    invPageGrid.querySelectorAll('[data-sell-instance]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const instanceId = btn.dataset.sellInstance;
+        const res = window.economyManager.sellItem(instanceId);
+        if (res.success) {
+          const card = document.getElementById(`inv-card-${instanceId}`);
+          if (card) {
+            card.style.transform = 'scale(0.8)';
+            card.style.opacity = '0';
+            setTimeout(() => {
+              renderInventoryPage();
+              renderProfilePage();
+              if (typeof updateUpgraderUI === 'function') updateUpgraderUI();
+            }, 220);
+          } else {
+            renderInventoryPage();
+          }
+        }
+      });
+    });
+
+    invPageGrid.querySelectorAll('[data-upgrade-instance]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const instanceId = btn.dataset.upgradeInstance;
+        const skin = user.inventory.find(it => it.instanceId === instanceId);
+        if (skin && window.upgraderEngine) {
+          window.upgraderEngine.selectedItems = [skin];
+          switchTab('upgrader');
+          if (typeof updateUpgraderUI === 'function') updateUpgraderUI();
+          window.notify?.info('Скин выбран', `${skin.name} загружен в ставку апгрейда.`);
+        }
+      });
+    });
+  }
+
+  window.renderInventoryPage = renderInventoryPage;
 
   // =========================================================================
   // BLOCK 3: UPGRADER ARENA & WHEEL CONTROLLER
@@ -2241,7 +2429,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <span style="font-size: 11px; color: var(--text-dim); font-weight: 700;">${c.items.length} скинов</span>
           </div>
           <div class="case-icon-wrap" style="color: ${c.color || '#f59e0b'};">
-            ${c.icon || '📦'}
+            ${c.image ? `
+              <img src="${c.image}" alt="${c.name}" class="case-card-img" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+              <span class="case-fallback-icon" style="display: none;">${c.icon || '📦'}</span>
+            ` : (c.icon || '📦')}
           </div>
           <div class="case-title">${c.name}</div>
           <div class="case-desc">${c.description || (c.isCustom ? 'Автор: ' + (c.author || 'Игрок') : '')}</div>
@@ -2292,7 +2483,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openCaseModal(caseData) {
     currentSelectedCase = caseData;
-    modalCaseIcon.textContent = caseData.icon;
+    if (caseData.image) {
+      modalCaseIcon.innerHTML = `<img src="${caseData.image}" alt="${caseData.name}" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));">`;
+    } else {
+      modalCaseIcon.textContent = caseData.icon || '📦';
+    }
     modalCaseName.textContent = caseData.name;
     modalCaseDesc.textContent = caseData.description;
     modalCasePrice.textContent = `$${caseData.price.toFixed(2)}`;

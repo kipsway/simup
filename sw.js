@@ -1,8 +1,8 @@
 /* ==========================================================================
-   SIMUP 2.0 - SERVICE WORKER (OFFLINE CACHE & FAST LOAD)
+   SIMUP 2.0 - SERVICE WORKER (OFFLINE CACHE & ULTRA FAST LOAD)
    ========================================================================== */
 
-const CACHE_NAME = 'simup-v4.2-cache';
+const CACHE_NAME = 'simup-v4.3-cache';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -55,7 +55,33 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Network first with cache fallback
+  const url = event.request.url;
+
+  // Ultra-fast cache-first for images (steamstatic, local images, icons)
+  if (event.request.destination === 'image' || url.includes('steamstatic.com') || url.match(/\.(png|jpg|jpeg|svg|webp|gif|ico)$/i)) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, clone);
+            });
+          }
+          return networkResponse;
+        }).catch(() => {
+          // Return empty transparent gif or fallback
+          return new Response('', { status: 408, headers: { 'Content-Type': 'image/svg+xml' } });
+        });
+      })
+    );
+    return;
+  }
+
+  // Network first with cache fallback for core files
   event.respondWith(
     fetch(event.request).then((networkResponse) => {
       if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {

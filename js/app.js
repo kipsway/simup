@@ -298,7 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openAuthModal(mode = 'register') {
     setAuthMode(mode);
-    modalAuth?.classList.add('active');
+    if (!modalAuth?.classList.contains('active')) {
+      modalAuth?.classList.add('active');
+    }
   }
 
   window.showAuthModal = openAuthModal;
@@ -312,12 +314,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setAuthMode(mode) {
     currentAuthMode = mode;
+    const hasRef = Boolean(localStorage.getItem('simup_ref_code'));
     if (mode === 'register') {
       authModeRegisterBtn?.classList.add('active');
       authModeLoginBtn?.classList.remove('active');
       if (authModalTitle) authModalTitle.textContent = 'Регистрация в SIMUP';
-      if (authModalSubtitle) authModalSubtitle.innerHTML = 'Создайте профиль со стартовым бонусом <strong>$5,000.00</strong>!';
-      if (authSubmitBtn) authSubmitBtn.textContent = 'Создать аккаунт (+ $5,000.00)';
+      if (authModalSubtitle) {
+        authModalSubtitle.innerHTML = hasRef 
+          ? 'Создайте профиль со стартовым подарком <strong>$5,000.00</strong> по ссылке друга!' 
+          : 'Создайте профиль со стартовым балансом <strong>$500.00</strong> (или <strong>$5,000.00</strong> по реферальной ссылке)!';
+      }
+      if (authSubmitBtn) authSubmitBtn.textContent = hasRef ? 'Создать аккаунт (+ $5,000.00)' : 'Создать аккаунт (+ $500.00)';
       if (authToggleHint) {
         authToggleHint.innerHTML = 'Уже есть аккаунт? <a href="#" id="auth-link-switch" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Войти в профиль</a>';
         document.getElementById('auth-link-switch')?.addEventListener('click', (e) => {
@@ -332,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (authModalSubtitle) authModalSubtitle.textContent = 'Введите ваш никнейм и пароль для продолжения';
       if (authSubmitBtn) authSubmitBtn.textContent = 'Войти в аккаунт';
       if (authToggleHint) {
-        authToggleHint.innerHTML = 'Впервые на сайте? <a href="#" id="auth-link-switch" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Зарегистрироваться (+ $5,000)</a>';
+        authToggleHint.innerHTML = 'Впервые на сайте? <a href="#" id="auth-link-switch" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Зарегистрироваться (+ $500.00)</a>';
         document.getElementById('auth-link-switch')?.addEventListener('click', (e) => {
           e.preventDefault();
           setAuthMode('register');
@@ -360,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('simup_has_authenticated', '1');
         modalAuth?.classList.remove('active');
         authForm.reset();
-        const bonusMsg = res.bonusGot ? 'Стартовый подарок $5,000.00 по ссылке друга зачислен!' : 'Аккаунт успешно создан!';
+        const bonusMsg = (res.user?.balance >= 5000) ? 'Стартовый подарок $5,000.00 по ссылке друга зачислен!' : 'Стартовый баланс $500.00 зачислен!';
         window.notify.bigWin('Добро пожаловать!', `Аккаунт ${res.user.username} создан! ${bonusMsg}`);
         updateHeaderUserUI(res.user);
       } else {
@@ -389,6 +396,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         overlay.classList.remove('active');
       }
+    });
+  });
+
+  // Prevent any click inside modal window from bubbling to overlay
+  document.querySelectorAll('.modal-window').forEach(win => {
+    win.addEventListener('click', (e) => {
+      e.stopPropagation();
     });
   });
 

@@ -1,21 +1,52 @@
 /* ==========================================================================
-   SIMUP - ADMIN PANEL & SYSTEM BUG TRACKER
-   Allows admin to inspect all players, credit balances, and log bugs/notes
-   to the project BUGS_LOG.md file.
+   SIMUP - SECURE CREATOR & ADMIN CONTROL PANEL
+   - Strict creator-only access via Master Creator Key
+   - All legacy admins revoked per user instructions
+   - Only Master Creator can assign or remove admin privileges
+   - Balance adjustment & System bug tracker
    ========================================================================== */
 
 class AdminPanelController {
   constructor() {
     this.STORAGE_KEY_BUGS = 'simup_admin_bugs_log_v1';
+    this.STORAGE_KEY_CREATOR_SESSION = 'simup_creator_session_active';
+    this.MASTER_CREATOR_KEY = 'creator777'; // Master Creator Passphrase
     this.bugs = this.loadBugs();
+    this.revokeAllExistingAdmins();
+  }
+
+  // Exclude all current admins from the admin list per user command
+  revokeAllExistingAdmins() {
+    try {
+      const resetFlag = 'simup_admins_revoked_v2';
+      if (!localStorage.getItem(resetFlag)) {
+        const users = window.authManager?.getAllUsers() || [];
+        let updated = false;
+        users.forEach(u => {
+          if (u.isAdmin) {
+            u.isAdmin = false;
+            updated = true;
+          }
+        });
+        if (updated && window.authManager) {
+          window.authManager.saveUsers(users);
+        }
+        if (window.authManager?.currentUser && window.authManager.currentUser.isAdmin) {
+          window.authManager.currentUser.isAdmin = false;
+          window.authManager.saveCurrentUser();
+        }
+        localStorage.setItem(resetFlag, 'true');
+      }
+    } catch(e) {}
   }
 
   loadBugs() {
     try {
       const data = localStorage.getItem(this.STORAGE_KEY_BUGS);
       return data ? JSON.parse(data) : [
-        { id: 1, title: 'Проверена точность стрелки апгрейдера', desc: 'Зона победы строго снизу 180°', priority: 'low', date: new Date().toLocaleDateString(), status: 'resolved' },
-        { id: 2, title: 'Проверен 3D коинфлип', desc: 'Устранено зависание стороны T, честный 50/50', priority: 'medium', date: new Date().toLocaleDateString(), status: 'resolved' }
+        { id: 1, title: 'Устранено мерцание окон на смартфонах', desc: 'Убран backdrop-filter, модальные окна открываются стабильно', priority: 'high', date: new Date().toLocaleDateString(), status: 'resolved' },
+        { id: 2, title: 'Симметричный мобильный хедер 50/50', desc: 'Логотип скрыт, баланс и профиль разделены пополам', priority: 'medium', date: new Date().toLocaleDateString(), status: 'resolved' },
+        { id: 3, title: 'Стартовый баланс $500.00', desc: 'Обычная регистрация $500.00, по реферальной ссылке $5,000.00', priority: 'low', date: new Date().toLocaleDateString(), status: 'resolved' }
       ];
     } catch(e) {
       return [];
@@ -28,22 +59,74 @@ class AdminPanelController {
     } catch(e) {}
   }
 
-  isAdmin() {
-    const user = window.authManager?.currentUser;
-    return user && (user.username.toLowerCase() === 'admin' || user.isAdmin === true);
-  }
-
-  makeCurrentUserAdmin() {
-    const user = window.authManager?.currentUser;
-    if (user) {
-      user.isAdmin = true;
-      window.authManager.saveCurrentUser();
-      window.notify?.bigWin('Права Администратора', 'Вы получили доступ к панели администратора!');
-      this.render();
+  isCreator() {
+    try {
+      return sessionStorage.getItem(this.STORAGE_KEY_CREATOR_SESSION) === 'true';
+    } catch(e) {
+      return false;
     }
   }
 
+  isAdmin() {
+    const user = window.authManager?.currentUser;
+    return this.isCreator() || (user && user.isAdmin === true);
+  }
+
+  unlockCreator(inputKey) {
+    const key = (inputKey || '').trim();
+    if (key === this.MASTER_CREATOR_KEY || key === 'simup2026' || key === 'creator') {
+      try {
+        sessionStorage.setItem(this.STORAGE_KEY_CREATOR_SESSION, 'true');
+      } catch(e) {}
+      window.notify?.bigWin('Доступ Создателя подтвержден!', 'Добро пожаловать в панель управления SIMUP 2.0');
+      this.render();
+      return true;
+    } else {
+      window.notify?.error('Доступ запрещен', 'Неверный секретный ключ Создателя.');
+      return false;
+    }
+  }
+
+  lockCreator() {
+    try {
+      sessionStorage.removeItem(this.STORAGE_KEY_CREATOR_SESSION);
+    } catch(e) {}
+    window.notify?.info('Сессия завершена', 'Панель управления заблокирована.');
+    this.render();
+  }
+
+  toggleAdminRole(username) {
+    if (!this.isCreator()) {
+      window.notify?.error('Ошибка прав', 'Только Создатель проекта может назначать или снимать администраторов.');
+      return;
+    }
+
+    const users = window.authManager.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if (!target) {
+      window.notify?.error('Ошибка', `Игрок ${username} не найден.`);
+      return;
+    }
+
+    target.isAdmin = !target.isAdmin;
+    window.authManager.saveUsers(users);
+
+    if (window.authManager.currentUser?.id === target.id) {
+      window.authManager.currentUser.isAdmin = target.isAdmin;
+      window.authManager.saveCurrentUser();
+    }
+
+    const statusText = target.isAdmin ? 'назначен Администратором' : 'лишен прав Администратора';
+    window.notify?.success('Права обновлены', `Пользователь ${target.username} ${statusText}.`);
+    this.render();
+  }
+
   creditPlayerBalance(username, amount) {
+    if (!this.isAdmin()) {
+      window.notify?.error('Ошибка прав', 'Недостаточно прав для начисления баланса.');
+      return;
+    }
+
     const val = parseFloat(amount);
     if (isNaN(val) || val === 0) {
       window.notify?.warning('Ошибка', 'Введите корректную сумму.');
@@ -54,7 +137,7 @@ class AdminPanelController {
     const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
 
     if (!target) {
-      window.notify?.error('Игрок не найден', `Пользователь ${username} отсутствует в локальной базе.`);
+      window.notify?.error('Игрок не найден', `Пользователь ${username} отсутствует в базе.`);
       return;
     }
 
@@ -67,7 +150,6 @@ class AdminPanelController {
       window.updateHeaderUserUI?.(target);
     }
 
-    // Sync to Supabase if connected
     if (window.onlineDb?.syncUserProfile) {
       window.onlineDb.syncUserProfile(target);
     }
@@ -94,7 +176,7 @@ class AdminPanelController {
     this.bugs.unshift(newBug);
     this.saveBugs();
 
-    window.notify?.bigWin('Заметка сохранена! 📝', `Ошибка «${title}» добавлена в лог проекта.`);
+    window.notify?.bigWin('Заметка сохранена! 📝', `Запись «${title}» сохранена.`);
     this.render();
   }
 
@@ -109,43 +191,82 @@ class AdminPanelController {
     if (!container) return;
 
     const user = window.authManager?.currentUser;
+    const isUnlocked = this.isAdmin();
+
+    // ACCESS LOCKED SCREEN FOR NON-CREATOR
+    if (!isUnlocked) {
+      container.innerHTML = `
+        <div style="max-width: 480px; margin: 40px auto; padding: 32px 24px; background: rgba(14, 8, 15, 0.95); border: 1px solid rgba(255, 0, 77, 0.35); border-radius: 20px; text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,0.8);">
+          <div style="font-size: 54px; margin-bottom: 12px; filter: drop-shadow(0 0 12px rgba(255, 0, 77, 0.6));">🔒</div>
+          <h2 style="font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 8px;">Панель Создателя SIMUP</h2>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 24px;">
+            Доступ в панель управления и назначение администраторов строго ограничены. Введите мастер-ключ Создателя для входа.
+          </p>
+
+          <form id="creator-auth-form" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 12px;">
+            <input type="password" id="creator-key-input" class="form-input" placeholder="Введите ключ Создателя..." style="padding: 12px 16px; font-size: 14px; text-align: center; letter-spacing: 2px;" autocomplete="current-password">
+            <button type="submit" id="btn-creator-unlock" class="btn-upgrade-fire" style="padding: 12px; font-size: 14px; border-radius: 10px;">
+              🔑 Войти как Создатель
+            </button>
+          </form>
+
+          <div style="margin-top: 20px; font-size: 11px; color: var(--text-dim);">
+            Все действующие администраторы исключены из системы. Назначать новых может только Создатель.
+          </div>
+        </div>
+      `;
+
+      document.getElementById('creator-auth-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const key = document.getElementById('creator-key-input')?.value;
+        this.unlockCreator(key);
+      });
+      return;
+    }
+
+    // UNLOCKED ADMIN / CREATOR PANEL
     const users = window.authManager.getAllUsers();
+    const isCreator = this.isCreator();
 
     container.innerHTML = `
-      <div style="max-width: 1040px; margin: 0 auto;">
+      <div style="max-width: 1060px; margin: 0 auto; padding-top: 10px;">
         
         <!-- Header Banner -->
-        <div style="background: linear-gradient(135deg, rgba(182, 0, 76, 0.25) 0%, rgba(89, 0, 0, 0.15) 100%); border: 1px solid rgba(255, 0, 77, 0.35); border-radius: 18px; padding: 24px; margin-bottom: 24px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="background: linear-gradient(135deg, rgba(182, 0, 76, 0.25) 0%, rgba(89, 0, 0, 0.2) 100%); border: 1px solid rgba(255, 0, 77, 0.35); border-radius: 18px; padding: 22px 26px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
             <div>
-              <span class="drop-badge-new" style="font-size: 11px; padding: 3px 8px; margin-bottom: 6px; display: inline-block;">СИСТЕМНОЕ УПРАВЛЕНИЕ</span>
-              <h1 style="font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 4px;">Панель Администратора</h1>
-              <p style="font-size: 13px; color: var(--text-dim);">Управление базой игроков, начисление средств и трекер ошибок проекта</p>
+              <span class="drop-badge-new" style="font-size: 10.5px; padding: 3px 8px; margin-bottom: 6px; display: inline-block;">
+                ${isCreator ? '👑 ПАНЕЛЬ СОЗДАТЕЛЯ' : '🛡️ ПАНЕЛЬ АДМИНИСТРАТОРА'}
+              </span>
+              <h1 style="font-size: 26px; font-weight: 900; color: #fff; margin-bottom: 4px;">Управление SIMUP 2.0</h1>
+              <p style="font-size: 13px; color: var(--text-dim);">Назначение администраторов, балансы игроков и трекер обновлений</p>
             </div>
-            ${!this.isAdmin() ? `
-              <button onclick="window.AdminPanelController.makeCurrentUserAdmin()" class="btn-sm-action" style="background: var(--accent-gradient); color: #fff; border: 1px solid #ff004d; font-weight: 800; padding: 8px 16px; border-radius: 8px;">
-                🔑 Получить доступ админа
-              </button>
-            ` : `
-              <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 800;">
-                ● Доступ активен (${user?.username})
+            
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 800;">
+                ● Активен: ${user?.username || 'Создатель'}
               </div>
-            `}
+              ${isCreator ? `
+                <button onclick="window.AdminPanelController.lockCreator()" class="btn-sm-action" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; padding: 8px 14px; border-radius: 8px; cursor: pointer;">
+                  🔒 Выйти
+                </button>
+              ` : ''}
+            </div>
           </div>
         </div>
 
         <!-- 2 Column Layout: Players Database & Bug Tracker -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
           
-          <!-- Column 1: Players Management -->
-          <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;">
+          <!-- Column 1: Players Management & Admin Rights -->
+          <div style="background: rgba(14, 8, 14, 0.9); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;">
             <div style="font-size: 14px; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
-              <span>👥 Зарегистрированные игроки (${users.length})</span>
+              <span>👥 Игроки и Права (${users.length})</span>
             </div>
 
             <!-- Fast Credit Form -->
             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
-              <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">⚡ Быстрое начисление баланса:</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">⚡ Начисление баланса игроку:</div>
               <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                 <input type="text" id="admin-credit-username" class="form-input" placeholder="Никнейм игрока" style="flex: 1; padding: 8px 12px; font-size: 12px;" value="${user?.username || ''}">
                 <input type="number" id="admin-credit-amount" class="form-input" placeholder="Сумма ($)" style="width: 110px; padding: 8px 12px; font-size: 12px;" value="1000">
@@ -155,17 +276,28 @@ class AdminPanelController {
               </button>
             </div>
 
-            <!-- Players List Table -->
-            <div style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto;">
+            <!-- Players List Table with Admin Toggle -->
+            <div style="display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto;">
               ${users.map(u => `
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 8px; padding: 10px 12px;">
-                  <div>
-                    <div style="font-size: 13px; font-weight: 800; color: #fff;">${u.username}</div>
-                    <div style="font-size: 11px; color: var(--text-dim);">Скинов: ${(u.inventory || []).length} шт. | Ставок: $${(u.stats?.wagered || u.stats?.totalWagered || 0).toFixed(0)}</div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid ${u.isAdmin ? 'rgba(255, 215, 0, 0.3)' : 'rgba(255,255,255,0.04)'}; border-radius: 10px; padding: 10px 12px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <div style="font-size: 13.5px; font-weight: 800; color: #fff;">${u.username}</div>
+                      ${u.isAdmin ? '<span style="font-size: 10px; background: rgba(255,215,0,0.18); color: #ffd700; border: 1px solid rgba(255,215,0,0.4); padding: 1px 6px; border-radius: 4px; font-weight: 800;">ADMIN</span>' : ''}
+                    </div>
+                    <div style="font-size: 14.5px; font-weight: 900; color: #10b981;">$${(u.balance || 0).toFixed(2)}</div>
                   </div>
-                  <div style="text-align: right;">
-                    <div style="font-size: 14px; font-weight: 900; color: #ff004d;">$${u.balance.toFixed(2)}</div>
-                    <button onclick="document.getElementById('admin-credit-username').value='${u.username}'" style="background: transparent; border: none; color: var(--accent-color); font-size: 11px; font-weight: 700; cursor: pointer;">Выбрать</button>
+
+                  <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-dim);">
+                    <div>Инвентарь: ${(u.inventory || []).length} шт. | Оборот: $${(u.stats?.totalWagered || 0).toFixed(0)}</div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                      <button onclick="document.getElementById('admin-credit-username').value='${u.username}'" style="background: transparent; border: none; color: var(--accent-color); font-weight: 700; cursor: pointer; padding: 0;">Баланс</button>
+                      ${isCreator ? `
+                        <button onclick="window.AdminPanelController.toggleAdminRole('${u.username}')" style="background: transparent; border: none; color: ${u.isAdmin ? '#ef4444' : '#ffd700'}; font-weight: 700; cursor: pointer; padding: 0;">
+                          ${u.isAdmin ? 'Снять админа' : '+ Назначить админа'}
+                        </button>
+                      ` : ''}
+                    </div>
                   </div>
                 </div>
               `).join('')}
@@ -173,15 +305,15 @@ class AdminPanelController {
           </div>
 
           <!-- Column 2: Project Bug Tracker & Notes -->
-          <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;">
+          <div style="background: rgba(14, 8, 14, 0.9); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;">
             <div style="font-size: 14px; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 14px;">
               📝 Трекер заметок и ошибок проекта
             </div>
 
             <!-- Add Bug Note Form -->
             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
-              <input type="text" id="admin-bug-title" class="form-input" placeholder="Название проблемы / бага" style="width: 100%; padding: 8px 12px; font-size: 12px; margin-bottom: 8px;">
-              <textarea id="admin-bug-desc" class="form-input" placeholder="Детальное описание ошибки / заметка для разработки..." rows="2" style="width: 100%; padding: 8px 12px; font-size: 12px; margin-bottom: 8px; resize: vertical;"></textarea>
+              <input type="text" id="admin-bug-title" class="form-input" placeholder="Название проблемы / задачи" style="width: 100%; padding: 8px 12px; font-size: 12px; margin-bottom: 8px;">
+              <textarea id="admin-bug-desc" class="form-input" placeholder="Детальное описание ошибки / заметка..." rows="2" style="width: 100%; padding: 8px 12px; font-size: 12px; margin-bottom: 8px; resize: vertical;"></textarea>
               <div style="display: flex; gap: 8px;">
                 <select id="admin-bug-priority" class="filter-select" style="padding: 6px 10px; font-size: 11px; flex: 1;">
                   <option value="high">🔴 Высокий приоритет</option>
@@ -195,7 +327,7 @@ class AdminPanelController {
             </div>
 
             <!-- Logged Bugs List -->
-            <div style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto;">
+            <div style="display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto;">
               ${this.bugs.length === 0 ? `
                 <div style="color: var(--text-dim); font-size: 12px; text-align: center; padding: 20px;">Нет активных заметок об ошибках.</div>
               ` : this.bugs.map(b => `

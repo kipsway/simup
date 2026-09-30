@@ -293,6 +293,17 @@
 
           <!-- 60fps Interactive Wheel Box -->
           <div class="upgrader-wheel-box">
+            <!-- Brand Logo & Title in Top-Right Corner of Upgrader Arena -->
+            <div class="arena-brand-badge" style="position: absolute; top: 10px; right: 12px; display: flex; align-items: center; gap: 7px; z-index: 6; background: rgba(14, 7, 15, 0.85); border: 1px solid rgba(255, 0, 77, 0.35); padding: 5px 12px; border-radius: 999px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+              <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; filter: drop-shadow(0 0 6px rgba(255, 0, 77, 0.8));">
+                <polygon points="20,2 37,11 37,29 20,38 3,29 3,11" fill="url(#brandGrad)" />
+                <polygon points="20,5 34,13 34,27 20,35 6,27 6,13" fill="#080206" stroke="#ff004d" stroke-width="1.5" />
+                <path d="M20 9L29 21H22V31H18V21H11L20 9Z" fill="url(#brandGrad)" />
+              </svg>
+              <span style="font-size: 14px; font-weight: 900; letter-spacing: 0.5px; color: #fff;">SIM<span style="color: #ff004d;">UP</span></span>
+              <span style="font-size: 9.5px; font-weight: 900; color: #ff004d; background: rgba(255,0,77,0.18); border: 1px solid rgba(255,0,77,0.45); padding: 1px 5px; border-radius: 4px;">PRO</span>
+            </div>
+
             <canvas id="wheel-canvas" class="wheel-canvas" width="290" height="290"></canvas>
             
             <!-- Center readout display -->
@@ -309,7 +320,7 @@
           </div>
 
           <!-- Target Chance Selection (NEW & REFINED) -->
-          <div class="chance-selector-wrapper" style="margin: 8px 0 6px;">
+          <div class="chance-selector-wrapper" style="margin: 8px 0 10px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 0 4px;">
               <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">Выбор шанса на победу:</span>
               <span style="font-size: 12px; font-weight: 900; color: #ff004d;" id="label-chance-slider-readout">50%</span>
@@ -331,24 +342,6 @@
               <input type="range" id="slider-custom-chance" min="1" max="90" step="1" value="50" style="flex: 1; accent-color: var(--accent-color); cursor: pointer;">
               <span style="font-size: 10px; color: #ff004d; font-weight: 800;">90%</span>
             </div>
-          </div>
-
-          <!-- Quick Multiplier Chips (Clean & Compact) -->
-          <div style="display: flex; align-items: center; justify-content: space-between; margin: 8px 0 4px; padding: 0 4px;">
-            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">Множители:</span>
-            <div style="display: flex; align-items: center; gap: 4px;">
-              <input type="number" id="input-custom-multiplier" step="0.1" min="1.1" max="1000" placeholder="2.0" style="width: 52px; background: rgba(0,0,0,0.45); border: 1px solid var(--border-color); border-radius: 6px; padding: 2px 6px; color: #fff; font-size: 12px; font-weight: 800; text-align: right; outline: none;">
-              <span style="font-size: 11px; font-weight: 800; color: var(--accent-color);">x</span>
-              <button id="btn-apply-custom-mult" class="btn-sm-action" style="padding: 2px 8px; font-size: 10.5px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; cursor: pointer;">OK</button>
-            </div>
-          </div>
-
-          <div class="quick-multipliers-bar" id="quick-multipliers-container">
-            <button class="btn-mult-chip" data-quick-mult="1.5">1.5x</button>
-            <button class="btn-mult-chip" data-quick-mult="2">2x</button>
-            <button class="btn-mult-chip" data-quick-mult="5">5x</button>
-            <button class="btn-mult-chip" data-quick-mult="10">10x</button>
-            <button class="btn-mult-chip" data-quick-mult="20">20x</button>
           </div>
 
           <!-- Big Pulsating Upgrade Button (Skins-only, disabled until skins selected) -->
@@ -1209,7 +1202,7 @@
     <div class="modal-window">
       <div class="modal-header">
         <h2 class="modal-title" id="auth-modal-title">Добро пожаловать в SIMUP!</h2>
-        <p class="modal-subtitle" id="auth-modal-subtitle">Войдите или создайте профиль игрока со стартовым бонусом <strong>$5,000.00</strong></p>
+        <p class="modal-subtitle" id="auth-modal-subtitle">Войдите или создайте профиль игрока со стартовым бонусом <strong>$500.00</strong> (или <strong>$5,000.00</strong> по реферальной ссылке)</p>
       </div>
 
       <!-- Mode switcher (Вход / Регистрация) -->
@@ -1231,7 +1224,7 @@
         </div>
 
         <button type="submit" class="btn-submit-action" id="auth-submit-btn">
-          Создать аккаунт (+ $5,000.00)
+          Создать аккаунт (+ $500.00)
         </button>
 
         <div style="text-align: center; margin-top: 14px; font-size: 13px; color: var(--text-muted);" id="auth-toggle-hint">
@@ -1787,6 +1780,30 @@
             <div class="games-hub-card-desc">Ракета взлетает с множителем до 1000x! Успей забрать выигрыш до падения.</div>
           </div>
         </div>
+
+        <div class="games-hub-card" data-tab="pass">
+          <div class="games-hub-card-icon" style="color: #ffd700;">👑</div>
+          <div>
+            <div class="games-hub-card-title">SIMUP PASS</div>
+            <div class="games-hub-card-desc">Боевой пропуск с уровнями, редкими скинами и эксклюзивными наградами.</div>
+          </div>
+        </div>
+
+        <div class="games-hub-card" data-tab="leaderboard">
+          <div class="games-hub-card-icon" style="color: #38bdf8;">🏆</div>
+          <div>
+            <div class="games-hub-card-title">Рейтинг игроков</div>
+            <div class="games-hub-card-desc">Таблица лидеров: богатейшие игроки, топ по обороту и список должников банка.</div>
+          </div>
+        </div>
+
+        <div class="games-hub-card" data-tab="bank">
+          <div class="games-hub-card-icon" style="color: #10b981;">🏦</div>
+          <div>
+            <div class="games-hub-card-title">Виртуальный Банк</div>
+            <div class="games-hub-card-desc">Беспроцентные и инвестиционные займы для старта и отыгрыша.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1809,9 +1826,9 @@
       <span class="mobile-bottom-icon">🛒</span>
       <span class="mobile-bottom-label">Каталог</span>
     </button>
-    <button class="mobile-bottom-tab" data-tab="profile">
-      <span class="mobile-bottom-icon">👤</span>
-      <span class="mobile-bottom-label">Профиль</span>
+    <button class="mobile-bottom-tab" data-tab="leaderboard">
+      <span class="mobile-bottom-icon">🏆</span>
+      <span class="mobile-bottom-label">Рейтинг</span>
     </button>
   </nav>
 
@@ -1825,34 +1842,34 @@
     window.SIMUP_SUPABASE_URL = "https://btnsijgkefzhnnidcbou.supabase.co";
     window.SIMUP_SUPABASE_ANON_KEY = "sb_publishable_y5d9oDSY42gfFZoWvn074Q_mD_9zxOV";
   </script>
-  <script src="js/sound.js?v=4.1"></script>
-  <script src="js/skins-data.js?v=4.1"></script>
-  <script src="js/notifications.js?v=4.1"></script>
-  <script src="js/auth.js?v=4.1"></script>
-  <script src="js/economy.js?v=4.1"></script>
-  <script src="js/market-economy.js?v=4.1"></script>
-  <script src="js/catalog.js?v=4.1"></script>
-  <script src="js/upgrader.js?v=4.1"></script>
-  <script src="js/cases-data.js?v=4.1"></script>
-  <script src="js/cases.js?v=4.1"></script>
-  <script src="js/players-db.js?v=4.1"></script>
-  <script src="js/online-db.js?v=4.1"></script>
-  <script src="js/leaderboard.js?v=4.1"></script>
-  <script src="js/contracts.js?v=4.1"></script>
-  <script src="js/lucky-wheel.js?v=4.1"></script>
-  <script src="js/case-builder.js?v=4.1"></script>
-  <script src="js/mines.js?v=4.1"></script>
-  <script src="js/quests.js?v=4.1"></script>
-  <script src="js/coinflip.js?v=4.2"></script>
-  <script src="js/crash.js?v=4.2"></script>
-  <script src="js/case-battle.js?v=4.2"></script>
-  <script src="js/simup-pass.js?v=4.2"></script>
-  <script src="js/admin-panel.js?v=4.2"></script>
-  <script src="js/app.js?v=4.2"></script>
+  <script src="js/sound.js?v=4.3"></script>
+  <script src="js/skins-data.js?v=4.3"></script>
+  <script src="js/notifications.js?v=4.3"></script>
+  <script src="js/auth.js?v=4.3"></script>
+  <script src="js/economy.js?v=4.3"></script>
+  <script src="js/market-economy.js?v=4.3"></script>
+  <script src="js/catalog.js?v=4.3"></script>
+  <script src="js/upgrader.js?v=4.3"></script>
+  <script src="js/cases-data.js?v=4.3"></script>
+  <script src="js/cases.js?v=4.3"></script>
+  <script src="js/players-db.js?v=4.3"></script>
+  <script src="js/online-db.js?v=4.3"></script>
+  <script src="js/leaderboard.js?v=4.3"></script>
+  <script src="js/contracts.js?v=4.3"></script>
+  <script src="js/lucky-wheel.js?v=4.3"></script>
+  <script src="js/case-builder.js?v=4.3"></script>
+  <script src="js/mines.js?v=4.3"></script>
+  <script src="js/quests.js?v=4.3"></script>
+  <script src="js/coinflip.js?v=4.3"></script>
+  <script src="js/crash.js?v=4.3"></script>
+  <script src="js/case-battle.js?v=4.3"></script>
+  <script src="js/simup-pass.js?v=4.3"></script>
+  <script src="js/admin-panel.js?v=4.3"></script>
+  <script src="js/app.js?v=4.3"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=4.2').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=4.3').then(reg => {
           reg.update();
         }).catch(() => {});
       });

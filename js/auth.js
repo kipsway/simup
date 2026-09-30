@@ -274,7 +274,7 @@ class AuthManager {
       }
     } catch(e) {}
 
-    let initialBalance = 0.00;
+    let initialBalance = 500.00; // Default starter balance $500.00
     let referredBy = null;
 
     if (effectiveRef) {

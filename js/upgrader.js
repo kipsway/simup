@@ -528,6 +528,28 @@ class UpgraderEngine {
       provablyFair
     };
 
+    // Pass Quests & XP awards
+    const hasMultiGame = (this.selectedItems && this.selectedItems.some(s => s.game === 'dota' || s.game === 'rust')) ||
+                         (targetSkin && (targetSkin.game === 'dota' || targetSkin.game === 'rust'));
+    if (hasMultiGame) {
+      window.questsManager?.recordPassAction('pq_multigame_skins', 1);
+    }
+    if (totalBet > 0) {
+      window.questsManager?.recordPassAction('pq_total_wager_2k', totalBet);
+      const earnedXp = isWin ? Math.max(15, Math.floor(totalBet * 5)) : Math.max(5, Math.floor(totalBet * 2));
+      window.SimupPassController?.addXp?.(earnedXp);
+    }
+
+    if (isWin) {
+      window.questsManager?.recordAction('upgrade_wins', 1);
+      if (multiplier >= 5.0) {
+        window.questsManager?.recordPassAction('pq_win_high_mult', 1);
+      }
+      if (chance >= 80.0) {
+        window.questsManager?.recordPassAction('pq_win_90_pct', 1);
+      }
+    }
+
     if (!user.history) user.history = [];
     user.history.unshift(this.lastRoundData);
     if (user.history.length > 50) user.history.pop();

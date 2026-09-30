@@ -18,14 +18,14 @@ const RARITY_COLORS = {
 };
 
 const RARITY_LABELS = {
-  consumer: 'Ширпотреб',
-  industrial: 'Промышленное',
-  milspec: 'Армейское',
-  restricted: 'Запрещенное',
-  classified: 'Засекреченное',
-  covert: 'Тайное',
-  extraordinary: 'Экстраординарное ★',
-  contraband: 'Контрабанда'
+  consumer: 'Обычное',
+  industrial: 'Необычное',
+  milspec: 'Редкое (Рар)',
+  restricted: 'Мифическое',
+  classified: 'Легендарное',
+  covert: 'Древнее (Ancient)',
+  extraordinary: 'Бессмертное ★',
+  contraband: 'Реликвия / Аркана'
 };
 
 const WEAR_NAMES = {
@@ -7848,6 +7848,577 @@ const SKINS_DATABASE = [
     "image": "",
     "price": 220
   }
+,
+{
+  "id": "dota2_platinum_baby_roshan",
+  "game": "dota2",
+  "name": "Platinum Baby Roshan",
+  "nameEn": "Platinum Baby Roshan",
+  "category": "courier",
+  "rarity": "contraband",
+  "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXA7hlNJ48g5hlcTlXvVeu-34DRUl9tNwtEvrurekkxi_GQdGkQ6t7lwoSNw6KsYOrXwW5XsJV10uyVptyi0QPk8xZqY2n1OsbLJSsFEXhR",
+  "price": 4800
+},
+{
+  "id": "dota2_golden_doomling",
+  "game": "dota2",
+  "name": "Golden Doomling",
+  "nameEn": "Golden Doomling Courier",
+  "category": "courier",
+  "rarity": "contraband",
+  "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXA7hlNJ48g5hlcTlXvVeu-34DYV192KgVOsremLwJr1P_NYTVH7c7llYHZlqStZ-yGwzkI6sF1j-zE9NWs2Fbl-kY4YDz0LIWVe1A8YVzR-FfsxOfsh8C7vprMnCc3uih043fZmxSpwUYbOsn5rB8",
+  "price": 1250
+},
+{
+  "id": "dota2_arcana_wr_windranger",
+  "game": "dota2",
+  "name": "Compass of the Rising Gale (Windranger Arcana)",
+  "nameEn": "Compass of the Rising Gale",
+  "category": "arcana",
+  "rarity": "contraband",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bdxdSjLGqA7EVm-pv_vGfnUB_xjZvh_i1c__W8baFqL-WVNWCRwuN4ouVpQW_uxB565WjWmouocH2VbwI4AsMvF-9cs0LskdS-M_y2vATcj_lWjHOpEc3d4qY",
+  "price": 480
+},
+{
+  "id": "dota2_arcana_void_claszian",
+  "game": "dota2",
+  "name": "Claszian Apostasy (Faceless Void Arcana)",
+  "nameEn": "Claszian Apostasy",
+  "category": "arcana",
+  "rarity": "contraband",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_DVwM-tMGiE2kB6_YO751jkRCL-mKnh-C1V_L2jaadoH_-VMWaVzuBl_rU9TSzhzBxx5WnRmN77cC6QaAcgCMMmEbIKtRLtk4DgNuzr5ASK3YxbjXKpE8yMK9s",
+  "price": 450
+},
+{
+  "id": "dota2_arcana_qop_ristul",
+  "game": "dota2",
+  "name": "Eminence of Ristul (Queen of Pain Arcana)",
+  "nameEn": "Eminence of Ristul",
+  "category": "arcana",
+  "rarity": "contraband",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-XfwNSrNH2X7lVms_r5u2fuRRz8nJbk-y1W_va7bfVqL-WYN2SRweMhouRpQW_uxB565WnWmouocH2VbwI4AsMvF-9cs0LskdS-M_y2vATcj_lWjHOpEc0k8Ww",
+  "price": 410
+},
+{
+  "id": "dota2_arcana_drow_retribution",
+  "game": "dota2",
+  "name": "Dread Retribution (Drow Ranger Arcana)",
+  "nameEn": "Dread Retribution",
+  "category": "arcana",
+  "rarity": "contraband",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-XcwtyzK3OU5EVm-p_6uWflUxj2nZjh_CFX-ve8baZqLeSUAGCRw-N6veVpQGzhkxg95WzRmoqocXyQaQMgAsMvF-9cs0LskdS-M_y2vATcj_lWjHOpEc3K8iM",
+  "price": 390
+},
+{
+  "id": "dota2_arcana_wk_one_true_king",
+  "game": "dota2",
+  "name": "The One True King (Wraith King Arcana)",
+  "nameEn": "The One True King",
+  "category": "arcana",
+  "rarity": "contraband",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-7cwNWqOGiA5EVm-pLmvGbnTBD2mJbk_CNV__m8Y6NqLeSUMGCRxed4o-VpQW_uxB565WnWmouocH2VbwI4AsMvF-9cs0LskdS-M_y2vATcj_lWjHOpEc1t_Gg",
+  "price": 340
+},
+{
+  "id": "dota2_arcana_sf_demon_eater",
+  "game": "dota2",
+  "name": "Demon Eater (Shadow Fiend Arcana)",
+  "nameEn": "Demon Eater",
+  "category": "arcana",
+  "rarity": "extraordinary",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-7Hxs-rN3aA6FFm9fLz4WblRRC_j4Hh9yNn__S5bfFqIfySNmCVz-MvruNoSWrhkx884jvXmYv7cXiXagN3DMR0EbIK40W7xoC5Z-28sgCNiowYyXKp",
+  "price": 36.5
+},
+{
+  "id": "dota2_arcana_tb_fractal_horns",
+  "game": "dota2",
+  "name": "Fractal Horns of Inner Abysm (Terrorblade)",
+  "nameEn": "Fractal Horns of Inner Abysm",
+  "category": "arcana",
+  "rarity": "extraordinary",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bdwMSkL3SS5EVm_Zbj4mblRhz_lpfi8CBg9fS4bfFqIfeUN2SUz-MuouNoSWqhkx9_4j3Tm4uvcnOWbQInAMcgEOVUsxTtk9bhN-P2uVSLj44ZzHKp",
+  "price": 37.2
+},
+{
+  "id": "dota2_arcana_cm_frost_avalanche",
+  "game": "dota2",
+  "name": "Frost Avalanche (Crystal Maiden Arcana)",
+  "nameEn": "Frost Avalanche",
+  "category": "arcana",
+  "rarity": "extraordinary",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_bZw8akI3KU5EVm_Zbj4mflRxz7mJbk9y1b__S5bfFqIfySMmCUx-N5v-JtRGqhkx9_5T7Tm4i4dXyXbgInA8QgR-pYs0S_lNfvNuG1uwWP2oxZjXKp",
+  "price": 35
+},
+{
+  "id": "dota2_arcana_rubick_magus_cypher",
+  "game": "dota2",
+  "name": "The Magus Cypher (Rubick Arcana)",
+  "nameEn": "The Magus Cypher",
+  "category": "arcana",
+  "rarity": "extraordinary",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-7ZwM2kMHSU8FFm8ZTm41eoTBDyk5bi9yBf9PS5bfFqIfySN2CUz-Mvo-VpQGqhkx9-4zzTmIqvcnOWbQInA8cgEe9Ys0W_lNfvNuG1uwWP2oxZjXKp",
+  "price": 39
+},
+{
+  "id": "dota2_arcana_lc_blades_voth_domosh",
+  "game": "dota2",
+  "name": "Blades of Voth Domosh (Legion Commander Arcana)",
+  "nameEn": "Blades of Voth Domosh",
+  "category": "arcana",
+  "rarity": "extraordinary",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-7dw8-rOHSU5EVm-ZDm4mblRRC9m5fn8CNf__W4bfFqIfeVMmCVz-MvquNoSWqhkx9_5D3TmYuscnOWbQInA8cgR-pYs0S_lNfvNuG1uwWP2oxZjXKp",
+  "price": 36
+},
+{
+  "id": "dota2_arcana_zeus_tempest",
+  "game": "dota2",
+  "name": "Tempest Helm of the Thundergod (Zeus Arcana)",
+  "nameEn": "Tempest Helm of the Thundergod",
+  "category": "arcana",
+  "rarity": "extraordinary",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bdxsaoI3SU5EVm-5Hm4mflRhD_m5Tj-SBb__W5bfFqIfyVMGGUz-Mvr-JtSWqhkx9_5DzTmIuqcnOWbQInA8cgEe9Ys0S_lNfvNuG1uwWP2oxZjXKp",
+  "price": 33
+},
+{
+  "id": "dota2_arcana_mk_great_sage",
+  "game": "dota2",
+  "name": "Great Sage's Reckoning (Monkey King Arcana)",
+  "nameEn": "Great Sage's Reckoning",
+  "category": "arcana",
+  "rarity": "extraordinary",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Xcw82tI3SU5EVm_5Hm4mflRRC_m5fi8yBg__W5bfFqIfyVMmCUz-MvoeJtSWqhkx9_5TzTmIuvcnOWbQInA8cgEe9Ys0S_lNfvNuG1uwWP2oxZjXKp",
+  "price": 34
+},
+{
+  "id": "dota2_kantusa_script_sword",
+  "game": "dota2",
+  "name": "Kantusa the Script Sword (Juggernaut)",
+  "nameEn": "Kantusa the Script Sword",
+  "category": "sword",
+  "rarity": "covert",
+  "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUhohpWS1_GVOeqwcOCU11wIB1fvIWsKglz7O_HfjgQuNnll4aKk_LLPrbVn35cpsB12erA9on02wHh-kY9NmihLIHAdAc_NFrSqVbrxe-615fqtZ-bnXRrs3V24XbcmUepwUYb8v7T664",
+  "price": 135
+},
+{
+  "id": "dota2_darkclaw_emissary_staff",
+  "game": "dota2",
+  "name": "Darkclaw Emissary Staff (Dazzle)",
+  "nameEn": "Darkclaw Emissary Staff",
+  "category": "staff",
+  "rarity": "covert",
+  "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUroRpNQ0rfUOiSwcbCVl5zIA1Uv721JAt00_bFcThG5Ny1goONkuP1PLTDkmlU18l4jeHVu9n3jVK1rkFoNmj6co-cIVc6NFvS-Va8ybzpgJW1uJ3BnXA1uCR07XfcyUepwUYbwlUu2tY",
+  "price": 160
+},
+{
+  "id": "dota2_wyrmwrought_flame_lina",
+  "game": "dota2",
+  "name": "Disciple of the Wyrmwrought Flame (Lina)",
+  "nameEn": "Disciple of the Wyrmwrought Flame",
+  "category": "armor",
+  "rarity": "covert",
+  "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUvpxJfQ1vfUeu4wMfDUF9tNgVTvr2vIAlt3v_cdTRV5c7ik9XYlaamZu-Flz0DuZQpiLnA89ig2QfsqUQ5Y2HzLIXEelNgaArU_FHvl7i-08fv7s7NznBhsyQms3zcyhCpwUYbFff4e5g",
+  "price": 145
+},
+{
+  "id": "dota2_timebreaker_faceless_void",
+  "game": "dota2",
+  "name": "Timebreaker (Faceless Void Vintage)",
+  "nameEn": "Timebreaker",
+  "category": "weapon",
+  "rarity": "covert",
+  "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUhpxJNSV6fSuWu38bdV2N2MhNforS3Jglz3vbNczVH7cTiw9bayqKmZu7TwDwIsZBz0-iYo9jx3VDhrRVsZmCicteQdQc8ZwyDqALrxui6hMDv6MicmHA26yN34SvcmEepwUYb6099wLg",
+  "price": 65
+},
+{
+  "id": "dota2_sullen_harvest_necro",
+  "game": "dota2",
+  "name": "Sullen Harvest (Necrophos Scythe)",
+  "nameEn": "Sullen Harvest",
+  "category": "weapon",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bdwMSkL3SS5EVm_Zbj4mblRhz_lpfi8CBg9fS4bfFqIfeUN2SUz-MuouNoSWqhkx9_4j3Tm4uvcnOWbQInAMcgEOVUsxTtk9bhN-P2uVSLj44ZzHKp",
+  "price": 18.5
+},
+{
+  "id": "dota2_soul_diffuser_spectre",
+  "game": "dota2",
+  "name": "Soul Diffuser (Spectre)",
+  "nameEn": "Soul Diffuser",
+  "category": "weapon",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUhoRpNQ0rfUOiSwcbCVl5zIA1Uv721JAt00_bFcThG5Ny1goONkuP1PLTDkmlU18l4jeHVu9n3jVK1rkFoNmj6co-cIVc6NFvS-Va8ybzpgJW1uJ3BnXA1uCR07XfcyUepwUYbwlUu2tY",
+  "price": 15.2
+},
+{
+  "id": "dota2_golden_edge_lost_order",
+  "game": "dota2",
+  "name": "Golden Edge of the Lost Order (Juggernaut)",
+  "nameEn": "Golden Edge of the Lost Order",
+  "category": "weapon",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bdw8yqMG2e4FFm8ZTm41eoTBDyk5bi9yBf9PS5bfFqIfySN2CUz-Mvo-VpQGqhkx9-4zzTmIqvcnOWbQInA8cgEe9Ys0W_lNfvNuG1uwWP2oxZjXKp",
+  "price": 32
+},
+{
+  "id": "dota2_scythe_of_vyse_furion",
+  "game": "dota2",
+  "name": "Scythe of Vyse (Nature's Prophet)",
+  "nameEn": "Scythe of Vyse",
+  "category": "weapon",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUhohpWS1_GVOeqwcOCU11wIB1fvIWsKglz7O_HfjgQuNnll4aKk_LLPrbVn35cpsB12erA9on02wHh-kY9NmihLIHAdAc_NFrSqVbrxe-615fqtZ-bnXRrs3V24XbcmUepwUYb8v7T664",
+  "price": 22
+},
+{
+  "id": "dota2_solar_gyre_phoenix",
+  "game": "dota2",
+  "name": "Solar Gyre (Phoenix Wings)",
+  "nameEn": "Solar Gyre",
+  "category": "wings",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bdxdSjLGqA7EVm-pv_vGfnUB_xjZvh_i1c__W8baFqL-WVNWCRwuN4ouVpQW_uxB565WjWmouocH2VbwI4AsMvF-9cs0LskdS-M_y2vATcj_lWjHOpEc3d4qY",
+  "price": 38
+},
+{
+  "id": "dota2_golden_hydrakan_slark",
+  "game": "dota2",
+  "name": "Golden Hydrakan Latch (Slark)",
+  "nameEn": "Golden Hydrakan Latch",
+  "category": "weapon",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_DVwM-tMGiE2kB6_YO751jkRCL-mKnh-C1V_L2jaadoH_-VMWaVzuBl_rU9TSzhzBxx5WnRmN77cC6QaAcgCMMmEbIKtRLtk4DgNuzr5ASK3YxbjXKpE8yMK9s",
+  "price": 31
+},
+{
+  "id": "dota2_magus_apex_invoker",
+  "game": "dota2",
+  "name": "Magus Apex (Invoker Hair)",
+  "nameEn": "Magus Apex",
+  "category": "head",
+  "rarity": "restricted",
+  "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUhoRpZQ1vvQe2o2cucUk95NjtTs6mqZAZy3uD3dThR45K3wIPezqKsMriDkDNQsZwh3r3FpY2h3wXn-hY9a2ugIYbGIQU7Y13V5BHglsdC9JuQ",
+  "price": 7.8
+},
+{
+  "id": "dota2_severing_crest_razor",
+  "game": "dota2",
+  "name": "Severing Crest (Razor)",
+  "nameEn": "Severing Crest",
+  "category": "armor",
+  "rarity": "restricted",
+  "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcUhpxJNSV6fSuWu38bdVmJzMApotbKkOQtp1rzFcD5K5dKzq4eemcj3O7rDmmJUpsYi07mWo96k2QPh-kBrZ2D7d9eTdgU9aVrS_VPtxO_m0J60v8nPwHp9-n51U-bh3v0",
+  "price": 9.4
+},
+{
+  "id": "dota2_piston_impaler_bristleback",
+  "game": "dota2",
+  "name": "Piston Impaler (Bristleback)",
+  "nameEn": "Piston Impaler",
+  "category": "back",
+  "rarity": "milspec",
+  "image": "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KW1Zwwo4NUX4oFJZEHLbXK9QlSPcU-oBRTA0rZVOySxNvaUFY7Iw1EvoW2Pw5j2L3Oc2oRu9ngl9fZlq6gNeuHlzsD7pQg3e2YrYj3iQPh-kplamiiIIWdbEZgNlSpXq2x",
+  "price": 4.2
+},
+{
+  "id": "rust_alien_relic_smg",
+  "game": "rust",
+  "name": "Alien Relic SMG",
+  "nameEn": "Alien Relic SMG",
+  "category": "weapon",
+  "rarity": "contraband",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Ff5GLNfCk4nReh8DEiv5dbPK47pbcyR_m4DQ68Ofs",
+  "price": 1450
+},
+{
+  "id": "rust_horror_sleeping_bag",
+  "game": "rust",
+  "name": "Horror Bag (Sleeping Bag)",
+  "nameEn": "Horror Sleeping Bag",
+  "category": "item",
+  "rarity": "contraband",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe5GLMfCk4nReh8DEiv5dbPKs8rrYwQfy6sqLM0vo",
+  "price": 650
+},
+{
+  "id": "rust_fire_jacket",
+  "game": "rust",
+  "name": "Fire Jacket",
+  "nameEn": "Fire Jacket",
+  "category": "clothing",
+  "rarity": "covert",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe5mLBfCk4nReh8DEiv5dbMa4-qL0xR_C29fO3tCQ",
+  "price": 240
+},
+{
+  "id": "rust_bombing_door_garage",
+  "game": "rust",
+  "name": "Bombing Garage Door",
+  "nameEn": "Bombing Garage Door",
+  "category": "door",
+  "rarity": "covert",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835db4GLHfCk4nReh8DEiv5ddMa88pLYyQ_tTIGzDcw",
+  "price": 115
+},
+{
+  "id": "rust_glory_sar_rifle",
+  "game": "rust",
+  "name": "Glory SAR (Semi-Automatic Rifle)",
+  "nameEn": "Glory SAR",
+  "category": "weapon",
+  "rarity": "covert",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fc5GLGfCk4nReh8DEiv5daMag5qLU2QPi5xVewp5A",
+  "price": 95
+},
+{
+  "id": "rust_rainbow_pony_door",
+  "game": "rust",
+  "name": "Rainbow Pony Garage Door",
+  "nameEn": "Rainbow Pony Garage Door",
+  "category": "door",
+  "rarity": "covert",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835FX52LCfCk4nReh8DEiv5ddPKo9pbM1RP2US9wYKg",
+  "price": 85
+},
+{
+  "id": "rust_frostbite_facemask",
+  "game": "rust",
+  "name": "Frostbite Metal Facemask",
+  "nameEn": "Frostbite Facemask",
+  "category": "mask",
+  "rarity": "covert",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fa4GLNfCk4nReh8DEiv5dbPKs-qrA0RfG9xh-m8C4",
+  "price": 85
+},
+{
+  "id": "rust_tempered_mp5",
+  "game": "rust",
+  "name": "Tempered MP5",
+  "nameEn": "Tempered MP5",
+  "category": "weapon",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Je5WHNfCk4nReh8DEiv5dYO607rLc2Rv2_0wEIAYs",
+  "price": 55
+},
+{
+  "id": "rust_tempered_thompson",
+  "game": "rust",
+  "name": "Tempered Thompson",
+  "nameEn": "Tempered Thompson",
+  "category": "weapon",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Je5WHNfCk4nReh8DEiv5dYO607rLc2Rv2_0wEIAYs",
+  "price": 48
+},
+{
+  "id": "rust_necromancer_armored_door",
+  "game": "rust",
+  "name": "Necromancer Armored Door",
+  "nameEn": "Necromancer Armored Door",
+  "category": "door",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe5GLMfCk4nReh8DEiv5dbPKs8rrYwQfy6sqLM0vo",
+  "price": 45
+},
+{
+  "id": "rust_blackout_ak47",
+  "game": "rust",
+  "name": "Blackout AK47",
+  "nameEn": "Blackout AK47",
+  "category": "weapon",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fc5GLGfCk4nReh8DEiv5daMag5qLU2QPi5xVewp5A",
+  "price": 42
+},
+{
+  "id": "rust_blackout_metal_facemask",
+  "game": "rust",
+  "name": "Blackout Metal Facemask",
+  "nameEn": "Blackout Metal Facemask",
+  "category": "mask",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fa4GLNfCk4nReh8DEiv5dbPKs-qrA0RfG9xh-m8C4",
+  "price": 38
+},
+{
+  "id": "rust_blackout_metal_chestplate",
+  "game": "rust",
+  "name": "Blackout Metal Chest Plate",
+  "nameEn": "Blackout Metal Chest Plate",
+  "category": "clothing",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe5mLBfCk4nReh8DEiv5dbMa4-qL0xR_C29fO3tCQ",
+  "price": 36
+},
+{
+  "id": "rust_polymer_bolt_action",
+  "game": "rust",
+  "name": "Polymer Bolt Action Rifle",
+  "nameEn": "Polymer Bolt Action Rifle",
+  "category": "weapon",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Ff5GLNfCk4nReh8DEiv5dbPK47pbcyR_m4DQ68Ofs",
+  "price": 35
+},
+{
+  "id": "rust_spacesuit_hazmat",
+  "game": "rust",
+  "name": "Spacesuit Hazmat Suit",
+  "nameEn": "Spacesuit Hazmat",
+  "category": "clothing",
+  "rarity": "classified",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe5GLMfCk4nReh8DEiv5dbPKs8rrYwQfy6sqLM0vo",
+  "price": 35
+},
+{
+  "id": "rust_toy_car_metal_door",
+  "game": "rust",
+  "name": "Toy Car Sheet Metal Door",
+  "nameEn": "Toy Car Metal Door",
+  "category": "door",
+  "rarity": "restricted",
+  "image": "https://steamcommunity-a.akamaihd.net/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835FX52LCfCk4nReh8DEiv5ddPKo9pbM1RP2US9wYKg",
+  "price": 32
+},
+{
+  "id": "rust_arctic_hazmat_suit",
+  "game": "rust",
+  "name": "Arctic Hazmat Suit",
+  "nameEn": "Arctic Hazmat Suit",
+  "category": "clothing",
+  "rarity": "restricted",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe5GLMfCk4nReh8DEiv5dbPKs8rrYwQfy6sqLM0vo",
+  "price": 30
+},
+{
+  "id": "rust_dragon_ak47",
+  "game": "rust",
+  "name": "Dragon AK-47",
+  "nameEn": "Dragon AK-47",
+  "category": "weapon",
+  "rarity": "restricted",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fc5GLGfCk4nReh8DEiv5daMag5qLU2QPi5xVewp5A",
+  "price": 28
+},
+{
+  "id": "rust_nomad_hazmat_suit",
+  "game": "rust",
+  "name": "Nomad Hazmat Suit",
+  "nameEn": "Nomad Hazmat Suit",
+  "category": "clothing",
+  "rarity": "restricted",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe5mLBfCk4nReh8DEiv5dbMa4-qL0xR_C29fO3tCQ",
+  "price": 28
+},
+{
+  "id": "rust_blackout_hoodie",
+  "game": "rust",
+  "name": "Blackout Hoodie",
+  "nameEn": "Blackout Hoodie",
+  "category": "clothing",
+  "rarity": "restricted",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Je5GDFfCk4nReh8DEiv5dYPqk5qLA3QP2-LjtoOu4",
+  "price": 26
+},
+{
+  "id": "rust_blackout_pants",
+  "game": "rust",
+  "name": "Blackout Pants",
+  "nameEn": "Blackout Pants",
+  "category": "clothing",
+  "rarity": "restricted",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Je5GDFfCk4nReh8DEiv5dYPqk5qLA3QP2-LjtoOu4",
+  "price": 24
+},
+{
+  "id": "rust_apocalyptic_ak47",
+  "game": "rust",
+  "name": "Apocalyptic AK47",
+  "nameEn": "Apocalyptic AK47",
+  "category": "weapon",
+  "rarity": "restricted",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Ff5GLNfCk4nReh8DEiv5dbPK47pbcyR_m4DQ68Ofs",
+  "price": 22
+},
+{
+  "id": "rust_toxic_double_door",
+  "game": "rust",
+  "name": "Toxic Double Sheet Metal Door",
+  "nameEn": "Toxic Double Metal Door",
+  "category": "door",
+  "rarity": "milspec",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe7WLFfCk4nReh8DEiv5ddOa08qbUyRfG6con45x0",
+  "price": 19
+},
+{
+  "id": "rust_neon_boom_box",
+  "game": "rust",
+  "name": "Neon Boom Storage Box",
+  "nameEn": "Neon Boom Box",
+  "category": "item",
+  "rarity": "milspec",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe5GLMfCk4nReh8DEiv5dbPKs8rrYwQfy6sqLM0vo",
+  "price": 18
+},
+{
+  "id": "rust_retrowave_hunting_bow",
+  "game": "rust",
+  "name": "Retrowave Hunting Bow",
+  "nameEn": "Retrowave Bow",
+  "category": "weapon",
+  "rarity": "milspec",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Je5WHNfCk4nReh8DEiv5dYO607rLc2Rv2_0wEIAYs",
+  "price": 16.5
+},
+{
+  "id": "rust_neon_ammo_box",
+  "game": "rust",
+  "name": "Neon Ammo Storage Box",
+  "nameEn": "Neon Ammo Box",
+  "category": "item",
+  "rarity": "milspec",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835db4GLHfCk4nReh8DEiv5ddMa88pLYyQ_tTIGzDcw",
+  "price": 15
+},
+{
+  "id": "rust_chariot_metal_facemask",
+  "game": "rust",
+  "name": "Chariot Metal Facemask",
+  "nameEn": "Chariot Facemask",
+  "category": "mask",
+  "rarity": "milspec",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fa4GLNfCk4nReh8DEiv5dbPKs-qrA0RfG9xh-m8C4",
+  "price": 14.5
+},
+{
+  "id": "rust_neon_ore_box",
+  "game": "rust",
+  "name": "Neon Ore Storage Box",
+  "nameEn": "Neon Ore Box",
+  "category": "item",
+  "rarity": "milspec",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835FX52LCfCk4nReh8DEiv5ddPKo9pbM1RP2US9wYKg",
+  "price": 14
+},
+{
+  "id": "rust_golden_leaf_sar",
+  "game": "rust",
+  "name": "Golden Leaf SAR",
+  "nameEn": "Golden Leaf SAR",
+  "category": "weapon",
+  "rarity": "milspec",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fc5GLGfCk4nReh8DEiv5daMag5qLU2QPi5xVewp5A",
+  "price": 14
+},
+{
+  "id": "rust_cobalt_military_crate",
+  "game": "rust",
+  "name": "Cobalt Military Storage Crate",
+  "nameEn": "Cobalt Military Crate",
+  "category": "item",
+  "rarity": "industrial",
+  "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fe7WLFfCk4nReh8DEiv5ddOa08qbUyRfG6con45x0",
+  "price": 12.5
+}
 ];
 
 // Helper function: unpacks all CS2 wear gradations so every variant is an individual skin

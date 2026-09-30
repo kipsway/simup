@@ -245,23 +245,23 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   font-weight: 700;
 }
 
-/* HEADER USER CONTROLS: Firmly constrained to prevent any out-of-bounds overflow */
+/* HEADER USER CONTROLS: Placed left-adjacent, no overflow */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-  margin-left: auto;
-  max-width: 50%;
-  justify-content: flex-end;
+  margin-left: 10px;
+  margin-right: auto;
+  max-width: none;
+  justify-content: flex-start;
 }
 
 #user-header-container {
   display: flex;
   align-items: center;
-  flex-shrink: 1;
+  flex-shrink: 0 !important;
   min-width: 0;
-  max-width: 220px;
 }
 
 .user-profile-btn {
@@ -6468,14 +6468,28 @@ body {
 
 /* 2. PC Navigation Tabs: Zero Horizontal Scroll on PC */
 @media (min-width: 961px) {
+  .site-header {
+    padding: 8px 16px !important;
+  }
+
+  .header-inner {
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
   .desktop-nav-tabs,
   .nav-tabs.desktop-nav-tabs {
     overflow: visible !important;
     white-space: nowrap !important;
     display: inline-flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    max-width: 100% !important;
+    justify-content: flex-start !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-width: none !important;
     flex-shrink: 0 !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
@@ -6488,6 +6502,28 @@ body {
 
   .desktop-nav-tabs::-webkit-scrollbar,
   .nav-tabs.desktop-nav-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .header-actions {
+    margin-left: 8px !important;
+    margin-right: auto !important;
+    max-width: none !important;
+    justify-content: flex-start !important;
+    gap: 7px !important;
+    flex-shrink: 0 !important;
+  }
+
+  #btn-header-bank {
+    display: none !important;
+  }
+
+  #user-header-container {
+    flex-shrink: 0 !important;
+    max-width: none !important;
+  }
+
+  .arena-brand-badge {
     display: none !important;
   }
 }

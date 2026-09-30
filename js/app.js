@@ -651,17 +651,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  loanInputAmount?.addEventListener('input', () => {
-    if (!loanInputAmount) return;
-    const val = parseFloat(loanInputAmount.value);
-    if (!isNaN(val) && val > 100000) {
-      loanInputAmount.value = 100000;
-      window.notify?.warning?.('Лимит кредита', 'Максимальная сумма займа за один раз — $100,000.00');
-    }
-  });
-
   btnTakeLoan?.addEventListener('click', () => {
     const val = parseFloat(loanInputAmount.value);
+    if (isNaN(val) || val < 10) {
+      window.notify.warning('Сумма займа', 'Минимальная сумма кредита — $10.00.');
+      return;
+    }
+    if (val > 100000) {
+      window.notify.error('Лимит превышен 🛑', 'Максимальная сумма разового займа — $100,000.00! У вас не получилось взять кредит, так как сумма превышает $100,000. Уменьшите разовую сумму.');
+      return;
+    }
     const res = window.economyManager.takeLoan(val);
     if (res.success) {
       loanInputAmount.value = '';

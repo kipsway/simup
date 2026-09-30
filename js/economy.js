@@ -110,7 +110,7 @@ class EconomyManager {
       return { success: false, error: 'Минимальная сумма кредита — $10.00.' };
     }
     if (val > 100000) {
-      return { success: false, error: 'Максимальная сумма кредита за один раз — $100,000.00.' };
+      return { success: false, error: 'Максимальная сумма разового займа — $100,000.00. Уменьшите сумму кредита (не более $100,000 за один раз).' };
     }
 
     const totalToRepay = Number((val * (1 + this.LOAN_INTEREST_RATE)).toFixed(2));

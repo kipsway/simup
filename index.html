@@ -35,7 +35,7 @@
   <link rel="preconnect" href="https://community.steamstatic.com" crossorigin>
   <link rel="preconnect" href="https://community.cloudflare.steamstatic.com" crossorigin>
   <link rel="preconnect" href="https://steamcommunity-a.akamaihd.net" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=4.1">
+  <link rel="stylesheet" href="css/style.css?v=4.5">
 
   <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
   <script type="application/ld+json">
@@ -277,16 +277,6 @@
                 <button class="btn-turbo-pill" id="btn-random-upgrade" title="Выбрать случайный множитель от 1.1x до 1000x!">
                   <span>🎲 Рандом x</span>
                 </button>
-              </div>
-            </div>
-
-            <!-- Right on Mobile / Center on PC (Strictly Centered Above the Wheel): Minimalist SIMUP Logo -->
-            <div class="arena-brand-badge" title="SIMUP Upgrader">
-              <svg class="arena-brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <polygon points="12,2 22,7 22,17 12,22 2,17 2,7" stroke="#ff004d" stroke-width="2" fill="rgba(255, 0, 77, 0.12)" stroke-linejoin="round"/>
-                <path d="M12 7L16.5 12H13.5V17H10.5V12H7.5L12 7Z" fill="#ff004d"/>
-              </svg>
-              <span class="arena-brand-text">SIMUP</span>
             </div>
           </div>
 
@@ -982,7 +972,7 @@
               <button class="deposit-chip-btn" data-loan-chip="100000">+$100,000</button>
             </div>
             <div style="display: flex; gap: 8px;">
-              <input type="number" id="loan-input-amount" class="form-input" placeholder="Сумма займа (до $100,000)" min="50" max="100000" step="50" style="padding: 10px 14px; flex: 1;">
+              <input type="number" id="loan-input-amount" class="form-input" placeholder="Сумма займа ($)" min="10" step="50" style="padding: 10px 14px; flex: 1;">
               <button class="btn-submit-action" id="btn-take-loan" style="margin-top: 0; padding: 10px 18px; width: auto; white-space: nowrap;">
                 Взять кредит (+10%)
               </button>
@@ -1911,34 +1901,34 @@
     window.SIMUP_SUPABASE_URL = "https://btnsijgkefzhnnidcbou.supabase.co";
     window.SIMUP_SUPABASE_ANON_KEY = "sb_publishable_y5d9oDSY42gfFZoWvn074Q_mD_9zxOV";
   </script>
-  <script src="js/sound.js?v=4.3"></script>
-  <script src="js/skins-data.js?v=4.3"></script>
-  <script src="js/notifications.js?v=4.3"></script>
-  <script src="js/auth.js?v=4.3"></script>
-  <script src="js/economy.js?v=4.3"></script>
-  <script src="js/market-economy.js?v=4.3"></script>
-  <script src="js/catalog.js?v=4.3"></script>
-  <script src="js/upgrader.js?v=4.3"></script>
-  <script src="js/cases-data.js?v=4.3"></script>
-  <script src="js/cases.js?v=4.3"></script>
-  <script src="js/players-db.js?v=4.3"></script>
-  <script src="js/online-db.js?v=4.3"></script>
-  <script src="js/leaderboard.js?v=4.3"></script>
-  <script src="js/contracts.js?v=4.3"></script>
-  <script src="js/lucky-wheel.js?v=4.3"></script>
-  <script src="js/case-builder.js?v=4.3"></script>
-  <script src="js/mines.js?v=4.3"></script>
-  <script src="js/quests.js?v=4.3"></script>
-  <script src="js/coinflip.js?v=4.3"></script>
-  <script src="js/crash.js?v=4.3"></script>
-  <script src="js/case-battle.js?v=4.3"></script>
-  <script src="js/simup-pass.js?v=4.3"></script>
-  <script src="js/admin-panel.js?v=4.3"></script>
-  <script src="js/app.js?v=4.3"></script>
+  <script src="js/sound.js?v=4.5"></script>
+  <script src="js/skins-data.js?v=4.5"></script>
+  <script src="js/notifications.js?v=4.5"></script>
+  <script src="js/auth.js?v=4.5"></script>
+  <script src="js/economy.js?v=4.5"></script>
+  <script src="js/market-economy.js?v=4.5"></script>
+  <script src="js/catalog.js?v=4.5"></script>
+  <script src="js/upgrader.js?v=4.5"></script>
+  <script src="js/cases-data.js?v=4.5"></script>
+  <script src="js/cases.js?v=4.5"></script>
+  <script src="js/players-db.js?v=4.5"></script>
+  <script src="js/online-db.js?v=4.5"></script>
+  <script src="js/leaderboard.js?v=4.5"></script>
+  <script src="js/contracts.js?v=4.5"></script>
+  <script src="js/lucky-wheel.js?v=4.5"></script>
+  <script src="js/case-builder.js?v=4.5"></script>
+  <script src="js/mines.js?v=4.5"></script>
+  <script src="js/quests.js?v=4.5"></script>
+  <script src="js/coinflip.js?v=4.5"></script>
+  <script src="js/crash.js?v=4.5"></script>
+  <script src="js/case-battle.js?v=4.5"></script>
+  <script src="js/simup-pass.js?v=4.5"></script>
+  <script src="js/admin-panel.js?v=4.5"></script>
+  <script src="js/app.js?v=4.5"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=4.3').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=4.5').then(reg => {
           reg.update();
         }).catch(() => {});
       });

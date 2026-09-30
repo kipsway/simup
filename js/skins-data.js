@@ -46,7 +46,7 @@ const SKINS_DATABASE = [
     "category": "knife",
     "rarity": "contraband",
     "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1ObcTjxP0965h4WPqP_xMq3ehm5D8fp3htfx_Is_2VDkqBFrZWv3dYfEI1RsYwvZ_Fm7x-7o0cK87svNzydk6iI8pGB8srcwZps0",
-    "price": 1500000.00
+    "price": 25000.00
   },
   {
     "id": "cs2_ak47_case_hardened_scar_661",
@@ -56,7 +56,7 @@ const SKINS_DATABASE = [
     "category": "rifle",
     "rarity": "contraband",
     "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV08u_mpSOhcjnPLfWl3lu-sR1jeTE8YXghRq2rhI6Z23yLIWQcANsM1uFqVm-x-rvjZPotZqfynNqvyggsXmLnx2whx1SLrs40_pZ_9I",
-    "price": 850000.00
+    "price": 18500.00
   },
   {
     "id": "cs2_awp_dragon_lore_souvenir_fn",
@@ -66,7 +66,7 @@ const SKINS_DATABASE = [
     "category": "sniper",
     "rarity": "contraband",
     "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Wts2sab1iLvWHMWSF_uMvj-NoVha_mg8ijDCAnobsLGWebgVzA5EjQrMJ40G9xIHhMu_j4wOM2oJMnCuq2nlN73w54OdRVqoj5OSJ2HZV8Guh",
-    "price": 450000.00
+    "price": 14500.00
   },
   {
     "id": "cs2_m4a4_howl_stattrak_fn",
@@ -137,6 +137,116 @@ const SKINS_DATABASE = [
     "rarity": "extraordinary",
     "image": "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJlY20k_jkI7fUhFRB4MRij7r--YXygED6-EtrNmihLYaXIQ83Nw6C-1C6k-zvgMO7up7NmHs2uykl43fYnUG3hQYMMLINmYZu2g",
     "price": 16500.00
+  },
+  {
+    "id": "cs2_butterfly_fade_max_fn",
+    "game": "cs2",
+    "name": "★ Нож-бабочка | Градиент (100% Fade)",
+    "nameEn": "★ Butterfly Knife | Fade (100% Fade)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tCvq4GGqPr1Ibndk1RX6sl0te_S8Inx31W3-UNvNm_ydY6dcAU9aV_V-FO8yOjug5e56s7Lz3ZqvSg8pGB8srH4r52z",
+    "price": 13500.00
+  },
+  {
+    "id": "cs2_gloves_hedge_maze_mw",
+    "game": "cs2",
+    "name": "★ Спортивные перчатки | Живая изгородь (MW)",
+    "nameEn": "★ Sport Gloves | Hedge Maze (Minimal Wear)",
+    "category": "gloves",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfxuHbZC597c2JmImMn-O6Nr_um25V4dB8xLvEotSn31Xh-0FtNmH2cY-dJwI-M1zX-1S_kO_vhcC76cmayXpqs3F2tyvan1q3hAYMMLK8H7R5kQ",
+    "price": 12200.00
+  },
+  {
+    "id": "dota2_golden_baby_roshan",
+    "game": "dota2",
+    "name": "Golden Baby Roshan",
+    "nameEn": "Golden Baby Roshan",
+    "category": "courier",
+    "rarity": "immortal",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ5BhMYY49vR10T1rUKuS61eDYVk14IAlV5OT9eVRz0aPPJGlGvN24xdmJlqCtZu-Gwm9XvcB32r6Wpdyk31W3_ENtNzqnd4PDcwE_NV7Q-Vjtxr_pg5W1tMvXn3EysyN27XbUmUa21B1SLrs4f3aFwU4",
+    "price": 11500.00
+  },
+  {
+    "id": "cs2_awp_gungnir_mw",
+    "game": "cs2",
+    "name": "AWP | Гунгнир (MW)",
+    "nameEn": "AWP | Gungnir (Minimal Wear)",
+    "category": "sniper",
+    "rarity": "covert",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FABz7PLfYQJS5NO0m5O0m_7zO6-fzj9V7cAl2eyVpdyj2wXj-kZsMm-nd9edcFA7aV7Vr1e4k-bvhpS-6MzXiSw0m7mX_hQ",
+    "price": 11000.00
+  },
+  {
+    "id": "cs2_karambit_fade_fn",
+    "game": "cs2",
+    "name": "★ Керамбит | Градиент (FN)",
+    "nameEn": "★ Karambit | Fade (Factory New)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1ObcTjxP0965h4WPqP_xMq3ehm5D8fp3htfx_Is_2VDkqBFrZWv3dYfEI1RsYwvZ_Fm7x-7o0cK87svNzydk6iI8pGB8srcwZps0",
+    "price": 9800.00
+  },
+  {
+    "id": "cs2_m9_gamma_emerald_mw",
+    "game": "cs2",
+    "name": "★ Штык-нож M9 | Гамма-волны Изумруд",
+    "nameEn": "★ M9 Bayonet | Gamma Doppler Emerald",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Wts2sab1iLvWHMWSF_uMvj-NoVha_mg8ijDCAnobsLGWebgVzA5EjQrMJ40G9xIHhMu_j4wOM2oJMnCuq2nlN73w54OdRVqoj5OSJ2HZV8Guh",
+    "price": 8900.00
+  },
+  {
+    "id": "dota2_legacy_ef_wardog",
+    "game": "dota2",
+    "name": "Legacy Ethereal Flame Wardog",
+    "nameEn": "Legacy Ethereal Flame Enduring War Dog",
+    "category": "courier",
+    "rarity": "immortal",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ5BhMYY49vR10T1rUKuS61eDYVk14IAlV5OT9eVRz0aPPJGlGvN24xdmJlqCtZu-Gwm9XvcB32r6Wpdyk31W3_ENtNzqnd4PDcwE_NV7Q-Vjtxr_pg5W1tMvXn3EysyN27XbUmUa21B1SLrs4f3aFwU4",
+    "price": 8200.00
+  },
+  {
+    "id": "cs2_skeleton_fade_fn",
+    "game": "cs2",
+    "name": "★ Скелетный нож | Градиент (FN)",
+    "nameEn": "★ Skeleton Knife | Fade (Factory New)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1I5PeibbBiLs-bF1iHxOxlj-lsTj-q20twt2yGydf9eHOfbAZzD8Z1F7YC5xW8w4KxN-vrtFDf2oxGmC-r2HhXrnE8IzMD7FA",
+    "price": 7900.00
+  },
+  {
+    "id": "rust_alien_relic_smg",
+    "game": "rust",
+    "name": "Alien Relic SMG",
+    "nameEn": "Alien Relic Custom SMG",
+    "category": "weapon",
+    "rarity": "legendary",
+    "image": "https://community.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaWK4ApmNzviFz0YrE5Aqk4909WST041-8qOrQD8aGnvC11821V2155-G0m_N-F_T_Z7l_d-Z1L6W6Q_g5",
+    "price": 7500.00
+  },
+  {
+    "id": "cs2_gloves_snow_leopard_fn",
+    "game": "cs2",
+    "name": "★ Водительские перчатки | Снежный барс (FN)",
+    "nameEn": "★ Driver Gloves | Snow Leopard (Factory New)",
+    "category": "gloves",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfxuHbZC597c2JmImMn-O6Nr_um25V4dB8xLvEotSn31Xh-0FtNmH2cY-dJwI-M1zX-1S_kO_vhcC76cmayXpqs3F2tyvan1q3hAYMMLK8H7R5kQ",
+    "price": 7100.00
+  },
+  {
+    "id": "cs2_m9_crimson_web_mw",
+    "game": "cs2",
+    "name": "★ Штык-нож M9 | Кровавая паутина (MW)",
+    "nameEn": "★ M9 Bayonet | Crimson Web (Minimal Wear)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJlY20k_jkI7fUhFRB4MRij7r--YXygED6-EtrNmihLYaXIQ83Nw6C-1C6k-zvgMO7up7NmHs2uykl43fYnUG3hQYMMLINmYZu2g",
+    "price": 6300.00
   },
   {
     "id": "cs2_butterfly_fade",
@@ -8599,6 +8709,17 @@ function generateSkinSvg(name, rarity, category, game) {
 
 // Automatically enrich all items with procedural fallback artwork
 SKINS_DATABASE.forEach(skin => {
+  if (skin.price === undefined || isNaN(skin.price) || typeof skin.price !== 'number') {
+    if (skin.wears && skin.defaultWear && skin.wears[skin.defaultWear] && skin.wears[skin.defaultWear].price) {
+      skin.price = skin.wears[skin.defaultWear].price;
+    } else if (skin.wears) {
+      const firstKey = Object.keys(skin.wears)[0];
+      if (firstKey && skin.wears[firstKey] && skin.wears[firstKey].price) {
+        skin.price = skin.wears[firstKey].price;
+      }
+    }
+  }
+  skin.price = (typeof skin.price === 'number' && !isNaN(skin.price) && skin.price > 0) ? Number(skin.price.toFixed(2)) : 10.0;
   skin.fallbackSvg = generateSkinSvg(skin.name, skin.rarity, skin.category, skin.game);
   // Keep authentic Steam CDN photo if available; fallback to SVG only if missing
   if (!skin.image || skin.image.trim() === '') {

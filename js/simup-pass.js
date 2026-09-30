@@ -1,72 +1,247 @@
 /* ==========================================================================
-   SIMUP PASS - ULTIMATE BATTLE PASS & PROGRESSION SYSTEM (50 LEVELS)
-   - 50 Challenging Progression Levels with steep exponential XP curve
-   - Multi-game rewards: CS2, Dota 2, Rust skins, cash, perks & titles
-   - Integrated Pass Quests for massive XP boosts
-   - Commission reductions down to 0% and 0% loan interest
+   SIMUP PASS - ULTIMATE BATTLE PASS & PROGRESSION SYSTEM (1000+ LEVELS)
+   - 1,000 Levels with slow, balanced & deliberate economy progression
+   - 12 Distinct Reward Categories:
+     1. balance: Чистый кэш на баланс
+     2. skin_cs2: Оружие CS2
+     3. skin_knife: ★ Ножи и перчатки CS2
+     4. skin_dota2: Immortal и Arcana Dota 2
+     5. skin_rust: Тактические скины Rust
+     6. title: Престижные титулы профиля
+     7. perk_commission: Перманентное снижение биржевой комиссии
+     8. perk_loan: Льготная процентная ставка в банке
+     9. xp_booster: Пожизненный множитель Pass XP
+     10. case_voucher: Бесплатные ваучеры на открытие кейсов
+     11. insurance_upgrade: Страховка апгрейда (возврат 50% ставки)
+     12. mystery_box: Секретные боксы с редчайшим лутом
+   - Tier/Chapter Pagination (50 levels per tier) for 60fps smooth UI
    ========================================================================== */
 
 class SimupPassController {
   constructor() {
+    this.MAX_LEVEL = 1000;
+    this.TIER_SIZE = 50;
+    this.currentTier = 1; // Tier 1 = 1..50, Tier 2 = 51..100, etc.
     this.activeView = 'levels'; // 'levels' or 'quests'
+    this.rewardsCache = null;
 
-    this.REWARDS = [
-      { level: 1, title: 'Стартовый буст', type: 'balance', value: 250, desc: '+$250.00 на баланс', icon: '💵' },
-      { level: 2, title: 'Пистолет CS2', type: 'skin', skinName: 'USP-S | Ticket to Hell', price: 15.0, icon: '🔫' },
-      { level: 3, title: 'Снижение комиссии биржи', type: 'perk_commission', value: 0.07, desc: 'Комиссия биржи снижена до 7% (было 8%)', icon: '📉' },
-      { level: 4, title: 'Пояс Dota 2', type: 'skin', skinName: 'Belt of the Iron Surge', price: 25.0, icon: '🛡️' },
-      { level: 5, title: 'Титул + Кэш', type: 'title', titleName: 'Исследователь Пасса', value: 1000, desc: 'Титул «Исследователь Пасса» + $1,000.00', icon: '🎖️' },
-      { level: 6, title: 'Дверь Rust', type: 'skin', skinName: 'Toxic Double Sheet Metal Door', price: 150.0, icon: '🚪' },
-      { level: 7, title: 'Льгота по кредитам', type: 'perk_loan', value: 0.08, desc: 'Ставка кредита в банке снижена до 8%', icon: '🏦' },
-      { level: 8, title: 'Кэш-дроп', type: 'balance', value: 2500, desc: '+$2,500.00 на баланс', icon: '💵' },
-      { level: 9, title: 'Винтовка CS2', type: 'skin', skinName: 'M4A1-S | Night Terror', price: 120.0, icon: '🔫' },
-      { level: 10, title: 'Иммортал Dota 2', type: 'skin', skinName: 'Muh Keen Gun', price: 85.0, desc: 'Muh Keen Gun (Sniper) + $2,500.00', bonusCash: 2500, icon: '🎯' },
-      { level: 11, title: 'Снижение комиссии биржи II', type: 'perk_commission', value: 0.06, desc: 'Комиссия биржи снижена до 6%', icon: '📉' },
-      { level: 12, title: 'Оружие Rust', type: 'skin', skinName: 'Retrowave Hunting Bow', price: 165.0, icon: '🏹' },
-      { level: 13, title: 'Кэш-буст', type: 'balance', value: 5000, desc: '+$5,000.00 на баланс', icon: '💵' },
-      { level: 14, title: 'Автомат CS2', type: 'skin', skinName: 'AK-47 | Slate', price: 180.0, icon: '🔥' },
-      { level: 15, title: 'Титул: Ветеран', type: 'title', titleName: 'Ветеран SIMUP', value: 7500, desc: 'Титул «Ветеран SIMUP» + $7,500.00', icon: '👑' },
-      { level: 16, title: 'Льгота банка II', type: 'perk_loan', value: 0.06, desc: 'Ставка кредита снижена до 6%', icon: '🏦' },
-      { level: 17, title: 'Иммортал Dota 2', type: 'skin', skinName: 'Arms of Desolation', price: 250.0, icon: '💀' },
-      { level: 18, title: 'Автомат Rust', type: 'skin', skinName: 'Dragon AK-47', price: 450.0, icon: '🐉' },
-      { level: 19, title: 'Крупный кэш', type: 'balance', value: 15000, desc: '+$15,000.00 на баланс', icon: '💵' },
-      { level: 20, title: 'Снайперка CS2', type: 'skin', skinName: 'AWP | Neo-Noir', price: 550.0, icon: '🎯' },
-      { level: 21, title: 'Снижение комиссии биржи III', type: 'perk_commission', value: 0.05, desc: 'Комиссия биржи снижена до 5%', icon: '📉' },
-      { level: 22, title: 'Клинок Dota 2', type: 'skin', skinName: 'Soul Diffuser', price: 350.0, icon: '🗡️' },
-      { level: 23, title: 'Автомат Rust Blackout', type: 'skin', skinName: 'Blackout AK47', price: 620.0, icon: '⚡' },
-      { level: 24, title: 'Премиум кэш', type: 'balance', value: 25000, desc: '+$25,000.00 на баланс', icon: '💵' },
-      { level: 25, title: 'Титул + Arcana Pudge', type: 'title_skin', titleName: 'Магнат Арены', skinName: 'Feast of Abscession', price: 1200.0, bonusCash: 25000, desc: 'Титул «Магнат Арены» + Arcana Pudge + $25,000.00', icon: '🥩' },
-      { level: 26, title: 'Льгота банка III', type: 'perk_loan', value: 0.04, desc: 'Ставка кредита снижена до 4%', icon: '🏦' },
-      { level: 27, title: 'Пистолет CS2 Printstream', type: 'skin', skinName: 'Desert Eagle | Printstream', price: 1850.0, icon: '💎' },
-      { level: 28, title: 'ПП Rust Tempered', type: 'skin', skinName: 'Tempered MP5', price: 850.0, icon: '🔥' },
-      { level: 29, title: 'Большой капитал', type: 'balance', value: 50000, desc: '+$50,000.00 на баланс', icon: '💵' },
-      { level: 30, title: 'Меч Dota 2 Vigil Triumph', type: 'skin', skinName: 'Vigil Triumph', price: 1500.0, icon: '⚔️' },
-      { level: 31, title: 'Снижение комиссии биржи IV', type: 'perk_commission', value: 0.03, desc: 'Комиссия биржи снижена до 3%', icon: '📉' },
-      { level: 32, title: 'Маска Rust Frostbite', type: 'skin', skinName: 'Frostbite Metal Facemask', price: 1250.0, icon: '❄️' },
-      { level: 33, title: 'Винтовка CS2 Император', type: 'skin', skinName: 'M4A4 | The Emperor', price: 950.0, icon: '👑' },
-      { level: 34, title: 'Золотой кэш-буст', type: 'balance', value: 100000, desc: '+$100,000.00 на баланс', icon: '💵' },
-      { level: 35, title: 'Титул + Arcana PA', type: 'title_skin', titleName: 'Вершитель Судеб', skinName: 'Manifold Paradox', price: 1500.0, bonusCash: 100000, desc: 'Титул «Вершитель Судеб» + Arcana Phantom Assassin + $100,000.00', icon: '🗡️' },
-      { level: 36, title: 'Льгота банка IV', type: 'perk_loan', value: 0.02, desc: 'Ставка кредита снижена до 2%', icon: '🏦' },
-      { level: 37, title: 'Меч Dota 2 Kantusa', type: 'skin', skinName: 'Kantusa the Script Sword', price: 3500.0, icon: '🗡️' },
-      { level: 38, title: 'Винтовка Rust Glory SAR', type: 'skin', skinName: 'Glory SAR', price: 2200.0, icon: '⭐' },
-      { level: 39, title: 'Алмазный капитал', type: 'balance', value: 250000, desc: '+$250,000.00 на баланс', icon: '💵' },
-      { level: 40, title: 'Автомат CS2 Bloodsport', type: 'skin', skinName: 'AK-47 | Bloodsport', price: 2800.0, icon: '🩸' },
-      { level: 41, title: 'Снижение комиссии биржи V', type: 'perk_commission', value: 0.01, desc: 'Комиссия биржи снижена до 1%!', icon: '📉' },
-      { level: 42, title: 'Посох Dota 2 Darkclaw', type: 'skin', skinName: 'Darkclaw Emissary Staff', price: 4200.0, icon: '💀' },
-      { level: 43, title: 'Куртка Rust Fire Jacket', type: 'skin', skinName: 'Fire Jacket', price: 5800.0, icon: '🔥' },
-      { level: 44, title: 'Элитный бонус', type: 'balance', value: 500000, desc: '+$500,000.00 на баланс', icon: '💵' },
-      { level: 45, title: 'Титул + Нож-Бабочка', type: 'title_skin', titleName: 'Повелитель Стихий', skinName: 'Butterfly Knife | Slaughter', price: 85000.0, desc: 'Титул «Повелитель Стихий» + ★ Нож-бабочка | Убийство ($85,000.00)', icon: '🦋' },
-      { level: 46, title: '0% КРЕДИТ В БАНКЕ НАВСЕГДА', type: 'perk_loan', value: 0.00, desc: 'Ставка кредита снижена до 0.0% НАВСЕГДА! Беспроцентные займы!', icon: '🏦' },
-      { level: 47, title: 'Спальник Rust Horror Bag', type: 'skin', skinName: 'Horror Bag', price: 18500.0, icon: '👻' },
-      { level: 48, title: 'Курьер Golden Baby Roshan', type: 'skin', skinName: 'Golden Baby Roshan', price: 150000.0, icon: '🏆' },
-      { level: 49, title: 'Королевский фонд', type: 'balance', value: 1000000, desc: '+$1,000,000.00 на баланс', icon: '💰' },
-      { level: 50, title: 'УЛЬТИМАТИВНЫЙ ФИНАЛ: ВЛАДЫКА ВСЕЛЕННОЙ', type: 'ultimate', skinName: 'AWP | Dragon Lore', price: 450000.0, bonusCash: 2500000, titleName: 'Владыка Вселенной', desc: 'Титул «Владыка Вселенной» + $2,500,000.00 + AWP Dragon Lore ($450,000) + 0% КОМИССИИ НАВСЕГДА!', icon: '👑' }
+    this.TITLES_POOL = [
+      'Новичок Пасса', 'Искатель Приключений', 'Охотник за Лутом', 'Ветеран SIMUP',
+      'Стальной Гладиатор', 'Магнат Арены', 'Мастер Риска', 'Повелитель Колеса',
+      'Коллекционер Редкостей', 'Неуязвимый', 'Кибернетический Барон', 'Снайпер Судьбы',
+      'Гроссмейстер Апгрейда', 'Абсолютный Чемпион', 'Хранитель Олимпа', 'Бессмертный Титан',
+      'Верховный Владыка', 'Творец Вселенной', 'Легенда Тысячелетия', 'Владыка Вечности'
     ];
   }
 
-  // Steep progression: Level 1: 1,450 XP, Level 5: 3,820 XP, Level 10: 8,400 XP, Level 25: 47,000 XP, Level 50: 250,000+ XP!
+  // Slower, balanced exponential XP curve
   getXpForLevel(lvl) {
-    return Math.floor(1000 * Math.pow(1.12, lvl - 1) + (lvl * 450));
+    const safeLvl = Math.max(1, Math.min(this.MAX_LEVEL, lvl));
+    return Math.floor(1200 + (safeLvl * 250) + (Math.pow(safeLvl, 1.42) * 18));
+  }
+
+  // Generate 1,000 curated and balanced rewards
+  getRewards() {
+    if (this.rewardsCache) return this.rewardsCache;
+
+    const list = [];
+    for (let lvl = 1; lvl <= this.MAX_LEVEL; lvl++) {
+      let r = null;
+
+      if (lvl === 1000) {
+        r = {
+          level: 1000,
+          type: 'skin_knife',
+          title: 'ВЛАДЫКА ВЕЧНОСТИ (УРОВЕНЬ 1000)',
+          skinName: '★ Нож-бабочка | Гамма-волны Изумруд',
+          price: 28000.0,
+          bonusCash: 50000.0,
+          titleName: 'Владыка Вечности',
+          desc: 'Титул «Владыка Вечности» + ★ Нож-бабочка Гамма Изумруд ($28,000) + $50,000 кэша + 0% комиссии навсегда!',
+          icon: '👑'
+        };
+      } else if (lvl % 100 === 0) {
+        // Every 100 levels: Legendary Knife / Gloves
+        const tierIdx = lvl / 100;
+        const knifeNames = [
+          '★ Керамбит | Волны Рубин',
+          '★ Штык-нож M9 | Кровавая паутина',
+          '★ Скелетный нож | Градиент',
+          '★ Нож-бабочка | Градиент',
+          '★ Спортивные перчатки | Порок',
+          '★ Водительские перчатки | Снежный барс',
+          '★ Керамбит | Градиент',
+          '★ Спортивные перчатки | Ящик Пандоры',
+          '★ Штык-нож M9 | Волны Сапфир'
+        ];
+        const sName = knifeNames[(tierIdx - 1) % knifeNames.length];
+        const val = 4500 + (lvl * 15);
+        r = {
+          level: lvl,
+          type: 'skin_knife',
+          title: `★ Легендарный Нож (LVL ${lvl})`,
+          skinName: sName,
+          price: val,
+          desc: `${sName} ($${val.toLocaleString()})`,
+          icon: '🗡️'
+        };
+      } else if (lvl % 50 === 0) {
+        // Every 50 levels: Prestige Title + Big Cash Drop
+        const tIdx = Math.floor(lvl / 50) - 1;
+        const titleName = this.TITLES_POOL[tIdx % this.TITLES_POOL.length];
+        const cash = 2500 + (lvl * 15);
+        r = {
+          level: lvl,
+          type: 'title',
+          title: `Титул: «${titleName}»`,
+          titleName,
+          value: cash,
+          desc: `Титул «${titleName}» + $${cash.toLocaleString()} на баланс`,
+          icon: '🎖️'
+        };
+      } else if (lvl % 25 === 0) {
+        // Every 25 levels: Mystery Box
+        r = {
+          level: lvl,
+          type: 'mystery_box',
+          title: '🎁 Секретный бокс Пасса',
+          desc: 'Случайный ценный дроп: редкий скин или крупная денежная выплата',
+          icon: '🎁'
+        };
+      } else if (lvl % 20 === 0) {
+        // Every 20 levels: Market fee reduction
+        const commPct = Math.max(0.5, +(8.0 - (lvl * 0.0075)).toFixed(1));
+        r = {
+          level: lvl,
+          type: 'perk_commission',
+          title: '📉 Снижение комиссии биржи',
+          value: commPct / 100,
+          desc: `Комиссия на бирже навсегда снижена до ${commPct}%`,
+          icon: '📉'
+        };
+      } else if (lvl % 16 === 0) {
+        // Every 16 levels: Bank Loan interest reduction
+        const ratePct = Math.max(0.0, +(10.0 - (lvl * 0.01)).toFixed(1));
+        r = {
+          level: lvl,
+          type: 'perk_loan',
+          title: '🏦 Льготная ставка кредита',
+          value: ratePct / 100,
+          desc: `Ставка кредита в банке снижена до ${ratePct}%`,
+          icon: '🏦'
+        };
+      } else if (lvl % 12 === 0) {
+        // Case Voucher
+        r = {
+          level: lvl,
+          type: 'case_voucher',
+          title: '📦 Ваучер Бесплатного Кейса',
+          desc: '1 бесплатное открытие любого стандартного кейса на сайте',
+          icon: '📦'
+        };
+      } else if (lvl % 10 === 0) {
+        // Upgrade Insurance
+        r = {
+          level: lvl,
+          type: 'insurance_upgrade',
+          title: '🛡️ Страховка Апгрейда',
+          desc: 'Возврат 50% стоимости предметов при неудачной попытке апгрейда',
+          icon: '🛡️'
+        };
+      } else if (lvl % 8 === 0) {
+        // XP Booster
+        r = {
+          level: lvl,
+          type: 'xp_booster',
+          title: '⚡ Pass XP Бустер',
+          value: 0.05,
+          desc: '+5% к получаемому Pass XP от всех игровых действий навсегда',
+          icon: '⚡'
+        };
+      } else if (lvl % 6 === 0) {
+        // Rust skin
+        const rustItems = [
+          { name: 'Toxic Double Sheet Metal Door', basePrice: 150 },
+          { name: 'Retrowave Hunting Bow', basePrice: 165 },
+          { name: 'Dragon AK-47', basePrice: 450 },
+          { name: 'Blackout AK47', basePrice: 620 },
+          { name: 'Tempered MP5', basePrice: 850 },
+          { name: 'Frostbite Metal Facemask', basePrice: 1250 },
+          { name: 'Glory SAR', basePrice: 2200 }
+        ];
+        const it = rustItems[lvl % rustItems.length];
+        const price = Math.round(it.basePrice + (lvl * 3.5));
+        r = {
+          level: lvl,
+          type: 'skin_rust',
+          title: '☢️ Предмет Rust',
+          skinName: it.name,
+          price,
+          desc: `${it.name} ($${price.toLocaleString()})`,
+          icon: '🚪'
+        };
+      } else if (lvl % 4 === 0) {
+        // Dota 2 skin
+        const dotaItems = [
+          { name: 'Belt of the Iron Surge', basePrice: 35 },
+          { name: 'Muh Keen Gun', basePrice: 85 },
+          { name: 'Arms of Desolation', basePrice: 250 },
+          { name: 'Soul Diffuser', basePrice: 350 },
+          { name: 'Vigil Triumph', basePrice: 1500 },
+          { name: 'Kantusa the Script Sword', basePrice: 3500 },
+          { name: 'Feast of Abscession', basePrice: 1200 }
+        ];
+        const it = dotaItems[lvl % dotaItems.length];
+        const price = Math.round(it.basePrice + (lvl * 3));
+        r = {
+          level: lvl,
+          type: 'skin_dota2',
+          title: '🛡️ Immortal / Arcana Dota 2',
+          skinName: it.name,
+          price,
+          desc: `${it.name} ($${price.toLocaleString()})`,
+          icon: '⚔️'
+        };
+      } else if (lvl % 2 === 0) {
+        // CS2 Weapon
+        const csItems = [
+          { name: 'USP-S | Ticket to Hell', basePrice: 20 },
+          { name: 'M4A1-S | Night Terror', basePrice: 120 },
+          { name: 'AK-47 | Slate', basePrice: 180 },
+          { name: 'AWP | Neo-Noir', basePrice: 550 },
+          { name: 'Desert Eagle | Printstream', basePrice: 1850 },
+          { name: 'M4A4 | The Emperor', basePrice: 950 },
+          { name: 'AK-47 | Bloodsport', basePrice: 2800 }
+        ];
+        const it = csItems[lvl % csItems.length];
+        const price = Math.round(it.basePrice + (lvl * 2.5));
+        r = {
+          level: lvl,
+          type: 'skin_cs2',
+          title: '🔫 Оружие CS2',
+          skinName: it.name,
+          price,
+          desc: `${it.name} ($${price.toLocaleString()})`,
+          icon: '🔫'
+        };
+      } else {
+        // Cash Reward (balanced slow progression)
+        const cashVal = Math.round(80 + (lvl * 12) + (Math.pow(lvl, 1.15) * 2));
+        r = {
+          level: lvl,
+          type: 'balance',
+          title: '💵 Денежный бонус',
+          value: cashVal,
+          desc: `+$${cashVal.toLocaleString()} на баланс`,
+          icon: '💵'
+        };
+      }
+
+      list.push(r);
+    }
+
+    this.rewardsCache = list;
+    return list;
   }
 
   getUserPassData() {
@@ -82,11 +257,14 @@ class SimupPassController {
     const user = window.authManager?.currentUser;
     if (!user) return;
     const pass = this.getUserPassData();
-    pass.xp = (pass.xp || 0) + Math.max(1, Math.round(amount));
 
-    // Check level ups
+    // Apply XP booster if unlocked
+    const boosterMultiplier = 1.0 + (user.passXpBooster || 0);
+    const finalXp = Math.max(1, Math.round(amount * boosterMultiplier));
+    pass.xp = (pass.xp || 0) + finalXp;
+
     let leveledUp = false;
-    while (pass.xp >= this.getXpForLevel(pass.level) && pass.level < 50) {
+    while (pass.xp >= this.getXpForLevel(pass.level) && pass.level < this.MAX_LEVEL) {
       pass.xp -= this.getXpForLevel(pass.level);
       pass.level += 1;
       leveledUp = true;
@@ -104,7 +282,10 @@ class SimupPassController {
 
   claimReward(lvl) {
     const user = window.authManager?.currentUser;
-    if (!user) return;
+    if (!user) {
+      window.notify?.warning('Авторизация', 'Войдите в аккаунт, чтобы забирать награды.');
+      return;
+    }
     const pass = this.getUserPassData();
     if (pass.level < lvl) {
       window.notify?.warning('Уровень недостигнут', `Требуется Уровень ${lvl}. Ваш текущий уровень: ${pass.level}`);
@@ -115,22 +296,23 @@ class SimupPassController {
       return;
     }
 
-    const reward = this.REWARDS.find(r => r.level === lvl);
+    const allRewards = this.getRewards();
+    const reward = allRewards.find(r => r.level === lvl);
     if (!reward) return;
 
     pass.claimed.push(lvl);
 
     if (reward.type === 'balance') {
       user.balance = Number((user.balance + reward.value).toFixed(2));
-      window.notify?.bigWin('Награда получена!', `Зачислено +$${reward.value.toFixed(2)} на баланс!`);
-    } else if (reward.type === 'skin' || reward.type === 'title_skin' || reward.type === 'ultimate') {
+      window.notify?.bigWin('Награда получена!', `Зачислено +$${reward.value.toLocaleString()} на баланс!`);
+    } else if (reward.type === 'skin_cs2' || reward.type === 'skin_knife' || reward.type === 'skin_dota2' || reward.type === 'skin_rust') {
       const allSkins = window.catalogController?.skins || window.SKINS_DATABASE || [];
       const match = allSkins.find(s => s.name && s.name.toLowerCase().includes(reward.skinName.toLowerCase())) || {
         id: `pass_skin_${lvl}`,
         name: reward.skinName,
         price: reward.price,
-        rarity: 'covert',
-        category: 'weapon',
+        rarity: reward.type === 'skin_knife' ? 'contraband' : 'covert',
+        category: reward.type === 'skin_knife' ? 'knife' : 'weapon',
         image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FABz7PLfYQJS5NO0m5O0m_7zO6-fzj9V7Pp8j-3I4IG72ADk-ERkY27zJYfBegc8YVCE-gC8k-e-h5C578-fynRquCl0537cnBCpwUYbQ2T8h_E/360fx360f'
       };
 
@@ -153,7 +335,7 @@ class SimupPassController {
         }
       }
 
-      window.notify?.bigWin('Скин получен!', `Скин ${reward.skinName} ($${reward.price.toFixed(2)}) добавлен в инвентарь!`);
+      window.notify?.bigWin('Скин получен!', `Скин «${reward.skinName}» ($${reward.price.toLocaleString()}) добавлен в ваш инвентарь!`);
     } else if (reward.type === 'title') {
       if (!user.unlockedTitles) user.unlockedTitles = ['Новичок'];
       if (!user.unlockedTitles.includes(reward.titleName)) {
@@ -162,24 +344,65 @@ class SimupPassController {
       if (reward.value) {
         user.balance = Number((user.balance + reward.value).toFixed(2));
       }
-      window.notify?.bigWin('Титул открыт! 🎖️', `Вы открыли титул «${reward.titleName}» и получили +$${(reward.value || 0).toFixed(2)}!`);
+      window.notify?.bigWin('Титул открыт! 🎖️', `Вы открыли титул «${reward.titleName}» и получили +$${reward.value.toLocaleString()}!`);
     } else if (reward.type === 'perk_commission') {
       if (window.economyManager) window.economyManager.MARKET_COMMISSION = reward.value;
       window.notify?.bigWin('Перк активирован!', reward.desc);
     } else if (reward.type === 'perk_loan') {
       if (window.economyManager) window.economyManager.LOAN_INTEREST_RATE = reward.value;
       window.notify?.bigWin('Перк активирован!', reward.desc);
+    } else if (reward.type === 'xp_booster') {
+      user.passXpBooster = +( (user.passXpBooster || 0) + (reward.value || 0.05) ).toFixed(2);
+      const totalBonus = Math.round(user.passXpBooster * 100);
+      window.notify?.bigWin('Бустер опыта активирован!', `Бонус к начислению Pass XP теперь составляет +${totalBonus}%!`);
+    } else if (reward.type === 'case_voucher') {
+      user.caseVouchers = (user.caseVouchers || 0) + 1;
+      window.notify?.bigWin('Ваучер на кейс! 📦', `Получен бесплатный ваучер на открытие кейса! Всего ваучеров: ${user.caseVouchers}`);
+    } else if (reward.type === 'insurance_upgrade') {
+      user.upgradeInsurance = (user.upgradeInsurance || 0) + 1;
+      window.notify?.bigWin('Страховка получена! 🛡️', `Получена 50% страховка апгрейда! Всего страховок: ${user.upgradeInsurance}`);
+    } else if (reward.type === 'mystery_box') {
+      // 50% chance cash, 50% chance high tier item
+      const isCash = Math.random() < 0.5;
+      if (isCash) {
+        const bonus = Math.round(500 + (lvl * 18));
+        user.balance = Number((user.balance + bonus).toFixed(2));
+        window.notify?.bigWin('Секретный бокс открыт! 🎁', `Вам выпал крупный денежный куш: +$${bonus.toLocaleString()}!`);
+      } else {
+        const allSkins = window.catalogController?.skins || window.SKINS_DATABASE || [];
+        const highTier = allSkins.filter(s => s.price >= 300 && s.price <= 3500);
+        const skin = highTier[Math.floor(Math.random() * highTier.length)] || allSkins[0];
+        const copy = {
+          ...skin,
+          instanceId: `pass_mystery_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          obtainedDate: Date.now()
+        };
+        if (!user.inventory) user.inventory = [];
+        user.inventory.push(copy);
+        window.notify?.bigWin('Секретный бокс открыт! 🎁', `Вам выпал редкий скин: «${skin.name}» ($${skin.price.toLocaleString()})!`);
+      }
     }
 
-    if (reward.type === 'ultimate') {
-      if (window.economyManager) {
-        window.economyManager.MARKET_COMMISSION = 0.0;
-        window.economyManager.LOAN_INTEREST_RATE = 0.0;
-      }
+    if (lvl === 1000 && window.economyManager) {
+      window.economyManager.MARKET_COMMISSION = 0.0;
+      window.economyManager.LOAN_INTEREST_RATE = 0.0;
     }
 
     window.authManager.saveCurrentUser();
     window.updateHeaderUserUI?.(user);
+    this.render();
+  }
+
+  jumpToMyLevel() {
+    const pass = this.getUserPassData();
+    const myTier = Math.min(20, Math.max(1, Math.ceil(pass.level / this.TIER_SIZE)));
+    this.currentTier = myTier;
+    this.render();
+  }
+
+  setTier(tierNum) {
+    const maxTiers = Math.ceil(this.MAX_LEVEL / this.TIER_SIZE);
+    this.currentTier = Math.min(maxTiers, Math.max(1, tierNum));
     this.render();
   }
 
@@ -190,6 +413,7 @@ class SimupPassController {
     const pass = this.getUserPassData();
     const nextXp = this.getXpForLevel(pass.level);
     const pct = Math.min(100, Math.round((pass.xp / nextXp) * 100));
+    const maxTiers = Math.ceil(this.MAX_LEVEL / this.TIER_SIZE);
 
     container.innerHTML = `
       <div style="max-width: 1080px; margin: 0 auto;">
@@ -197,18 +421,18 @@ class SimupPassController {
         <!-- Header Banner -->
         <div style="background: linear-gradient(135deg, rgba(182, 0, 76, 0.28) 0%, rgba(89, 0, 0, 0.15) 100%); border: 1px solid rgba(255, 0, 77, 0.35); border-radius: 20px; padding: 28px; margin-bottom: 24px; position: relative; overflow: hidden;">
           <div style="position: absolute; right: 20px; top: 10px; font-size: 160px; opacity: 0.05; pointer-events: none;">👑</div>
-          <span class="drop-badge-new" style="font-size: 11px; padding: 3px 8px; margin-bottom: 8px; display: inline-block;">СЕЗОН 1: HARDCORE EDITION</span>
-          <h1 style="font-size: 32px; font-weight: 900; color: #fff; margin-bottom: 6px;">SIMUP PASS (50 УРОВНЕЙ)</h1>
-          <p style="font-size: 14px; color: var(--text-dim); max-width: 680px; line-height: 1.5;">
-            Повышайте уровень за ставки, кейсы и выполнение специальных квестов пасса! Получить каждый новый уровень стало намного сложнее. Впереди вас ждут эксклюзивные скины из CS2, Dota 2 и Rust, кредитные льготы и снижение комиссии биржи до 0%!
+          <span class="drop-badge-new" style="font-size: 11px; padding: 3px 8px; margin-bottom: 8px; display: inline-block;">СЕЗОН 1: 1000 УРОВНЕЙ ПРЕСТИЖА</span>
+          <h1 style="font-size: 32px; font-weight: 900; color: #fff; margin-bottom: 6px;">SIMUP PASS (1000 УРОВНЕЙ)</h1>
+          <p style="font-size: 14px; color: var(--text-dim); max-width: 720px; line-height: 1.5;">
+            Грандиозная система прогрессии из 1,000 уровней с 12 разновидностями наград: кэш, ножи и оружие CS2, арканы Dota 2, раритеты Rust, снижения биржевой комиссии до 0%, пожизненные XP бустеры, ваучеры на кейсы и страховки апгрейдов!
           </p>
 
           <!-- Current Level & Progress Bar -->
           <div style="margin-top: 24px; background: rgba(0,0,0,0.5); border-radius: 14px; padding: 18px 22px; border: 1px solid rgba(255,255,255,0.08);">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
               <div style="font-size: 16px; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 10px;">
-                <span style="background: linear-gradient(135deg, #ff004d, #b6004c); color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 900; box-shadow: 0 0 10px rgba(255,0,77,0.5);">LVL ${pass.level} / 50</span>
-                <span>Прогресс до Уровня ${pass.level < 50 ? pass.level + 1 : 'MAX'}</span>
+                <span style="background: linear-gradient(135deg, #ff004d, #b6004c); color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 900; box-shadow: 0 0 10px rgba(255,0,77,0.5);">LVL ${pass.level} / ${this.MAX_LEVEL}</span>
+                <span>Прогресс до Уровня ${pass.level < this.MAX_LEVEL ? pass.level + 1 : 'MAX'}</span>
               </div>
               <div style="font-size: 13.5px; font-weight: 800; color: #ff3366;">
                 ${pass.xp.toLocaleString()} / ${nextXp.toLocaleString()} XP (${pct}%)
@@ -225,12 +449,41 @@ class SimupPassController {
         <!-- Mode Navigation: Levels vs Pass Quests -->
         <div style="display: flex; gap: 10px; margin-bottom: 22px;">
           <button class="game-pill-btn ${this.activeView === 'levels' ? 'active' : ''}" id="btn-pass-view-levels" style="flex: 1; padding: 12px; font-weight: 800; font-size: 13.5px;">
-            👑 Награды уровней (1 — 50)
+            👑 Награды Пасса (1 — 1000)
           </button>
           <button class="game-pill-btn ${this.activeView === 'quests' ? 'active' : ''}" id="btn-pass-view-quests" style="flex: 1; padding: 12px; font-weight: 800; font-size: 13.5px;">
             🎯 Квесты для Пасса (XP Буст)
           </button>
         </div>
+
+        ${this.activeView === 'levels' ? `
+          <!-- Tier Pagination Controls -->
+          <div style="background: rgba(14, 8, 14, 0.85); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button id="btn-pass-prev-tier" class="btn-sm-action" style="padding: 7px 14px; font-size: 12px; font-weight: 800; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; border-radius: 8px; cursor: pointer;" ${this.currentTier <= 1 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>
+                ← Пред. глава
+              </button>
+              <button id="btn-pass-next-tier" class="btn-sm-action" style="padding: 7px 14px; font-size: 12px; font-weight: 800; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; border-radius: 8px; cursor: pointer;" ${this.currentTier >= maxTiers ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>
+                След. глава →
+              </button>
+              <button id="btn-pass-my-tier" class="btn-sm-action" style="padding: 7px 14px; font-size: 12px; font-weight: 800; background: linear-gradient(135deg, #b6004c, #ff004d); border: 1px solid #ff004d; color: #fff; border-radius: 8px; cursor: pointer;">
+                🎯 К моему уровню (LVL ${pass.level})
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; color: var(--text-dim); font-weight: 700;">Глава ${this.currentTier} из ${maxTiers}:</span>
+              <select id="select-pass-tier" style="background: #140d18; border: 1px solid rgba(255,0,77,0.4); color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer;">
+                ${Array.from({ length: maxTiers }, (_, i) => {
+                  const t = i + 1;
+                  const startLvl = (t - 1) * this.TIER_SIZE + 1;
+                  const endLvl = Math.min(this.MAX_LEVEL, t * this.TIER_SIZE);
+                  return `<option value="${t}" ${t === this.currentTier ? 'selected' : ''}>Глава ${t} (Уровни ${startLvl} — ${endLvl})</option>`;
+                }).join('')}
+              </select>
+            </div>
+          </div>
+        ` : ''}
 
         <!-- Dynamic Content Body -->
         <div id="pass-subview-container">
@@ -248,12 +501,36 @@ class SimupPassController {
       this.activeView = 'quests';
       this.render();
     });
+
+    document.getElementById('btn-pass-prev-tier')?.addEventListener('click', () => {
+      if (this.currentTier > 1) {
+        this.currentTier -= 1;
+        this.render();
+      }
+    });
+    document.getElementById('btn-pass-next-tier')?.addEventListener('click', () => {
+      if (this.currentTier < maxTiers) {
+        this.currentTier += 1;
+        this.render();
+      }
+    });
+    document.getElementById('btn-pass-my-tier')?.addEventListener('click', () => {
+      this.jumpToMyLevel();
+    });
+    document.getElementById('select-pass-tier')?.addEventListener('change', (e) => {
+      this.setTier(parseInt(e.target.value, 10));
+    });
   }
 
   renderLevelsView(pass) {
+    const allRewards = this.getRewards();
+    const startIdx = (this.currentTier - 1) * this.TIER_SIZE;
+    const endIdx = Math.min(this.MAX_LEVEL, this.currentTier * this.TIER_SIZE);
+    const tierRewards = allRewards.slice(startIdx, endIdx);
+
     return `
       <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(235px, 1fr)); gap: 14px;">
-        ${this.REWARDS.map(r => {
+        ${tierRewards.map(r => {
           const isUnlocked = pass.level >= r.level;
           const isClaimed = pass.claimed.includes(r.level);
           return `
@@ -269,7 +546,7 @@ class SimupPassController {
               <div>
                 <div style="font-size: 34px; margin-bottom: 8px;">${r.icon}</div>
                 <div style="font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 4px;">${r.title}</div>
-                <div style="font-size: 11.5px; color: var(--text-dim); min-height: 32px; line-height: 1.4;">${r.desc || (r.skinName + ' ($' + r.price.toFixed(2) + ')')}</div>
+                <div style="font-size: 11.5px; color: var(--text-dim); min-height: 32px; line-height: 1.4;">${r.desc}</div>
               </div>
 
               <div style="margin-top: 14px;">

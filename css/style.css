@@ -182,79 +182,39 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
 }
 
 .header-inner {
-  max-width: 1360px;
+  max-width: 1440px;
   width: 100%;
   margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  justify-content: flex-start;
+  gap: 16px;
   min-width: 0;
   flex-wrap: nowrap;
 }
 
-.brand-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.brand-logo-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--accent-color), #004d2c);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  box-shadow: 0 0 20px var(--accent-glow);
-  transform: rotate(-3deg);
-  transition: transform var(--transition-fast);
-}
-
-.brand-section:hover .brand-logo-icon {
-  transform: rotate(6deg) scale(1.08);
-}
-
-.brand-logo-text {
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  color: #fff;
-  display: flex;
-  align-items: center;
-}
-
-.brand-logo-text span {
-  color: var(--accent-color);
-  text-shadow: 0 0 16px var(--accent-glow);
-}
-
+/* Hide brand logo in top header on PC & mobile (the brand logo is centered right above the wheel in the arena) */
+.brand-section,
+.brand-logo-icon,
+.brand-logo-text,
 .badge-sim {
-  font-size: 10px;
-  text-transform: uppercase;
-  background: rgba(var(--accent-rgb), 0.15);
-  color: var(--accent-color);
-  border: 1px solid rgba(var(--accent-rgb), 0.35);
-  padding: 2px 7px;
-  border-radius: 6px;
-  margin-left: 8px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  display: none !important;
 }
 
-/* NAVIGATION TABS */
+/* NAVIGATION TABS: Shifted to the left */
 .nav-tabs {
   display: flex;
   align-items: center;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-color);
-  padding: 4px;
-  border-radius: var(--radius-md);
-  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  gap: 3px;
+  margin-right: auto;
+}
+
+.desktop-nav-tabs {
+  margin-right: auto;
 }
 
 .nav-tab-btn {
@@ -6107,8 +6067,6 @@ button {
   pointer-events: auto;
 }
 
-.games-nav-dropdown-wrap:hover .games-dropdown-menu,
-.games-dropdown-menu:hover,
 .games-dropdown-menu.active {
   opacity: 1;
   pointer-events: auto;

@@ -114,11 +114,11 @@ class UpgraderEngine {
       isSelected = true;
     }
     try {
-      const mode = localStorage.getItem('simup_last_target_mode');
-      if (mode === 'chance' && this.desiredChance) {
-        this.applyDesiredChance();
-      } else if (mode === 'multiplier' && this.desiredMultiplier) {
+      const mode = localStorage.getItem('simup_last_target_mode') || 'chance';
+      if (mode === 'multiplier' && this.desiredMultiplier) {
         this.applyDesiredMultiplier();
+      } else {
+        this.applyDesiredChance();
       }
     } catch(e) {}
     return isSelected;
@@ -126,21 +126,35 @@ class UpgraderEngine {
 
   clearSelectedItems() {
     this.selectedItems = [];
+    try {
+      const mode = localStorage.getItem('simup_last_target_mode') || 'chance';
+      if (mode === 'multiplier' && this.desiredMultiplier) {
+        this.applyDesiredMultiplier();
+      } else {
+        this.applyDesiredChance();
+      }
+    } catch(e) {}
   }
 
   selectAllItems(items = []) {
     this.selectedItems = [...items];
     try {
-      const mode = localStorage.getItem('simup_last_target_mode');
-      if (mode === 'chance' && this.desiredChance) {
-        this.applyDesiredChance();
-      } else if (mode === 'multiplier' && this.desiredMultiplier) {
+      const mode = localStorage.getItem('simup_last_target_mode') || 'chance';
+      if (mode === 'multiplier' && this.desiredMultiplier) {
         this.applyDesiredMultiplier();
+      } else {
+        this.applyDesiredChance();
       }
     } catch(e) {}
   }
 
   setTargetSkin(skin) {
+    if (!skin) return;
+    const isSacrificed = this.selectedItems.some(it => it.id === skin.id);
+    if (isSacrificed) {
+      if (window.notify) window.notify.warning('Недопустимый скин', 'Целевой скин не может совпадать со скином в ставке!');
+      return;
+    }
     this.targetSkin = skin;
     try {
       if (skin && skin.id) {
@@ -175,15 +189,29 @@ class UpgraderEngine {
     const allSkins = window.catalogController?.skins || window.SKINS_DATABASE || [];
     if (allSkins.length === 0) return null;
 
-    // Formula: targetPrice = (totalBet * (1 - this.houseEdge) * 100) / desiredChance
+    // Exclude sacrificed skins and ensure target skin is an upgrade
+    const sacrificedSkinIds = new Set(this.selectedItems.map(it => it.id));
+    const minTargetPrice = totalBet > 0 ? Math.max(0.1, totalBet * 1.05) : 0.1;
     const desiredPrice = (totalBet * (1 - this.houseEdge) * 100) / this.desiredChance;
-    let closest = allSkins[0];
+
+    let candidates = allSkins.filter(s => typeof s.price === 'number' && s.price >= minTargetPrice && !sacrificedSkinIds.has(s.id));
+    if (candidates.length === 0 && totalBet > 0) {
+      candidates = allSkins.filter(s => typeof s.price === 'number' && s.price > totalBet && !sacrificedSkinIds.has(s.id));
+    }
+    if (candidates.length === 0) {
+      candidates = allSkins.filter(s => typeof s.price === 'number' && !sacrificedSkinIds.has(s.id));
+    }
+    if (candidates.length === 0) {
+      candidates = allSkins;
+    }
+
+    let closest = candidates[0];
     let minDiff = Math.abs(closest.price - desiredPrice);
-    for (let i = 1; i < allSkins.length; i++) {
-      const diff = Math.abs(allSkins[i].price - desiredPrice);
+    for (let i = 1; i < candidates.length; i++) {
+      const diff = Math.abs(candidates[i].price - desiredPrice);
       if (diff < minDiff) {
         minDiff = diff;
-        closest = allSkins[i];
+        closest = candidates[i];
       }
     }
     this.targetSkin = closest;
@@ -196,35 +224,33 @@ class UpgraderEngine {
     const allSkins = window.catalogController?.skins || window.SKINS_DATABASE || [];
     if (allSkins.length === 0) return null;
 
-    if (totalBet > 0) {
-      const desiredPrice = totalBet * this.desiredMultiplier;
-      let closest = allSkins[0];
-      let minDiff = Math.abs(closest.price - desiredPrice);
-      for (let i = 1; i < allSkins.length; i++) {
-        const diff = Math.abs(allSkins[i].price - desiredPrice);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closest = allSkins[i];
-        }
-      }
-      this.targetSkin = closest;
-      return closest;
-    } else {
-      // If bet is 0, pick a representative skin matching base price * mult
-      const sampleBase = 10;
-      const desiredPrice = sampleBase * this.desiredMultiplier;
-      let closest = allSkins[0];
-      let minDiff = Math.abs(closest.price - desiredPrice);
-      for (let i = 1; i < allSkins.length; i++) {
-        const diff = Math.abs(allSkins[i].price - desiredPrice);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closest = allSkins[i];
-        }
-      }
-      this.targetSkin = closest;
-      return closest;
+    const sacrificedSkinIds = new Set(this.selectedItems.map(it => it.id));
+    const effectiveBet = totalBet > 0 ? totalBet : 10;
+    const desiredPrice = effectiveBet * this.desiredMultiplier;
+    const minTargetPrice = totalBet > 0 ? Math.max(0.1, totalBet * 1.05) : 0.1;
+
+    let candidates = allSkins.filter(s => typeof s.price === 'number' && s.price >= minTargetPrice && !sacrificedSkinIds.has(s.id));
+    if (candidates.length === 0 && totalBet > 0) {
+      candidates = allSkins.filter(s => typeof s.price === 'number' && s.price > totalBet && !sacrificedSkinIds.has(s.id));
     }
+    if (candidates.length === 0) {
+      candidates = allSkins.filter(s => typeof s.price === 'number' && !sacrificedSkinIds.has(s.id));
+    }
+    if (candidates.length === 0) {
+      candidates = allSkins;
+    }
+
+    let closest = candidates[0];
+    let minDiff = Math.abs(closest.price - desiredPrice);
+    for (let i = 1; i < candidates.length; i++) {
+      const diff = Math.abs(candidates[i].price - desiredPrice);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = candidates[i];
+      }
+    }
+    this.targetSkin = closest;
+    return closest;
   }
 
   getTotalBetAmount() {

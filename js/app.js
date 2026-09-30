@@ -213,63 +213,50 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   gamesHubCloseBtn?.addEventListener('click', closeGamesHub);
-  document.getElementById('btn-desktop-games-hub')?.addEventListener('click', (e) => {
+  const btnDesktopGamesHub = document.getElementById('btn-desktop-games-hub');
+  const gamesDropdownMenu = document.getElementById('games-dropdown-menu');
+
+  // Toggle mini-games dropdown on CLICK (not hover)
+  btnDesktopGamesHub?.addEventListener('click', (e) => {
+    e.stopPropagation();
     if (window.innerWidth <= 960) {
-      e.stopPropagation();
       openGamesHub();
+    } else {
+      gamesDropdownMenu?.classList.toggle('active');
     }
   });
   document.getElementById('btn-mobile-games-hub')?.addEventListener('click', openGamesHub);
 
-  // Direct click / touch handlers for games hub cards and dropdown items (100% reliable on mobile & desktop)
+  // Direct click handlers for games hub cards and dropdown items (standard click only, no accidental touchend on swipe)
   document.querySelectorAll('.games-hub-card, .games-drop-item').forEach(card => {
-    const handleGameSelect = (e) => {
+    card.addEventListener('click', (e) => {
+      e.preventDefault();
       const tabId = card.getAttribute('data-tab');
       if (tabId) {
-        e.preventDefault();
         window.SoundManager?.playClick();
         closeGamesHub();
-        document.getElementById('games-dropdown-menu')?.classList.remove('active');
+        gamesDropdownMenu?.classList.remove('active');
         switchTab(tabId);
       }
-    };
-    card.addEventListener('click', handleGameSelect);
-    card.addEventListener('touchend', handleGameSelect, { passive: false });
+    });
   });
 
   // Delegated clicks for all navigation items including dropdown and hub
   document.addEventListener('click', (e) => {
+    // Close desktop games dropdown if clicked outside
+    if (!e.target.closest('.games-nav-dropdown-wrap')) {
+      gamesDropdownMenu?.classList.remove('active');
+    }
+
     const target = e.target.closest('[data-tab]');
     if (!target) return;
     const tabId = target.dataset.tab;
     if (tabId) {
       closeGamesHub();
-      document.getElementById('games-dropdown-menu')?.classList.remove('active');
+      gamesDropdownMenu?.classList.remove('active');
       switchTab(tabId);
     }
   });
-
-  // Smooth hover with grace period for mini-games dropdown (prevents closing when cursor moves down)
-  const gamesNavWrap = document.querySelector('.games-nav-dropdown-wrap');
-  const gamesDropdownMenu = document.getElementById('games-dropdown-menu');
-  let dropdownGraceTimer = null;
-
-  if (gamesNavWrap && gamesDropdownMenu) {
-    const showDropdown = () => {
-      if (dropdownGraceTimer) clearTimeout(dropdownGraceTimer);
-      gamesDropdownMenu.classList.add('active');
-    };
-    const hideDropdown = () => {
-      dropdownGraceTimer = setTimeout(() => {
-        gamesDropdownMenu.classList.remove('active');
-      }, 350); // 350ms grace timeout
-    };
-
-    gamesNavWrap.addEventListener('mouseenter', showDropdown);
-    gamesNavWrap.addEventListener('mouseleave', hideDropdown);
-    gamesDropdownMenu.addEventListener('mouseenter', showDropdown);
-    gamesDropdownMenu.addEventListener('mouseleave', hideDropdown);
-  }
 
   // Desktop Nav horizontal scroll support (chevrons + mouse wheel)
   const desktopNavScroller = document.getElementById('desktop-nav-scroller');

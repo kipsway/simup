@@ -61,9 +61,12 @@ class CatalogController {
 
   getFilteredSkins() {
     let result = this.skins.filter(item => {
-      // Game filter
-      if (this.selectedGame !== 'all' && item.game !== this.selectedGame) {
-        return false;
+      // Game filter (CS2, Dota 2, Rust)
+      if (this.selectedGame !== 'all') {
+        const isDota = (this.selectedGame === 'dota2' || this.selectedGame === 'dota') && (item.game === 'dota2' || item.game === 'dota');
+        if (item.game !== this.selectedGame && !isDota) {
+          return false;
+        }
       }
       // Rarity filter
       if (this.selectedRarity !== 'all' && item.rarity !== this.selectedRarity) {

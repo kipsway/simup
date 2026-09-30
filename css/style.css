@@ -6222,3 +6222,208 @@ button {
   }
 }
 
+/* ==========================================================================
+   PLAY2GO MINIMALIST LUXURY DESIGN SYSTEM (CORE OVERHAUL)
+   Obsidian & Dark Cherry, Zero Tab Scroll on PC, Proportional Centering, Smooth Animations
+   ========================================================================== */
+
+/* 1. Play2Go Atmospheric Background & Typography */
+body {
+  background-color: #060207 !important;
+  background-image: 
+    radial-gradient(circle at 50% -8%, rgba(255, 0, 77, 0.16) 0%, transparent 60%),
+    radial-gradient(circle at 90% 30%, rgba(182, 0, 76, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 10% 70%, rgba(89, 0, 0, 0.09) 0%, transparent 50%) !important;
+  background-attachment: fixed !important;
+  color: #ffffff !important;
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+/* 2. PC Navigation Tabs: Zero Horizontal Scroll on PC */
+@media (min-width: 961px) {
+  .desktop-nav-tabs,
+  .nav-tabs.desktop-nav-tabs {
+    overflow: visible !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    max-width: 100% !important;
+    flex-shrink: 0 !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border-radius: 999px !important;
+    padding: 3px 6px !important;
+    gap: 4px !important;
+  }
+
+  .desktop-nav-tabs::-webkit-scrollbar,
+  .nav-tabs.desktop-nav-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+}
+
+/* 3. Proportional Centering & Symmetrical Alignments */
+button,
+.btn-action,
+.game-pill-btn,
+.nav-tab-btn,
+.bet-chip,
+.btn-speed-pill,
+.btn-turbo-pill,
+.btn-upgrade-fire,
+.btn-chance-chip,
+.btn-mult-chip,
+.btn-sm-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  user-select: none !important;
+}
+
+/* 4. Smooth Tactile Micro-Animations on ALL Clicks and Hover */
+button,
+a,
+.nav-tab-btn,
+.game-pill-btn,
+.case-card,
+.skin-card,
+.bet-chip,
+.btn-speed-pill,
+.btn-turbo-pill,
+.btn-upgrade-fire,
+.btn-chance-chip,
+.btn-mult-chip,
+.theme-card-option,
+.games-drop-item {
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease,
+              background 0.2s ease,
+              border-color 0.2s ease,
+              color 0.2s ease,
+              filter 0.2s ease !important;
+}
+
+button:hover,
+.nav-tab-btn:hover,
+.game-pill-btn:hover,
+.bet-chip:hover,
+.btn-speed-pill:hover,
+.btn-chance-chip:hover,
+.btn-mult-chip:hover,
+.btn-turbo-pill:hover {
+  transform: translateY(-2px) !important;
+  filter: brightness(1.12) !important;
+}
+
+button:active,
+.nav-tab-btn:active,
+.game-pill-btn:active,
+.bet-chip:active,
+.btn-speed-pill:active,
+.btn-chance-chip:active,
+.btn-mult-chip:active,
+.btn-turbo-pill:active,
+.btn-upgrade-fire:active,
+.case-card:active,
+.skin-card:active {
+  transform: scale(0.96) !important;
+  filter: brightness(0.92) !important;
+}
+
+/* 5. Play2Go Cards & Panels Aesthetics */
+.upgrader-panel-box,
+.games-hub-modal-content,
+.modal-content,
+.profile-card-wrap {
+  background: rgba(14, 7, 15, 0.88) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.7) !important;
+}
+
+.upgrader-panel-box:hover {
+  border-color: rgba(255, 0, 77, 0.3) !important;
+  box-shadow: 0 20px 50px -10px rgba(255, 0, 77, 0.15) !important;
+}
+
+/* 6. Wheel Center Perfectly Centered */
+.upgrader-wheel-box {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 12px auto !important;
+}
+
+.wheel-center-display {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  pointer-events: none !important;
+  width: 140px !important;
+  height: 140px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, rgba(16, 8, 17, 0.96) 0%, rgba(6, 2, 7, 0.88) 100%) !important;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* 7. Primary Upgrade Button (Glowing Ruby Cherry) */
+.btn-upgrade-fire {
+  background: linear-gradient(135deg, #ff004d 0%, #b6004c 50%, #590000 100%) !important;
+  border: 1px solid #ff2e5b !important;
+  border-radius: 14px !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 8px 30px rgba(255, 0, 77, 0.45) !important;
+  padding: 15px 24px !important;
+  gap: 10px !important;
+}
+
+.btn-upgrade-fire:hover:not(:disabled) {
+  box-shadow: 0 12px 38px rgba(255, 0, 77, 0.65) !important;
+  transform: translateY(-2px) !important;
+}
+
+.btn-upgrade-fire:active:not(:disabled) {
+  transform: scale(0.96) !important;
+  box-shadow: 0 4px 16px rgba(255, 0, 77, 0.5) !important;
+}
+
+/* 8. Active navigation tab pill */
+.nav-tab-btn.active {
+  background: linear-gradient(135deg, #ff004d 0%, #b6004c 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 18px rgba(255, 0, 77, 0.45) !important;
+  font-weight: 800 !important;
+}
+
+/* 9. Theme Swatches Accuracy */
+.theme-card-option[data-theme="cherry"] .theme-swatch {
+  background: #ff004d !important;
+  box-shadow: 0 0 12px rgba(255, 0, 77, 0.6) !important;
+}
+
+.theme-card-option[data-theme="emerald"] .theme-swatch {
+  background: #00ff88 !important;
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.6) !important;
+}
+
+

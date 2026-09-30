@@ -63,7 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
     'arrow-classic': '🔺 Классик'
   };
 
-  const savedTheme = localStorage.getItem('simup_theme') || 'emerald';
+  let savedTheme = localStorage.getItem('simup_theme');
+  if (!savedTheme || savedTheme === 'emerald') {
+    savedTheme = 'cherry';
+    localStorage.setItem('simup_theme', 'cherry');
+  }
   const savedArrow = localStorage.getItem('simup_arrow_style') || 'arrow-laser';
   const savedWheelStyle = localStorage.getItem('simup_wheel_style') || 'wheel-style-dark';
 
@@ -325,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (authModalSubtitle) authModalSubtitle.textContent = 'Введите ваш никнейм и пароль для продолжения';
       if (authSubmitBtn) authSubmitBtn.textContent = 'Войти в аккаунт';
       if (authToggleHint) {
-        authToggleHint.innerHTML = 'Впервые на сайте? <a href="#" id="auth-link-switch" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Зарегистрироваться (+ $500)</a>';
+        authToggleHint.innerHTML = 'Впервые на сайте? <a href="#" id="auth-link-switch" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Зарегистрироваться (+ $5,000)</a>';
         document.getElementById('auth-link-switch')?.addEventListener('click', (e) => {
           e.preventDefault();
           setAuthMode('register');
@@ -353,7 +357,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('simup_has_authenticated', '1');
         modalAuth.classList.remove('active');
         authForm.reset();
-        window.notify.bigWin('Добро пожаловать!', `Аккаунт ${res.user.username} создан! Стартовый бонус $500.00 и скин зачислены.`);
+        const bonusMsg = res.bonusGot ? 'Стартовый подарок $5,000.00 по ссылке друга зачислен!' : 'Аккаунт успешно создан!';
+        window.notify.bigWin('Добро пожаловать!', `Аккаунт ${res.user.username} создан! ${bonusMsg}`);
       } else {
         window.notify.error('Ошибка регистрации', res.error);
       }
@@ -376,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const refParam = urlParams.get('ref');
     if (refParam) {
       localStorage.setItem('simup_ref_code', refParam);
-      window.notify?.info('🤝 Приглашение', `Вас пригласил игрок ${refParam}! Зарегистрируйтесь и получите стартовый бонус +$100.00!`);
+      window.notify?.info('🤝 Приглашение', `Вас пригласил игрок ${refParam}! Зарегистрируйтесь и получите стартовый подарок +$5,000.00!`);
     }
 
     const cur = window.authManager?.currentUser;
@@ -880,10 +885,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="background: rgba(255, 0, 77, 0.05); border: 1px solid rgba(255, 0, 77, 0.25); border-radius: var(--radius-md); padding: 18px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
               <span style="font-weight: 800; color: #fff; font-size: 14px;">🤝 Реферальная система</span>
-              <span style="font-size: 11px; font-weight: 700; color: var(--accent-color); background: rgba(255,0,77,0.15); padding: 2px 8px; border-radius: 999px;">+$100 другу / +$50 вам</span>
+              <span style="font-size: 11px; font-weight: 700; color: var(--accent-color); background: rgba(255,0,77,0.15); padding: 2px 8px; border-radius: 999px;">+$5,000 другу / +$2,500 вам</span>
             </div>
             <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">
-              Поделитесь ссылкой с другом! При регистрации он получит <strong>+$100.00</strong> бонуса, а вы — <strong>+$50.00</strong> на баланс!
+              Поделитесь ссылкой с другом! При регистрации он получит <strong>+$5,000.00</strong> бонуса, а вы — <strong>+$2,500.00</strong> на баланс!
             </p>
             <div style="display: flex; gap: 6px; margin-bottom: 10px;">
               <input type="text" id="ref-link-input" readonly value="${window.location.origin}${window.location.pathname}?ref=${user.username}" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; padding: 6px 10px; font-size: 11.5px; outline: none;">
@@ -1406,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const res = window.authManager.redeemReferralCode(codeInput.value.trim());
       if (res.success) {
-        window.notify?.bigWin('Код активирован! 🎉', `Вам начислен бонус +$${res.bonus}.00 от игрока ${res.referrer}!`);
+        window.notify?.bigWin('Код активирован! 🎉', `Вам начислен стартовый подарок +$${res.bonus.toLocaleString()}.00 от игрока ${res.referrer}!`);
         renderProfilePage();
       } else {
         window.notify?.error('Ошибка кода', res.error);
@@ -1711,11 +1716,22 @@ document.addEventListener('DOMContentLoaded', () => {
       btnFireUpgrade.disabled = (selectedCount === 0 || !target || window.upgraderEngine.isSpinning);
     }
 
-    if (wheelChanceVal) wheelChanceVal.textContent = `${chance.toFixed(2)}%`;
-    if (wheelMultVal) wheelMultVal.textContent = multiplier > 0 ? `${multiplier.toFixed(2)}x` : '0.00x';
+    const isMystery = window.upgraderEngine.isMysteryMode;
+
+    if (wheelChanceVal) wheelChanceVal.textContent = isMystery ? '??? %' : `${chance.toFixed(2)}%`;
+    if (wheelMultVal) wheelMultVal.textContent = isMystery ? '??? x' : (multiplier > 0 ? `${multiplier.toFixed(2)}x` : '0.00x');
 
     // Target skin showcase
-    if (target) {
+    if (isMystery) {
+      if (targetSkinImg) {
+        targetSkinImg.src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="18" fill="#140816" stroke="#ff004d" stroke-width="2.5"/><text x="50" y="66" font-size="48" font-weight="900" fill="#ff004d" text-anchor="middle" font-family="sans-serif">?</text></svg>');
+      }
+      if (targetSkinName) targetSkinName.textContent = '🎲 Таинственный скин (Секретный x)';
+      if (targetSkinPrice) targetSkinPrice.textContent = '??? $';
+      if (targetWinPayoutVal) targetWinPayoutVal.textContent = '??? $ (Секретный выигрыш)';
+      if (targetGlowBack) targetGlowBack.style.setProperty('--target-clr', '#ff004d');
+      if (inputCustomMultiplier) inputCustomMultiplier.value = '???';
+    } else if (target) {
       if (targetSkinImg) {
         targetSkinImg.src = target.image || target.fallbackSvg || '';
         targetSkinImg.alt = target.name;
@@ -1729,7 +1745,7 @@ document.addEventListener('DOMContentLoaded', () => {
         targetSkinName.textContent = `${target.name} ${target.wear && target.wear !== 'STANDARD' ? `(${target.wear})` : ''}`;
       }
       if (targetSkinPrice) targetSkinPrice.textContent = `$${target.price.toFixed(2)}`;
-      if (targetGlowBack) targetGlowBack.style.setProperty('--target-clr', target.rarityColor || '#00ff88');
+      if (targetGlowBack) targetGlowBack.style.setProperty('--target-clr', target.rarityColor || '#ff004d');
 
       if (targetWinPayoutVal) {
         const profit = Math.max(0, target.price - totalBet);
@@ -1913,19 +1929,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.notify.info('Стиль стрелки', `Установлен стиль: ${ARROW_NAMES_MAP[nextStyle]}`);
   });
 
-  // Random Upgrade button
+  // Random Upgrade button (Mystery Mode: hidden multiplier until after the spin!)
   const btnRandomUpgrade = document.getElementById('btn-random-upgrade');
   btnRandomUpgrade?.addEventListener('click', () => {
     window.SoundManager?.playClick();
-    const mult = window.upgraderEngine.rollRandomUpgrade();
-    if (inputCustomMultiplier) inputCustomMultiplier.value = mult;
+    window.upgraderEngine.rollRandomUpgrade();
     updateUpgraderUI();
-    const matched = window.upgraderEngine.targetSkin;
-    if (matched) {
-      window.notify.info('🎲 Рандомный апгрейд!', `Выпал множитель ${mult}x! Цель: ${matched.name} ($${matched.price.toFixed(2)})`);
-    } else {
-      window.notify.info('🎲 Рандомный апгрейд', `Выпал множитель ${mult}x!`);
-    }
+    window.notify.info('🎲 Таинственный икс активирован!', 'Множитель и скин засекречены (???x)! Крутите колесо, результат раскроется только после остановки стрелки!');
   });
 
   // Quick Chance chips
@@ -2004,7 +2014,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const term = searchTerm.trim().toLowerCase();
 
     const filtered = all.filter(s => {
-      const matchGame = (gameFilter === 'all' || s.game === gameFilter);
+      const matchGame = (gameFilter === 'all' || s.game === gameFilter || ((gameFilter === 'dota2' || gameFilter === 'dota') && (s.game === 'dota2' || s.game === 'dota')));
       const matchName = !term || (s.name && s.name.toLowerCase().includes(term)) || (s.nameEn && s.nameEn.toLowerCase().includes(term));
       return matchGame && matchName;
     });
@@ -2774,7 +2784,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =========================================================================
-  // SPEED MODE CONTROLLER (Fast 1.2s, Standard 2.8s, Slow 5.0s)
+  // SPEED MODE CONTROLLER (Fast 1.2s, Standard 3.5s, Slow 7.6s)
   // =========================================================================
   const speedPills = document.querySelectorAll('.btn-speed-pill');
   const currentSpeed = window.upgraderEngine?.speedMode || 'normal';
@@ -2794,7 +2804,7 @@ document.addEventListener('DOMContentLoaded', () => {
         b.style.background = match ? 'var(--accent-color)' : 'transparent';
         b.style.color = match ? '#fff' : 'var(--text-dim)';
       });
-      const names = { fast: 'Быстрая (1.2 сек)', normal: 'Стандартная (2.8 сек)', slow: 'Медленная (5.0 сек)' };
+      const names = { fast: 'Быстрая (1.2 сек)', normal: 'Стандартная (3.5 сек)', slow: 'Медленная (7.6 сек)' };
       window.notify.info('Скорость вращения', `Выбран режим: ${names[speed] || speed}`);
     });
   });

@@ -331,15 +331,15 @@ class AuthManager {
     if (effectiveRef) {
       const referrer = users.find(u => u.username && (u.username.toLowerCase() === effectiveRef.toLowerCase() || (u.referralCode && u.referralCode.toLowerCase() === effectiveRef.toLowerCase())));
       if (referrer && referrer.username.toLowerCase() !== cleanNick.toLowerCase()) {
-        initialBalance = 50.00; // Starter friend gift
+        initialBalance = 5000.00; // Starter friend gift ($5,000)
         referredBy = referrer.username;
-        // Credit inviter +$50.00 bonus
-        referrer.balance = Number(((referrer.balance || 0) + 50.00).toFixed(2));
+        // Credit inviter +$2,500.00 bonus
+        referrer.balance = Number(((referrer.balance || 0) + 2500.00).toFixed(2));
         if (!referrer.referrals) referrer.referrals = { count: 0, totalBonus: 0, referredUsers: [] };
         referrer.referrals.count = (referrer.referrals.count || 0) + 1;
-        referrer.referrals.totalBonus = Number(((referrer.referrals.totalBonus || 0) + 50.00).toFixed(2));
+        referrer.referrals.totalBonus = Number(((referrer.referrals.totalBonus || 0) + 2500.00).toFixed(2));
         if (!referrer.referrals.referredUsers) referrer.referrals.referredUsers = [];
-        referrer.referrals.referredUsers.push({ username: cleanNick, date: Date.now(), bonus: 50.00 });
+        referrer.referrals.referredUsers.push({ username: cleanNick, date: Date.now(), bonus: 2500.00 });
       }
     }
 
@@ -551,14 +551,14 @@ class AuthManager {
     }
 
     user.referredBy = referrer.username;
-    user.balance = Number((user.balance + 100.00).toFixed(2));
+    user.balance = Number((user.balance + 5000.00).toFixed(2));
 
-    referrer.balance = Number(((referrer.balance || 0) + 50.00).toFixed(2));
+    referrer.balance = Number(((referrer.balance || 0) + 2500.00).toFixed(2));
     if (!referrer.referrals) referrer.referrals = { count: 0, totalBonus: 0, referredUsers: [] };
     referrer.referrals.count = (referrer.referrals.count || 0) + 1;
-    referrer.referrals.totalBonus = Number(((referrer.referrals.totalBonus || 0) + 50.00).toFixed(2));
+    referrer.referrals.totalBonus = Number(((referrer.referrals.totalBonus || 0) + 2500.00).toFixed(2));
     if (!referrer.referrals.referredUsers) referrer.referrals.referredUsers = [];
-    referrer.referrals.referredUsers.push({ username: user.username, date: Date.now(), bonus: 50.00 });
+    referrer.referrals.referredUsers.push({ username: user.username, date: Date.now(), bonus: 2500.00 });
 
     this.saveUsers(users);
     this.saveCurrentUser();
@@ -566,7 +566,7 @@ class AuthManager {
 
     window.SoundManager?.playWin?.();
     if (window.confettiEffect) window.confettiEffect();
-    return { success: true, bonus: 100, referrer: referrer.username };
+    return { success: true, bonus: 5000, referrer: referrer.username };
   }
 
   async login(username, password) {

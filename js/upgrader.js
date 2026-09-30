@@ -9,10 +9,14 @@ class UpgraderEngine {
     this.houseEdge = 0.05; // 5% esports edge (~95% RTP, higher win rate)
     this.sectorOffset = 0; // rotation angle of sector
     this.isSpinning = false;
-    this.speedMode = 'normal'; // 'fast' (1.2s), 'normal' (2.8s), 'slow' (5.0s)
+    this.speedMode = 'normal'; // 'fast' (1.2s), 'normal' (3.5s), 'slow' (7.6s)
     try {
       this.speedMode = localStorage.getItem('simup_spin_speed') || 'normal';
     } catch(e) {}
+
+    // Mystery random multiplier state (revealed ONLY after spin completes)
+    this.isMysteryMode = false;
+    this.mysteryMultiplier = null;
 
     // Bet configuration: SKINS ONLY
     this.selectedItems = []; // items from inventory sacrificed for upgrade
@@ -78,7 +82,8 @@ class UpgraderEngine {
   }
 
   rollRandomUpgrade() {
-    // Generate any multiplier from 1.1x up to 1000x!
+    // Mystery Mode: User does NOT see the multiplier until after the spin!
+    this.isMysteryMode = true;
     const r = Math.random();
     let mult;
     if (r < 0.35) {
@@ -92,7 +97,9 @@ class UpgraderEngine {
     } else {
       mult = +(200 + Math.random() * 800).toFixed(0); // 200x - 1000x!
     }
-    this.setDesiredMultiplier(mult);
+    this.mysteryMultiplier = mult;
+    this.desiredMultiplier = mult;
+    this.applyDesiredMultiplier();
     return mult;
   }
 
@@ -373,14 +380,14 @@ class UpgraderEngine {
     const forwardDist = (targetModDeg - curMod + 360) % 360;
 
     // STRICT constant speed mode (independent of chance!):
-    let durationMs = 2800;
+    let durationMs = 3500;
     let baseSpins = 6;
     if (this.speedMode === 'fast') {
       durationMs = 1200;
       baseSpins = 3;
     } else if (this.speedMode === 'slow') {
-      durationMs = 5000;
-      baseSpins = 10;
+      durationMs = 7600;
+      baseSpins = 12;
     }
 
     const totalDelta = baseSpins * 360 + (forwardDist === 0 ? 360 : forwardDist);
@@ -452,6 +459,11 @@ class UpgraderEngine {
     const user = window.authManager.currentUser;
     if (!user) return;
 
+    const wasMystery = this.isMysteryMode;
+    const revealedMult = this.mysteryMultiplier || multiplier;
+    this.isMysteryMode = false;
+    this.mysteryMultiplier = null;
+
     if (isWin) {
       user.stats.wonUpgrades = (user.stats.wonUpgrades || 0) + 1;
       user.stats.netProfit = Number(((user.stats.netProfit || 0) + (targetSkin.price - totalBet)).toFixed(2));
@@ -494,10 +506,17 @@ class UpgraderEngine {
         window.SoundManager?.playWin();
       }
 
-      window.notify.bigWin(
-        'ПОБЕДА В АПГРЕЙДЕ! 🗡️★',
-        `Вы выиграли ${targetSkin.name} ($${targetSkin.price.toFixed(2)}) с шансом ${chance}% (Roll: ${roll})!`
-      );
+      if (wasMystery) {
+        window.notify.bigWin(
+          '🎲 ТАЙНА РАСКРЫТА: ПОБЕДА! ★',
+          `Секретный множитель был ${revealedMult}x! Вы выиграли ${targetSkin.name} ($${targetSkin.price.toFixed(2)})!`
+        );
+      } else {
+        window.notify.bigWin(
+          'ПОБЕДА В АПГРЕЙДЕ! 🗡️★',
+          `Вы выиграли ${targetSkin.name} ($${targetSkin.price.toFixed(2)}) с шансом ${chance}% (Roll: ${roll})!`
+        );
+      }
 
       // Auto-repay bank debt from win profit
       const profit = Math.max(0, targetSkin.price - totalBet);
@@ -509,10 +528,17 @@ class UpgraderEngine {
       user.stats.netProfit = Number(((user.stats.netProfit || 0) - totalBet).toFixed(2));
       window.SoundManager?.playDefeat();
 
-      window.notify.error(
-        'Апгрейд не удался',
-        `Стрелка выпала на ${roll} (Шанс был ${chance}%). Попробуйте снова!`
-      );
+      if (wasMystery) {
+        window.notify.error(
+          '🎲 Тайна раскрыта',
+          `Секретный множитель был ${revealedMult}x (Roll: ${roll}). Попробуйте снова!`
+        );
+      } else {
+        window.notify.error(
+          'Апгрейд не удался',
+          `Стрелка выпала на ${roll} (Шанс был ${chance}%). Попробуйте снова!`
+        );
+      }
     }
 
     // Save round to history

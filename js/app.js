@@ -4533,7 +4533,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const tabSyncImportBtn = document.getElementById('tab-sync-import-btn');
   const panelSyncExport = document.getElementById('panel-sync-export');
   const panelSyncImport = document.getElementById('panel-sync-import');
+  const syncQrCanvas = document.getElementById('sync-qr-canvas');
   const syncQrImage = document.getElementById('sync-qr-image');
+  const syncQrContainer = document.getElementById('sync-qr-container');
   const syncExportKeyInput = document.getElementById('sync-export-key-input');
   const btnCopySyncKey = document.getElementById('btn-copy-sync-key');
   const syncImportKeyInput = document.getElementById('sync-import-key-input');
@@ -4546,9 +4548,52 @@ document.addEventListener('DOMContentLoaded', () => {
     if (syncExportKeyInput) syncExportKeyInput.value = token;
     
     // Construct QR code URL with direct sync link
-    const syncUrl = `${window.location.origin}${window.location.pathname}#sync=${token}`;
-    if (syncQrImage) {
-      syncQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(syncUrl)}`;
+    let baseUrl = window.location.origin + window.location.pathname;
+    if (!baseUrl || baseUrl === 'null' || window.location.protocol === 'file:') {
+      baseUrl = 'https://simup.app/';
+    }
+    const syncUrl = `${baseUrl}#sync=${token}`;
+
+    try {
+      if (window.QRCode && syncQrCanvas) {
+        window.QRCode.toCanvas(syncQrCanvas, syncUrl, {
+          size: 180,
+          margin: 2,
+          colorDark: '#0b1120',
+          colorLight: '#ffffff'
+        });
+        syncQrCanvas.style.display = 'block';
+        if (syncQrImage) {
+          syncQrImage.style.display = 'none';
+          try {
+            syncQrImage.src = syncQrCanvas.toDataURL('image/png');
+          } catch (e) {}
+        }
+      } else if (window.QRCode && syncQrContainer) {
+        syncQrContainer.innerHTML = window.QRCode.toSVG(syncUrl, {
+          size: 180,
+          margin: 2,
+          colorDark: '#0b1120',
+          colorLight: '#ffffff'
+        });
+      } else if (syncQrImage) {
+        syncQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(syncUrl)}`;
+        syncQrImage.style.display = 'block';
+        if (syncQrCanvas) syncQrCanvas.style.display = 'none';
+      }
+    } catch (err) {
+      console.warn('QRCode local rendering failed, falling back to SVG/remote:', err);
+      if (window.QRCode && syncQrContainer) {
+        try {
+          syncQrContainer.innerHTML = window.QRCode.toSVG(syncUrl, { size: 180, margin: 2 });
+          return;
+        } catch (e2) {}
+      }
+      if (syncQrImage) {
+        syncQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(syncUrl)}`;
+        syncQrImage.style.display = 'block';
+        if (syncQrCanvas) syncQrCanvas.style.display = 'none';
+      }
     }
   }
 

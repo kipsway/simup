@@ -94,6 +94,65 @@ function utf8ToBytesString(str) {
   return unescape(encodeURIComponent(str));
 }
 
+const B64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+function btoaFallback(input) {
+  let str = String(input);
+  let output = '';
+  for (let block = 0, charCode, idx = 0, map = B64_CHARS;
+    str.charAt(idx | 0) || (map = '=', idx % 1);
+    output += map.charAt(63 & block >> 8 - idx % 1 * 8)) {
+    charCode = str.charCodeAt(idx += 3/4);
+    if (charCode > 0xFF) return '';
+    block = block << 8 | charCode;
+  }
+  return output;
+}
+function atobFallback(input) {
+  let str = String(input).replace(/[=]+$/, '');
+  if (str.length % 4 === 1) return '';
+  let output = '';
+  for (let bc = 0, bs, buffer, idx = 0;
+    buffer = str.charAt(idx++);
+    ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
+      bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
+  ) {
+    buffer = B64_CHARS.indexOf(buffer);
+  }
+  return output;
+}
+
+function safeUtf8ToBase64(str) {
+  try {
+    const _btoa = (typeof btoa === 'function') ? btoa : ((typeof window !== 'undefined' && window.btoa) ? window.btoa : btoaFallback);
+    return _btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+      return String.fromCharCode('0x' + p1);
+    }));
+  } catch (e) {
+    try {
+      const _btoa = (typeof btoa === 'function') ? btoa : ((typeof window !== 'undefined' && window.btoa) ? window.btoa : btoaFallback);
+      return _btoa(unescape(encodeURIComponent(str)));
+    } catch (e2) {
+      return btoaFallback(unescape(encodeURIComponent(str)));
+    }
+  }
+}
+
+function safeBase64ToUtf8(str) {
+  try {
+    const _atob = (typeof atob === 'function') ? atob : ((typeof window !== 'undefined' && window.atob) ? window.atob : atobFallback);
+    return decodeURIComponent(Array.prototype.map.call(_atob(str), function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+  } catch (e1) {
+    try {
+      const _atob = (typeof atob === 'function') ? atob : ((typeof window !== 'undefined' && window.atob) ? window.atob : atobFallback);
+      return decodeURIComponent(_atob(str));
+    } catch (e2) {
+      return atobFallback(str);
+    }
+  }
+}
+
 window.TITLES_LIST = [
   { id: 'novice', name: 'Новичок', desc: 'Стартовый титул для каждого бойца', icon: '🌱' },
   { id: 'upgrade_master', name: 'Мастер Апгрейдов', desc: 'Выиграть 5 апгрейдов на арене', icon: '⚡' },
@@ -672,13 +731,54 @@ class AuthManager {
   exportSyncData() {
     if (!this.currentUser) return null;
     try {
+      const u = this.currentUser;
+      const skinsDb = (typeof window !== 'undefined' && window.SKINS_DATABASE) || [];
+      const compactInv = (u.inventory || []).map(s => {
+        if (!s) return null;
+        if (typeof s === 'string') return s;
+        const dbMatch = skinsDb.find(x => x.id === s.id);
+        if (dbMatch && dbMatch.price === s.price && dbMatch.name === s.name) {
+          return s.id;
+        }
+        return {
+          id: s.id,
+          name: s.name,
+          price: s.price,
+          rarity: s.rarity || 'rare',
+          image: s.image || '',
+          game: s.game || 'cs2'
+        };
+      }).filter(Boolean);
+
+      const compactUser = {
+        id: u.id,
+        un: u.username,
+        pw: u.plainPassword || '',
+        ph: u.passwordHash || '',
+        ps: u.salt || '',
+        b: Number(u.balance || 0),
+        inv: compactInv,
+        ln: u.loans || { currentDebt: 0, totalBorrowed: 0, totalRepaid: 0, autoRepay: true },
+        lvl: u.level || 1,
+        xp: u.xp || 0,
+        eqT: u.equippedTitle || 'Новичок',
+        unT: u.unlockedTitles || ['Новичок'],
+        ach: u.achievements || {},
+        st: u.stats || {},
+        pass: u.pass || { xp: 0, level: 1, claimed: [] },
+        cv: u.caseVouchers || 0,
+        ui: u.upgradeInsurance || 0,
+        xb: u.passXpBooster || 0,
+        hist: (u.history || []).slice(-10)
+      };
+
       const payload = {
-        v: 2,
-        u: this.currentUser,
+        v: 3,
+        u: compactUser,
         ts: Date.now()
       };
       const json = JSON.stringify(payload);
-      return btoa(encodeURIComponent(json));
+      return safeUtf8ToBase64(json);
     } catch (e) {
       console.error('SIMUP Auth: Export sync error', e);
       return null;
@@ -688,13 +788,76 @@ class AuthManager {
   importSyncData(token) {
     if (!token || typeof token !== 'string') return { success: false, error: 'Неверный ключ' };
     try {
-      const cleanToken = token.trim().replace(/^#sync=/, '');
-      const json = decodeURIComponent(atob(cleanToken));
+      let cleanToken = token.trim();
+      if (cleanToken.includes('#sync=')) {
+        cleanToken = cleanToken.split('#sync=')[1];
+      } else if (cleanToken.includes('?sync=')) {
+        cleanToken = cleanToken.split('?sync=')[1];
+      }
+      cleanToken = cleanToken.trim();
+
+      let json = '';
+      try {
+        json = safeBase64ToUtf8(cleanToken);
+      } catch (err) {
+        json = decodeURIComponent(atob(cleanToken));
+      }
       const payload = JSON.parse(json);
-      if (!payload || !payload.u || !payload.u.username) {
+      if (!payload || !payload.u) {
         return { success: false, error: 'Ключ поврежден или не содержит данных аккаунта.' };
       }
-      const user = payload.u;
+
+      let user = null;
+      if (payload.v === 3) {
+        const cu = payload.u;
+        if (!cu.un) {
+          return { success: false, error: 'Неверный формат аккаунта в ключе.' };
+        }
+        const skinsDb = (typeof window !== 'undefined' && window.SKINS_DATABASE) || [];
+        const restoredInv = (cu.inv || []).map(item => {
+          if (!item) return null;
+          if (typeof item === 'string') {
+            const found = skinsDb.find(s => s.id === item);
+            return found ? { ...found } : { id: item, name: item, price: 10, rarity: 'rare', image: '' };
+          }
+          if (typeof item === 'object') {
+            const found = skinsDb.find(s => s.id === item.id);
+            return found ? { ...found, ...item } : item;
+          }
+          return null;
+        }).filter(Boolean);
+
+        user = {
+          id: cu.id || ('usr_' + Date.now()),
+          username: cu.un,
+          plainPassword: cu.pw || '',
+          passwordHash: cu.ph || '',
+          salt: cu.ps || '',
+          balance: Number(cu.b !== undefined ? cu.b : 500.00),
+          inventory: restoredInv,
+          loans: cu.ln || { currentDebt: 0, totalBorrowed: 0, totalRepaid: 0, autoRepay: true },
+          level: cu.lvl || 1,
+          xp: cu.xp || 0,
+          equippedTitle: cu.eqT || 'Новичок',
+          unlockedTitles: cu.unT || ['Новичок'],
+          achievements: cu.ach || {},
+          stats: cu.st || {},
+          pass: cu.pass || { xp: 0, level: 1, claimed: [] },
+          caseVouchers: cu.cv || 0,
+          upgradeInsurance: cu.ui || 0,
+          passXpBooster: cu.xb || 0,
+          history: cu.hist || []
+        };
+      } else {
+        // Legacy format v1/v2
+        user = payload.u;
+        if (!user || !user.username) {
+          return { success: false, error: 'Ключ поврежден или устарел.' };
+        }
+      }
+
+      this.ensureUserIntegrity(user);
+
       const users = this.getAllUsers();
       const existingIdx = users.findIndex(u => u.username && u.username.toLowerCase() === user.username.toLowerCase());
       if (existingIdx !== -1) {

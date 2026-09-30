@@ -1675,11 +1675,15 @@
       <!-- Panel 1: Export (QR + Copy Key) -->
       <div id="panel-sync-export">
         <div style="text-align: center; margin-bottom: 14px;">
-          <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
+          <div style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 6px;">
             Наведите камеру смартфона на QR-код для мгновенного входа:
           </div>
-          <div style="display: inline-block; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.6);">
-            <img id="sync-qr-image" src="" alt="QR-код синхронизации" style="width: 160px; height: 160px; display: block;">
+          <div id="sync-qr-container" style="display: inline-flex; align-items: center; justify-content: center; min-width: 180px; min-height: 180px; background: #ffffff; padding: 12px; border-radius: 14px; box-shadow: 0 4px 25px rgba(0,0,0,0.7); position: relative; margin: 6px auto;">
+            <canvas id="sync-qr-canvas" width="180" height="180" style="display: block; width: 180px; height: 180px; border-radius: 8px;"></canvas>
+            <img id="sync-qr-image" src="" alt="QR-код синхронизации" style="display: none; width: 180px; height: 180px; border-radius: 8px;">
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim); margin-top: 6px;">
+            ⚡ Работает офлайн и без сторонних серверов
           </div>
         </div>
 
@@ -1924,6 +1928,7 @@
   <script src="js/case-battle.js?v=4.5"></script>
   <script src="js/simup-pass.js?v=4.5"></script>
   <script src="js/admin-panel.js?v=4.5"></script>
+  <script src="js/qrcode.js?v=4.5"></script>
   <script src="js/app.js?v=4.5"></script>
   <script>
     if ('serviceWorker' in navigator) {

@@ -81,22 +81,30 @@ class UpgraderEngine {
     }
   }
 
+  clearMysteryMode() {
+    this.isMysteryMode = false;
+    this.mysteryMultiplier = null;
+  }
+
   rollRandomUpgrade() {
-    // Mystery Mode: User does NOT see the multiplier until after the spin!
     this.isMysteryMode = true;
+    const totalBet = this.getTotalBetAmount() || 10;
+    const allSkins = (window.getAllSkinVariants ? window.getAllSkinVariants() : null) || window.SKINS_DATABASE || [];
+    const maxPrice = allSkins.reduce((m, s) => Math.max(m, s.price || 0), 35000);
+    const maxPossibleMult = Math.max(1.5, Math.min(50, +(maxPrice / Math.max(1, totalBet)).toFixed(1)));
+
     const r = Math.random();
     let mult;
-    if (r < 0.35) {
+    if (r < 0.40) {
       mult = +(1.2 + Math.random() * 1.8).toFixed(1); // 1.2x - 3.0x
-    } else if (r < 0.65) {
-      mult = +(3.0 + Math.random() * 7.0).toFixed(1); // 3.0x - 10.0x
-    } else if (r < 0.85) {
-      mult = +(10 + Math.random() * 40).toFixed(0); // 10x - 50x
-    } else if (r < 0.95) {
-      mult = +(50 + Math.random() * 150).toFixed(0); // 50x - 200x
+    } else if (r < 0.70) {
+      mult = +(3.0 + Math.random() * 4.0).toFixed(1); // 3.0x - 7.0x
+    } else if (r < 0.90) {
+      mult = +(7.0 + Math.random() * 8.0).toFixed(1); // 7.0x - 15.0x
     } else {
-      mult = +(200 + Math.random() * 800).toFixed(0); // 200x - 1000x!
+      mult = +(15 + Math.random() * 25).toFixed(0); // 15x - 40x
     }
+    mult = Math.min(mult, maxPossibleMult);
     this.mysteryMultiplier = mult;
     this.desiredMultiplier = mult;
     this.applyDesiredMultiplier();
@@ -150,7 +158,8 @@ class UpgraderEngine {
 
   setTargetSkin(skin) {
     if (!skin) return;
-    const isSacrificed = this.selectedItems.some(it => it.id === skin.id);
+    this.clearMysteryMode();
+    const isSacrificed = this.selectedItems.some(it => (it.skinId || it.id || it.baseId) === skin.id);
     if (isSacrificed) {
       if (window.notify) window.notify.warning('Недопустимый скин', 'Целевой скин не может совпадать со скином в ставке!');
       return;
@@ -165,6 +174,7 @@ class UpgraderEngine {
   }
 
   setDesiredMultiplier(mult) {
+    this.clearMysteryMode();
     this.desiredMultiplier = Number(mult);
     try {
       localStorage.setItem('simup_last_multiplier', String(mult));
@@ -174,6 +184,7 @@ class UpgraderEngine {
   }
 
   setDesiredChance(pct) {
+    this.clearMysteryMode();
     const clamped = Math.min(90.0, Math.max(0.1, Number(pct)));
     this.desiredChance = clamped;
     try {
@@ -186,15 +197,15 @@ class UpgraderEngine {
   applyDesiredChance() {
     if (!this.desiredChance || this.desiredChance <= 0) return null;
     const totalBet = this.getTotalBetAmount() || 10;
-    const allSkins = window.catalogController?.skins || window.SKINS_DATABASE || [];
+    const allSkins = (window.getAllSkinVariants ? window.getAllSkinVariants() : null) || window.catalogController?.skins || window.SKINS_DATABASE || [];
     if (allSkins.length === 0) return null;
 
-    // Exclude sacrificed skins and ensure target skin is an upgrade
-    const sacrificedSkinIds = new Set(this.selectedItems.map(it => it.id));
-    const minTargetPrice = totalBet > 0 ? Math.max(0.1, totalBet * 1.05) : 0.1;
+    // Exclude sacrificed skins strictly by skinId, id, or baseId
+    const sacrificedSkinIds = new Set(this.selectedItems.map(it => it.skinId || it.id || it.baseId));
+    const minTargetPrice = totalBet > 0 ? Math.max(0.1, totalBet * 1.02) : 0.1;
     const desiredPrice = (totalBet * (1 - this.houseEdge) * 100) / this.desiredChance;
 
-    let candidates = allSkins.filter(s => typeof s.price === 'number' && s.price >= minTargetPrice && !sacrificedSkinIds.has(s.id));
+    let candidates = allSkins.filter(s => typeof s.price === 'number' && s.price >= minTargetPrice && !sacrificedSkinIds.has(s.id) && !sacrificedSkinIds.has(s.baseId));
     if (candidates.length === 0 && totalBet > 0) {
       candidates = allSkins.filter(s => typeof s.price === 'number' && s.price > totalBet && !sacrificedSkinIds.has(s.id));
     }
@@ -221,15 +232,15 @@ class UpgraderEngine {
   applyDesiredMultiplier() {
     if (!this.desiredMultiplier || this.desiredMultiplier <= 0) return null;
     const totalBet = this.getTotalBetAmount();
-    const allSkins = window.catalogController?.skins || window.SKINS_DATABASE || [];
+    const allSkins = (window.getAllSkinVariants ? window.getAllSkinVariants() : null) || window.catalogController?.skins || window.SKINS_DATABASE || [];
     if (allSkins.length === 0) return null;
 
-    const sacrificedSkinIds = new Set(this.selectedItems.map(it => it.id));
+    const sacrificedSkinIds = new Set(this.selectedItems.map(it => it.skinId || it.id || it.baseId));
     const effectiveBet = totalBet > 0 ? totalBet : 10;
     const desiredPrice = effectiveBet * this.desiredMultiplier;
-    const minTargetPrice = totalBet > 0 ? Math.max(0.1, totalBet * 1.05) : 0.1;
+    const minTargetPrice = totalBet > 0 ? Math.max(0.1, totalBet * 1.02) : 0.1;
 
-    let candidates = allSkins.filter(s => typeof s.price === 'number' && s.price >= minTargetPrice && !sacrificedSkinIds.has(s.id));
+    let candidates = allSkins.filter(s => typeof s.price === 'number' && s.price >= minTargetPrice && !sacrificedSkinIds.has(s.id) && !sacrificedSkinIds.has(s.baseId));
     if (candidates.length === 0 && totalBet > 0) {
       candidates = allSkins.filter(s => typeof s.price === 'number' && s.price > totalBet && !sacrificedSkinIds.has(s.id));
     }

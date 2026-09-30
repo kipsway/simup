@@ -128,7 +128,48 @@ class AuthManager {
     this.currentUser = null;
     this.onUserChangeCallbacks = [];
 
+    this.resetAllUsersProgressToStart();
     this.init();
+  }
+
+  resetAllUsersProgressToStart() {
+    const MIGRATION_KEY = 'simup_reset_economy_progress_v500_fixed';
+    try {
+      if (typeof localStorage === 'undefined') return;
+      if (localStorage.getItem(MIGRATION_KEY)) return;
+
+      const users = this.getAllUsers();
+      if (users && users.length > 0) {
+        users.forEach(u => {
+          u.balance = 500.00;
+          u.inventory = [];
+          u.level = 1;
+          u.xp = 0;
+          u.pass = { xp: 0, level: 1, claimed: [] };
+          u.equippedTitle = 'Новичок';
+          u.unlockedTitles = ['Новичок'];
+          u.caseVouchers = 0;
+          u.upgradeInsurance = 0;
+          u.passXpBooster = 0;
+          u.loans = { currentDebt: 0, totalBorrowed: 0, totalRepaid: 0, autoRepay: true };
+          u.history = [];
+          if (u.stats) {
+            u.stats.totalUpgrades = 0;
+            u.stats.wonUpgrades = 0;
+            u.stats.lostUpgrades = 0;
+            u.stats.casesOpened = 0;
+            u.stats.totalWagered = 0;
+            u.stats.netProfit = 0;
+            u.stats.maxSingleBet = 0;
+            u.stats.bestWinSkin = null;
+          }
+        });
+        this.saveUsers(users);
+      }
+      localStorage.setItem(MIGRATION_KEY, '1');
+    } catch (e) {
+      console.error('SIMUP reset error:', e);
+    }
   }
 
   init() {
@@ -161,7 +202,7 @@ class AuthManager {
   ensureUserIntegrity(u) {
     if (!u) return;
     let changed = false;
-    if (u.level === undefined) { u.level = 0; changed = true; }
+    if (u.level === undefined || u.level < 1) { u.level = 1; changed = true; }
     if (u.xp === undefined) { u.xp = 0; changed = true; }
     if (!u.equippedTitle) { u.equippedTitle = 'Новичок'; changed = true; }
     if (!Array.isArray(u.unlockedTitles) || u.unlockedTitles.length === 0) { u.unlockedTitles = ['Новичок']; changed = true; }

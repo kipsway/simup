@@ -1333,11 +1333,16 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
 
 .loan-status-pill {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   padding: 4px 10px;
-  border-radius: 20px;
-  letter-spacing: 0.5px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1 !important;
 }
 
 .loan-status-clean { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
@@ -4396,6 +4401,15 @@ html, body {
   .leaderboard-table td {
     padding: 8px 6px !important;
     font-size: 12px !important;
+    white-space: nowrap !important;
+  }
+
+  .loan-status-pill {
+    font-size: 9.5px !important;
+    padding: 3px 7px !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.2px !important;
+    display: inline-flex !important;
   }
 
   /* Bank Dashboard on Mobile */
@@ -6033,44 +6047,27 @@ button {
 }
 
 .games-dropdown-menu {
+  display: none !important;
   position: absolute;
   top: 100%;
-  margin-top: 4px;
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  min-width: 250px;
-  background: rgba(14, 8, 14, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 6px;
+  left: 0;
+  min-width: 260px;
+  background: rgba(14, 8, 14, 0.98);
+  border: 1px solid rgba(255, 0, 77, 0.35);
   border-radius: 16px;
   padding: 6px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 24px rgba(255, 0, 77, 0.15);
-  display: flex;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.9), 0 0 24px rgba(255, 0, 77, 0.2);
   flex-direction: column;
   gap: 3px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 1000;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
-/* Invisible hover bridge to eliminate gap when moving cursor from button down into menu */
-.games-dropdown-menu::before {
-  content: '';
-  position: absolute;
-  top: -18px;
-  left: -10px;
-  right: -10px;
-  height: 22px;
-  background: transparent;
-  pointer-events: auto;
-}
-
 .games-dropdown-menu.active {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
+  display: flex !important;
+  animation: fadeInDown 0.16s ease;
 }
 
 .games-drop-item {

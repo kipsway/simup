@@ -48,41 +48,155 @@ class CaseBattleController {
   }
 
   init() {
+    this.initBattleSync();
     this.checkUrlForInvite();
     this.renderLobby();
+  }
+
+  initBattleSync() {
+    if (this._syncInitialized) return;
+    this._syncInitialized = true;
+
+    if (typeof window !== 'undefined' && window.BroadcastChannel) {
+      try {
+        const bc = new BroadcastChannel('simup_battles');
+        bc.onmessage = (ev) => {
+          if (ev.data?.type === 'battle_accepted' && ev.data?.battleId === this.battleId) {
+            if (this.battleState === 'waiting') {
+              this.opponentName = ev.data.acceptor || 'Друг ⚔️';
+              window.notify?.bigWin('⚔️ ВЫЗОВ ПРИНЯТ!', `Игрок ${this.opponentName} принял ваш вызов! Дуэль начинается!`);
+              this.startDuel();
+            }
+          }
+        };
+      } catch(e) {}
+    }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key && e.key.startsWith('simup_battle_accept_') && this.battleId && e.key.includes(this.battleId)) {
+        if (this.battleState === 'waiting') {
+          try {
+            const data = JSON.parse(e.newValue);
+            this.opponentName = data?.acceptor || 'Друг ⚔️';
+            window.notify?.bigWin('⚔️ ВЫЗОВ ПРИНЯТ!', `Игрок ${this.opponentName} принял ваш вызов! Дуэль начинается!`);
+            this.startDuel();
+          } catch(err) {}
+        }
+      }
+    });
   }
 
   checkUrlForInvite() {
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      const battleMode = urlParams.get('battle_mode');
+      const battleMode = urlParams.get('battle_mode') || (urlParams.get('battle_up') ? 'upgrade' : (urlParams.get('battle') ? 'case' : null));
       const stakeParam = parseFloat(urlParams.get('stake'));
       const timeParam = parseInt(urlParams.get('time'), 10);
       const idParam = urlParams.get('battle_id') || urlParams.get('battle') || urlParams.get('battle_up');
+      const creatorParam = urlParams.get('creator') || 'Игрок';
 
-      if (battleMode === 'upgrade' || urlParams.get('battle_up')) {
-        this.gameMode = 'upgrade';
-        this.opponentType = 'player';
-      } else if (battleMode === 'case' || urlParams.get('battle')) {
-        this.gameMode = 'case';
-        this.opponentType = 'player';
-      }
+      if (!idParam) return;
 
-      if (!isNaN(stakeParam) && stakeParam >= 10) {
-        this.totalStake = stakeParam;
-      }
-      if (!isNaN(timeParam) && timeParam >= 60) {
-        this.battleDuration = timeParam;
-      }
+      this.battleId = idParam;
+      if (battleMode === 'upgrade') this.gameMode = 'upgrade';
+      if (battleMode === 'case') this.gameMode = 'case';
+      if (!isNaN(stakeParam) && stakeParam >= 10) this.totalStake = stakeParam;
+      if (!isNaN(timeParam) && timeParam >= 60) this.battleDuration = timeParam;
+      this.opponentType = 'player';
+      this.opponentName = creatorParam;
 
-      if (idParam) {
-        this.battleId = idParam;
-        window.notify?.info(
-          '⚔️ Дуэль 1v1',
-          `Вы подключились к батлу #${idParam}. Банк: $${this.totalStake.toFixed(2)}.`
-        );
-      }
+      setTimeout(() => {
+        this.showIncomingChallengeModal(creatorParam, this.gameMode, this.totalStake, this.battleDuration);
+      }, 500);
     } catch (e) {}
+  }
+
+  showIncomingChallengeModal(creator, mode, totalStake, duration) {
+    const modalId = 'modal-incoming-challenge';
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = modalId;
+      modal.className = 'modal-overlay';
+      document.body.appendChild(modal);
+    }
+
+    const entryFee = totalStake / 2;
+    const modeName = mode === 'upgrade' ? '⚡ Апгрейд-Батл 1v1' : '📦 Кейс-Батл 1v1';
+
+    modal.innerHTML = `
+      <div class="modal-window" style="max-width: 480px; text-align: center; padding: 26px; border: 2px solid #ff004d; background: #0e050c; border-radius: 20px; box-shadow: 0 0 40px rgba(255, 0, 77, 0.4);">
+        <div style="font-size: 48px; margin-bottom: 8px;">⚔️</div>
+        <h2 style="font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 6px;">ВЫЗОВ НА ДУЭЛЬ 1v1!</h2>
+        <p style="font-size: 13.5px; color: var(--text-dim); margin-bottom: 16px;">
+          Игрок <strong style="color: #ffd700;">${creator}</strong> бросил вам вызов на арену!
+        </p>
+
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; text-align: left; margin-bottom: 20px; font-size: 13px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="color: var(--text-dim);">Режим:</span>
+            <span style="font-weight: 800; color: #fff;">${modeName}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="color: var(--text-dim);">Общий призовой банк:</span>
+            <span style="font-weight: 900; color: #ffd700;">$${totalStake.toFixed(2)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="color: var(--text-dim);">Ваш взнос (50%):</span>
+            <span style="font-weight: 900; color: #ff004d;">$${entryFee.toFixed(2)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-dim);">Время раунда:</span>
+            <span style="font-weight: 700; color: #10b981;">${duration} сек</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-accept-duel" class="btn-upgrade-fire" style="flex: 1; padding: 13px; font-size: 13.5px; border-radius: 10px;">
+            <span>⚔️ ПРИНЯТЬ ВЫЗОВ</span>
+          </button>
+          <button id="btn-decline-duel" class="btn-sm-action" style="padding: 13px 18px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; border-radius: 10px; font-weight: 700; cursor: pointer;">
+            Отклонить
+          </button>
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('active');
+
+    document.getElementById('btn-decline-duel')?.addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+
+    document.getElementById('btn-accept-duel')?.addEventListener('click', () => {
+      modal.classList.remove('active');
+      const user = window.authManager?.currentUser;
+      if (!user) {
+        window.showAuthModal?.('login');
+        return;
+      }
+      if (user.balance < entryFee) {
+        window.notify?.error(
+          'Недостаточно средств',
+          `Для принятия дуэли требуется $${entryFee.toFixed(2)}. Ваш баланс: $${user.balance.toFixed(2)}.`
+        );
+        return;
+      }
+      if (window.switchTab) window.switchTab('casebattle');
+      
+      try {
+        const payload = { battleId: this.battleId, acceptor: user.username, acceptedAt: Date.now() };
+        localStorage.setItem(`simup_battle_accept_${this.battleId}`, JSON.stringify(payload));
+        if (window.BroadcastChannel) {
+          const bc = new BroadcastChannel('simup_battles');
+          bc.postMessage({ type: 'battle_accepted', ...payload });
+        }
+      } catch(e) {}
+
+      this.opponentType = 'player';
+      this.opponentName = creator;
+      this.startDuel();
+    });
   }
 
   setGameMode(mode) {
@@ -91,21 +205,64 @@ class CaseBattleController {
     this.renderLobby();
   }
 
-  setStake(val) {
+  setStake(val, rerender = false) {
     if (this.battleState === 'battling') return;
     this.totalStake = Math.max(10, Number(val));
-    this.renderLobby();
+    if (rerender) {
+      this.renderLobby();
+    } else {
+      this.updateLobbyValues();
+    }
   }
 
   setDuration(seconds) {
     if (this.battleState === 'battling') return;
     this.battleDuration = seconds;
-    this.renderLobby();
+    document.querySelectorAll('[data-duration]').forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.duration, 10) === seconds);
+    });
+  }
+
+  updateLobbyValues() {
+    const entryFee = this.totalStake / 2;
+    const input = document.getElementById('input-battle-stake');
+    if (input && document.activeElement !== input) {
+      input.value = this.totalStake;
+    }
+    document.querySelectorAll('[data-stake-preset]').forEach(btn => {
+      btn.classList.toggle('active', parseFloat(btn.dataset.stakePreset) === this.totalStake);
+    });
+    const potEl = document.getElementById('battle-pot-val');
+    if (potEl) potEl.textContent = `$${this.totalStake.toFixed(2)}`;
+    const feeEl = document.getElementById('battle-entry-fee-val');
+    if (feeEl) feeEl.textContent = `-$${entryFee.toFixed(2)}`;
+    const oppFeeEl = document.getElementById('battle-opp-fee-val');
+    if (oppFeeEl) oppFeeEl.textContent = `-$${entryFee.toFixed(2)}`;
+    const btnStart = document.getElementById('btn-start-battle');
+    if (btnStart) {
+      const feeSpan = btnStart.querySelector('.battle-btn-fee');
+      if (feeSpan) feeSpan.textContent = `(Взнос: $${entryFee.toFixed(2)})`;
+    }
   }
 
   generateInviteLink() {
+    const user = window.authManager?.currentUser;
+    const creatorName = user?.username || 'Player';
     this.battleId = (this.gameMode === 'upgrade' ? 'ub_' : 'cb_') + Math.random().toString(36).substring(2, 8);
-    const url = `${window.location.origin}${window.location.pathname}?battle_mode=${this.gameMode}&stake=${this.totalStake}&time=${this.battleDuration}&battle_id=${this.battleId}`;
+    const url = `${window.location.origin}${window.location.pathname}?battle_mode=${this.gameMode}&stake=${this.totalStake}&time=${this.battleDuration}&battle_id=${this.battleId}&creator=${encodeURIComponent(creatorName)}`;
+    
+    try {
+      localStorage.setItem(`simup_battle_${this.battleId}`, JSON.stringify({
+        id: this.battleId,
+        creator: creatorName,
+        gameMode: this.gameMode,
+        stake: this.totalStake,
+        duration: this.battleDuration,
+        status: 'waiting',
+        createdAt: Date.now()
+      }));
+    } catch(e) {}
+
     navigator.clipboard?.writeText(url);
     window.notify?.bigWin('Ссылка скопирована! 📋', 'Отправьте ссылку другу: ' + url);
     return url;
@@ -176,15 +333,15 @@ class CaseBattleController {
             <div style="background: rgba(255, 0, 77, 0.06); border: 1px solid rgba(255, 0, 77, 0.2); border-radius: 10px; padding: 12px; font-size: 12.5px;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                 <span style="color: var(--text-dim);">Общий банк победителю:</span>
-                <span style="font-weight: 900; color: #ffd700;">$${this.totalStake.toFixed(2)}</span>
+                <span style="font-weight: 900; color: #ffd700;" id="battle-pot-val">$${this.totalStake.toFixed(2)}</span>
               </div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                 <span style="color: var(--text-dim);">Ваш взнос (50% с баланса):</span>
-                <span style="font-weight: 800; color: #ff004d;">-$${entryFee.toFixed(2)}</span>
+                <span style="font-weight: 800; color: #ff004d;" id="battle-entry-fee-val">-$${entryFee.toFixed(2)}</span>
               </div>
               <div style="display: flex; justify-content: space-between;">
                 <span style="color: var(--text-dim);">Взнос оппонента (50%):</span>
-                <span style="font-weight: 800; color: #38bdf8;">-$${entryFee.toFixed(2)}</span>
+                <span style="font-weight: 800; color: #38bdf8;" id="battle-opp-fee-val">-$${entryFee.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -228,10 +385,10 @@ class CaseBattleController {
               </div>
             </div>
 
-            <!-- Start Action Button (Ready to fire immediately!) -->
+            <!-- Start Action Button -->
             <button class="btn-upgrade-fire" id="btn-start-battle" style="margin-top: 18px; width: 100%; padding: 14px; font-size: 14px; border-radius: 12px;">
               <span>⚔️ НАЧАТЬ БАТЛ</span>
-              <span>(Взнос: $${entryFee.toFixed(2)})</span>
+              <span class="battle-btn-fee">(Взнос: $${entryFee.toFixed(2)})</span>
             </button>
           </div>
 
@@ -283,9 +440,20 @@ class CaseBattleController {
       });
     });
 
-    document.getElementById('input-battle-stake')?.addEventListener('change', (e) => {
+    const stakeInput = document.getElementById('input-battle-stake');
+    stakeInput?.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      if (!isNaN(val) && val >= 10) this.setStake(val);
+      if (!isNaN(val) && val >= 10) {
+        this.totalStake = val;
+        this.updateLobbyValues();
+      }
+    });
+    stakeInput?.addEventListener('change', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val >= 10) {
+        this.totalStake = val;
+        this.updateLobbyValues();
+      }
     });
 
     document.getElementById('btn-opt-bot')?.addEventListener('click', () => {
@@ -300,7 +468,7 @@ class CaseBattleController {
     document.querySelectorAll('[data-bot-diff]').forEach(btn => {
       btn.addEventListener('click', () => {
         this.botDifficulty = btn.dataset.botDiff;
-        this.renderLobby();
+        document.querySelectorAll('[data-bot-diff]').forEach(b => b.classList.toggle('active', b.dataset.botDiff === this.botDifficulty));
       });
     });
 
@@ -329,12 +497,56 @@ class CaseBattleController {
       return;
     }
 
+    const inputStake = document.getElementById('input-battle-stake');
+    if (inputStake) {
+      const val = parseFloat(inputStake.value);
+      if (!isNaN(val) && val >= 10) this.totalStake = val;
+    }
+
     const entryFee = this.totalStake / 2;
     if (user.balance < entryFee) {
       window.notify?.error(
         'Недостаточно средств',
         `Для участия требуется $${entryFee.toFixed(2)} (50% от банка $${this.totalStake.toFixed(2)}). Ваш баланс: $${user.balance.toFixed(2)}`
       );
+      return;
+    }
+
+    // If waiting for a friend by link and friend has not joined yet, show live waiting lobby
+    if (this.opponentType === 'player' && !this.opponentName) {
+      this.battleState = 'waiting';
+      const container = document.getElementById('casebattle-content-area');
+      if (container) {
+        const inviteUrl = this.generateInviteLink();
+        container.innerHTML = `
+          <div style="max-width: 600px; margin: 40px auto; text-align: center; background: rgba(14, 8, 14, 0.95); border: 1px solid var(--border-color); border-radius: 20px; padding: 32px 24px;">
+            <div style="font-size: 54px; margin-bottom: 12px;">⏳</div>
+            <h2 style="font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 8px;">Ожидание соперника...</h2>
+            <p style="font-size: 14px; color: var(--text-dim); margin-bottom: 20px;">
+              Отправьте эту ссылку другу. Как только он перейдет и нажмет «Принять вызов», дуэль начнется автоматически!
+            </p>
+            <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #38bdf8; word-break: break-all; margin-bottom: 16px;">
+              ${inviteUrl}
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+              <button class="btn-upgrade-fire" id="btn-copy-waiting-link" style="padding: 10px 20px; font-size: 13px; border-radius: 10px;">
+                <span>📋 Скопировать ссылку</span>
+              </button>
+              <button class="btn-sm-action" id="btn-play-bot-instead" style="padding: 10px 18px; font-size: 13px; border-radius: 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; font-weight: 700; cursor: pointer;">
+                🤖 Сыграть с ботом
+              </button>
+            </div>
+          </div>
+        `;
+        document.getElementById('btn-copy-waiting-link')?.addEventListener('click', () => {
+          navigator.clipboard?.writeText(inviteUrl);
+          window.notify?.bigWin('Скопировано!', 'Ссылка готова к отправке другу!');
+        });
+        document.getElementById('btn-play-bot-instead')?.addEventListener('click', () => {
+          this.opponentType = 'bot';
+          this.startDuel();
+        });
+      }
       return;
     }
 
@@ -358,28 +570,30 @@ class CaseBattleController {
   // UPGRADE BATTLE 1v1 IMPLEMENTATION
   // =========================================================================
   setupUpgradeBattle(budgetPerPlayer) {
-    // Generate 10 starter skins for each player from SKINS_DATABASE
-    const allSkins = window.SKINS_DATABASE || [];
-    const validPool = allSkins.filter(s => s.price > 0.2 && s.price <= (budgetPerPlayer * 0.4));
-    const pool = validPool.length > 0 ? validPool : allSkins;
+    const allSkins = (window.getAllSkinVariants ? window.getAllSkinVariants() : null) || window.SKINS_DATABASE || [];
+    const targetPerSkin = Math.max(0.5, budgetPerPlayer / 10);
+    
+    // Pool of skins reasonably close to targetPerSkin
+    const validPool = allSkins.filter(s => typeof s.price === 'number' && s.price >= 0.1 && s.price <= (budgetPerPlayer * 0.35));
+    const pool = validPool.length > 0 ? validPool : allSkins.filter(s => typeof s.price === 'number' && s.price <= budgetPerPlayer);
 
     const generate10Skins = () => {
       const skins = [];
       let spent = 0;
-      const targetPerSkin = budgetPerPlayer / 10;
       for (let i = 0; i < 10; i++) {
-        // Pick skin close to target
-        const candidates = pool.filter(s => Math.abs(s.price - targetPerSkin) < targetPerSkin * 1.5);
+        const candidates = pool.filter(s => Math.abs(s.price - targetPerSkin) < targetPerSkin * 1.5 && s.price <= (budgetPerPlayer - spent));
         const pick = candidates.length > 0
           ? candidates[Math.floor(Math.random() * candidates.length)]
-          : pool[Math.floor(Math.random() * pool.length)];
+          : (pool.filter(s => s.price <= (budgetPerPlayer - spent))[0] || pool[0]);
 
-        skins.push({
-          ...pick,
-          instanceId: `ub_item_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-          price: Number(pick.price.toFixed(2))
-        });
-        spent += pick.price;
+        if (pick) {
+          skins.push({
+            ...pick,
+            instanceId: `ub_item_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            price: Number(pick.price.toFixed(2))
+          });
+          spent += pick.price;
+        }
       }
       const leftover = Math.max(0, Number((budgetPerPlayer - spent).toFixed(2)));
       return { skins, leftover };
@@ -401,9 +615,12 @@ class CaseBattleController {
     ];
 
     this.startBattleTimer(() => this.finishUpgradeBattle('time_up'));
-    this.startBotUpgradeLoop();
+    if (this.opponentType === 'bot') {
+      this.startBotUpgradeLoop();
+    }
     this.renderUpgradeArena();
   }
+
 
   getUbP1Total() {
     const skinsVal = this.ubP1Skins.reduce((s, it) => s + (it.price || 0), 0);
@@ -1283,24 +1500,54 @@ class CaseBattleController {
   }
 
   rollCaseItem(caseObj) {
-    const items = caseObj.items || [];
+    const items = caseObj?.items || [];
+    const allVariants = (window.getAllSkinVariants ? window.getAllSkinVariants() : null) || window.SKINS_DATABASE || [];
+    
     if (items.length === 0) {
-      const all = window.SKINS_DATABASE || [];
-      return all[Math.floor(Math.random() * all.length)];
+      return allVariants[Math.floor(Math.random() * allVariants.length)];
     }
-    const allSkins = window.SKINS_DATABASE || [];
+
     const totalWeight = items.reduce((s, it) => s + (it.weight || it.chance || 1), 0);
     let rand = Math.random() * totalWeight;
+    let chosenEntry = items[0];
 
     for (const it of items) {
       rand -= (it.weight || it.chance || 1);
       if (rand <= 0) {
-        const found = allSkins.find(s => s.id === it.skinId);
-        return found || allSkins[0];
+        chosenEntry = it;
+        break;
       }
     }
-    const fallback = allSkins.find(s => s.id === items[0].skinId);
-    return fallback || allSkins[0];
+
+    const skinId = chosenEntry.skinId;
+    const baseId = skinId ? skinId.replace(/_(FN|MW|FT|WW|BS)$/i, '') : '';
+
+    // 1. Try exact ID match in all skin variants (with wear)
+    let found = allVariants.find(s => s.id === skinId);
+    
+    // 2. Try match base ID
+    if (!found && baseId) {
+      found = allVariants.find(s => s.baseId === baseId || s.id === baseId);
+    }
+
+    // 3. Fallback: match by price tier of case, never default to Karambit!
+    if (!found) {
+      const casePrice = caseObj.price || 2.5;
+      const candidates = allVariants.filter(s => s.price <= casePrice * 2.5 && s.price >= 0.1);
+      found = candidates.length > 0
+        ? candidates[Math.floor(Math.random() * candidates.length)]
+        : {
+            id: skinId || 'skin_drop',
+            name: chosenEntry.name || 'Скин из кейса',
+            wear: 'FT',
+            price: Math.max(0.2, Number((casePrice * 0.8).toFixed(2))),
+            rarity: 'milspec',
+            rarityColor: '#4b69ff',
+            image: ''
+          };
+    }
+
+    return found;
   }
 
   finishCaseBattle(reason) {

@@ -227,9 +227,38 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('btn-mobile-games-hub')?.addEventListener('click', openGamesHub);
 
-  // Direct click handlers for games hub cards and dropdown items (standard click only, no accidental touchend on swipe)
+  // Track touch scroll to completely prevent accidental game opens during scrolling on mobile
+  let gamesHubTouchStartY = 0;
+  let gamesHubTouchStartX = 0;
+  let gamesHubIsScrolling = false;
+
+  const gamesModal = document.getElementById('modal-games-hub');
+  gamesModal?.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches[0]) {
+      gamesHubTouchStartX = e.touches[0].clientX;
+      gamesHubTouchStartY = e.touches[0].clientY;
+      gamesHubIsScrolling = false;
+    }
+  }, { passive: true });
+
+  gamesModal?.addEventListener('touchmove', (e) => {
+    if (e.touches && e.touches[0]) {
+      const deltaX = Math.abs(e.touches[0].clientX - gamesHubTouchStartX);
+      const deltaY = Math.abs(e.touches[0].clientY - gamesHubTouchStartY);
+      if (deltaY > 8 || deltaX > 8) {
+        gamesHubIsScrolling = true;
+      }
+    }
+  }, { passive: true });
+
+  // Direct click handlers for games hub cards and dropdown items
   document.querySelectorAll('.games-hub-card, .games-drop-item').forEach(card => {
     card.addEventListener('click', (e) => {
+      if (gamesHubIsScrolling) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
       e.preventDefault();
       const tabId = card.getAttribute('data-tab');
       if (tabId) {
@@ -241,11 +270,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Delegated clicks for all navigation items including dropdown and hub
+  // Delegated clicks for other navigation items
   document.addEventListener('click', (e) => {
     // Close desktop games dropdown if clicked outside
     if (!e.target.closest('.games-nav-dropdown-wrap')) {
       gamesDropdownMenu?.classList.remove('active');
+    }
+
+    if (e.target.closest('.games-hub-card') || e.target.closest('.games-drop-item')) {
+      return;
     }
 
     const target = e.target.closest('[data-tab]');
@@ -2825,7 +2858,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   $${p.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
               </td>
-              <td>
+              <td style="white-space: nowrap !important; text-align: right; min-width: 110px;">
                 ${statusPill}
               </td>
             </tr>

@@ -228,17 +228,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('btn-mobile-games-hub')?.addEventListener('click', openGamesHub);
 
-  // Track touch scroll to completely prevent accidental game opens during scrolling on mobile
-  let gamesHubTouchStartY = 0;
+  // Bulletproof mobile touch scroll tracking: never open a game on scroll/touch drag
+  let gamesHubTouchStartTime = 0;
   let gamesHubTouchStartX = 0;
-  let gamesHubIsScrolling = false;
+  let gamesHubTouchStartY = 0;
+  let gamesHubIsDragging = false;
+  let gamesHubSuppressClicksUntil = 0;
 
   const gamesModal = document.getElementById('modal-games-hub');
   gamesModal?.addEventListener('touchstart', (e) => {
     if (e.touches && e.touches[0]) {
       gamesHubTouchStartX = e.touches[0].clientX;
       gamesHubTouchStartY = e.touches[0].clientY;
-      gamesHubIsScrolling = false;
+      gamesHubTouchStartTime = Date.now();
+      gamesHubIsDragging = false;
     }
   }, { passive: true });
 
@@ -246,16 +249,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.touches && e.touches[0]) {
       const deltaX = Math.abs(e.touches[0].clientX - gamesHubTouchStartX);
       const deltaY = Math.abs(e.touches[0].clientY - gamesHubTouchStartY);
-      if (deltaY > 8 || deltaX > 8) {
-        gamesHubIsScrolling = true;
+      if (deltaY > 6 || deltaX > 6) {
+        gamesHubIsDragging = true;
+        gamesHubSuppressClicksUntil = Date.now() + 450;
       }
+    }
+  }, { passive: true });
+
+  gamesModal?.addEventListener('touchend', () => {
+    if (gamesHubIsDragging) {
+      gamesHubSuppressClicksUntil = Date.now() + 450;
     }
   }, { passive: true });
 
   // Direct click handlers for games hub cards and dropdown items
   document.querySelectorAll('.games-hub-card, .games-drop-item').forEach(card => {
     card.addEventListener('click', (e) => {
-      if (gamesHubIsScrolling) {
+      if (gamesHubIsDragging || Date.now() < gamesHubSuppressClicksUntil) {
         e.preventDefault();
         e.stopImmediatePropagation();
         return;
@@ -480,9 +490,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 100);
     }
 
-    const battleParam = urlParams.get('battle');
-    if (battleParam) {
-      setTimeout(() => switchTab('casebattle'), 400);
+    const hasBattle = urlParams.get('battle_id') || urlParams.get('battle') || urlParams.get('battle_up') || urlParams.get('battle_mode');
+    if (hasBattle) {
+      setTimeout(() => {
+        if (typeof switchTab === 'function') switchTab('casebattle');
+        window.caseBattleEngine?.checkUrlForInvite();
+      }, 400);
     }
   } catch (e) {}
 
@@ -2292,18 +2305,25 @@ document.addEventListener('DOMContentLoaded', () => {
     window.notify.info('Стиль стрелки', `Установлен стиль: ${ARROW_NAMES_MAP[nextStyle]}`);
   });
 
-  // Random Upgrade button (Mystery Mode: hidden multiplier until after the spin!)
+  // Random Upgrade button (Mystery Mode: toggle on/off)
   const btnRandomUpgrade = document.getElementById('btn-random-upgrade');
   btnRandomUpgrade?.addEventListener('click', () => {
     window.SoundManager?.playClick();
+    if (window.upgraderEngine.isMysteryMode) {
+      window.upgraderEngine.clearMysteryMode();
+      updateUpgraderUI();
+      window.notify.info('🎲 Режим отменен', 'Таинственный множитель отключен. Отображаются точные параметры апгрейда.');
+      return;
+    }
     window.upgraderEngine.rollRandomUpgrade();
     updateUpgraderUI();
-    window.notify.info('🎲 Таинственный икс активирован!', 'Множитель и скин засекречены (???x)! Крутите колесо, результат раскроется только после остановки стрелки!');
+    window.notify.info('🎲 Таинственный икс активирован!', 'Множитель и скин засекречены (???x)! Крутите колесо или выберите проценты, чтобы отменить!');
   });
 
   // Quick Chance chips
   document.querySelectorAll('[data-quick-chance]').forEach(btn => {
     btn.addEventListener('click', () => {
+      window.upgraderEngine.clearMysteryMode();
       const ch = parseFloat(btn.dataset.quickChance);
       const matched = window.upgraderEngine.setDesiredChance(ch);
       const slider = document.getElementById('slider-custom-chance');
@@ -2322,6 +2342,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Chance Range Slider
   const sliderCustomChance = document.getElementById('slider-custom-chance');
   sliderCustomChance?.addEventListener('input', (e) => {
+    window.upgraderEngine.clearMysteryMode();
     const ch = parseFloat(e.target.value);
     const label = document.getElementById('label-chance-slider-readout');
     if (label) label.textContent = `${ch}%`;
@@ -2332,6 +2353,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Quick multipliers
   document.querySelectorAll('[data-quick-mult]').forEach(btn => {
     btn.addEventListener('click', () => {
+      window.upgraderEngine.clearMysteryMode();
       const mult = parseFloat(btn.dataset.quickMult);
       const matched = window.upgraderEngine.setDesiredMultiplier(mult);
       updateUpgraderUI();
@@ -4632,10 +4654,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateSyncExportDisplay() {
     if (!window.authManager) return;
+    const user = window.authManager.currentUser;
+    const container = document.getElementById('sync-qr-container');
+    const keyInput = document.getElementById('sync-export-key-input');
+
+    if (!user) {
+      if (keyInput) keyInput.value = 'Сначала войдите в профиль';
+      if (container) {
+        container.innerHTML = '<div style="padding: 30px 10px; text-align: center; color: #ef4444; font-weight: 700; font-size: 13px;">🔒 Войдите в профиль,<br>чтобы получить QR-код синхронизации!</div>';
+      }
+      return;
+    }
+
     const token = window.authManager.exportSyncData();
     if (!token) return;
-    if (syncExportKeyInput) syncExportKeyInput.value = token;
-    
+    if (keyInput) keyInput.value = token;
+
     // Construct QR code URL with direct sync link
     let baseUrl = window.location.origin + window.location.pathname;
     if (!baseUrl || baseUrl === 'null' || window.location.protocol === 'file:') {
@@ -4643,45 +4677,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const syncUrl = `${baseUrl}#sync=${token}`;
 
-    try {
-      if (window.QRCode && syncQrCanvas) {
-        window.QRCode.toCanvas(syncQrCanvas, syncUrl, {
-          size: 180,
-          margin: 2,
-          colorDark: '#0b1120',
-          colorLight: '#ffffff'
-        });
-        syncQrCanvas.style.display = 'block';
-        if (syncQrImage) {
-          syncQrImage.style.display = 'none';
-          try {
-            syncQrImage.src = syncQrCanvas.toDataURL('image/png');
-          } catch (e) {}
+    if (container) {
+      container.innerHTML = `<canvas id="sync-qr-canvas" width="180" height="180" style="display: block; width: 180px; height: 180px; border-radius: 8px;"></canvas>`;
+      const canvas = document.getElementById('sync-qr-canvas');
+      try {
+        if (window.QRCode && canvas) {
+          window.QRCode.toCanvas(canvas, syncUrl, {
+            size: 180,
+            margin: 2,
+            colorDark: '#0b1120',
+            colorLight: '#ffffff'
+          });
+        } else if (window.QRCode) {
+          container.innerHTML = window.QRCode.toSVG(syncUrl, {
+            size: 180,
+            margin: 2,
+            colorDark: '#0b1120',
+            colorLight: '#ffffff'
+          });
         }
-      } else if (window.QRCode && syncQrContainer) {
-        syncQrContainer.innerHTML = window.QRCode.toSVG(syncUrl, {
-          size: 180,
-          margin: 2,
-          colorDark: '#0b1120',
-          colorLight: '#ffffff'
-        });
-      } else if (syncQrImage) {
-        syncQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(syncUrl)}`;
-        syncQrImage.style.display = 'block';
-        if (syncQrCanvas) syncQrCanvas.style.display = 'none';
-      }
-    } catch (err) {
-      console.warn('QRCode local rendering failed, falling back to SVG/remote:', err);
-      if (window.QRCode && syncQrContainer) {
+      } catch (err) {
+        console.warn('QRCode local rendering fallback to SVG:', err);
         try {
-          syncQrContainer.innerHTML = window.QRCode.toSVG(syncUrl, { size: 180, margin: 2 });
-          return;
+          if (window.QRCode) {
+            container.innerHTML = window.QRCode.toSVG(syncUrl, { size: 180, margin: 2, colorDark: '#0b1120', colorLight: '#ffffff' });
+          }
         } catch (e2) {}
-      }
-      if (syncQrImage) {
-        syncQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(syncUrl)}`;
-        syncQrImage.style.display = 'block';
-        if (syncQrCanvas) syncQrCanvas.style.display = 'none';
       }
     }
   }
@@ -4805,6 +4826,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.CatalogCart?.updateUI();
       } else if (tabId === 'upgrader') {
         updateUpgraderUI();
+      } else if (tabId === 'inventory') {
+        renderInventoryPage();
       } else if (tabId === 'cases') {
         renderCasesGrid();
       } else if (tabId === 'contracts') {
@@ -4816,6 +4839,12 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (tabId === 'crash') {
         renderCrashUI();
         window.crashEngine?.resizeCanvas();
+      } else if (tabId === 'casebattle') {
+        window.caseBattleEngine?.renderLobby();
+      } else if (tabId === 'pass') {
+        window.simupPassManager?.render();
+      } else if (tabId === 'admin') {
+        window.adminPanel?.render();
       } else if (tabId === 'leaderboard') {
         renderLeaderboard();
       } else if (tabId === 'profile') {

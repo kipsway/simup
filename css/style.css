@@ -252,8 +252,19 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   gap: 8px;
   flex-shrink: 0;
   margin-left: auto;
-  max-width: 50%;
   justify-content: flex-end;
+}
+
+@media (max-width: 1280px) {
+  .btn-header-action .action-label {
+    display: none !important;
+  }
+  .btn-header-action {
+    padding: 0 10px !important;
+  }
+  .header-actions {
+    gap: 6px;
+  }
 }
 
 #user-header-container {
@@ -4446,22 +4457,27 @@ html, body {
   }
 
   .simup-table {
-    min-width: 480px !important;
+    min-width: 600px !important;
   }
 
   .leaderboard-table th,
-  .leaderboard-table td {
-    padding: 8px 6px !important;
+  .leaderboard-table td,
+  .simup-table th,
+  .simup-table td {
+    padding: 8px 8px !important;
     font-size: 12px !important;
     white-space: nowrap !important;
   }
 
   .loan-status-pill {
-    font-size: 9.5px !important;
-    padding: 3px 7px !important;
+    font-size: 10px !important;
+    padding: 4px 9px !important;
     white-space: nowrap !important;
     letter-spacing: 0.2px !important;
     display: inline-flex !important;
+    flex-shrink: 0 !important;
+    word-break: keep-all !important;
+    line-height: 1.1 !important;
   }
 
   /* Bank Dashboard on Mobile */
@@ -6118,12 +6134,7 @@ button {
   pointer-events: none;
 }
 
-/* Explicitly disable opening on hover: ONLY click triggers .active */
-.games-nav-dropdown-wrap:hover .games-dropdown-menu,
-.games-dropdown-menu:hover {
-  display: none !important;
-  pointer-events: none !important;
-}
+/* Dropdown opens strictly via JavaScript .active toggle on click, never on hover */
 
 .games-dropdown-menu.active,
 .games-nav-dropdown-wrap .games-dropdown-menu.active {

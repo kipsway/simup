@@ -222,11 +222,8 @@ class CatalogCart {
 
   addItem(skin, qtyToAdd = 1) {
     if (!skin) return;
-    if (skin.exclusive) {
-      const msg = skin.exclusive === 'pass'
-        ? `Скин "${skin.name}" является наградой SIMUP PASS и не продается в магазине!`
-        : `Скин "${skin.name}" является кейс-эксклюзивом и не продается в магазине!`;
-      window.notify?.warning('Эксклюзивный предмет', msg);
+    if (skin.exclusive === 'pass') {
+      window.notify?.warning('Эксклюзивный предмет', `Скин "${skin.name}" является наградой SIMUP PASS и открывается в боевом пропуске!`);
       return;
     }
     const qty = Math.max(1, Math.min(99, parseInt(qtyToAdd, 10) || 1));
@@ -411,11 +408,8 @@ class CatalogCart {
       return false;
     }
     if (!skin) return false;
-    if (skin.exclusive) {
-      const msg = skin.exclusive === 'pass'
-        ? `Скин "${skin.name}" является наградой SIMUP PASS и не продается в магазине!`
-        : `Скин "${skin.name}" является кейс-эксклюзивом и не продается в магазине!`;
-      window.notify?.warning('Эксклюзивный предмет', msg);
+    if (skin.exclusive === 'pass') {
+      window.notify?.warning('Эксклюзивный предмет', `Скин "${skin.name}" является наградой SIMUP PASS и открывается в боевом пропуске!`);
       return false;
     }
 

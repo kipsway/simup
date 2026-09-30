@@ -245,10 +245,12 @@ class CaseBattleController {
     }
   }
 
-  generateInviteLink() {
+  generateInviteLink(forceNew = false) {
     const user = window.authManager?.currentUser;
     const creatorName = user?.username || 'Player';
-    this.battleId = (this.gameMode === 'upgrade' ? 'ub_' : 'cb_') + Math.random().toString(36).substring(2, 8);
+    if (forceNew || !this.battleId) {
+      this.battleId = (this.gameMode === 'upgrade' ? 'ub_' : 'cb_') + Math.random().toString(36).substring(2, 8);
+    }
     const url = `${window.location.origin}${window.location.pathname}?battle_mode=${this.gameMode}&stake=${this.totalStake}&time=${this.battleDuration}&battle_id=${this.battleId}&creator=${encodeURIComponent(creatorName)}`;
     
     try {
@@ -543,11 +545,35 @@ class CaseBattleController {
           window.notify?.bigWin('Скопировано!', 'Ссылка готова к отправке другу!');
         });
         document.getElementById('btn-play-bot-instead')?.addEventListener('click', () => {
+          if (this._pollWaitingInterval) clearInterval(this._pollWaitingInterval);
           this.opponentType = 'bot';
           this.startDuel();
         });
+
+        if (this._pollWaitingInterval) clearInterval(this._pollWaitingInterval);
+        this._pollWaitingInterval = setInterval(() => {
+          if (this.battleState !== 'waiting') {
+            clearInterval(this._pollWaitingInterval);
+            return;
+          }
+          try {
+            const raw = localStorage.getItem(`simup_battle_accept_${this.battleId}`);
+            if (raw) {
+              clearInterval(this._pollWaitingInterval);
+              const data = JSON.parse(raw);
+              this.opponentName = data?.acceptor || 'Друг ⚔️';
+              window.notify?.bigWin('⚔️ ВЫЗОВ ПРИНЯТ!', `Игрок ${this.opponentName} принял ваш вызов! Дуэль начинается!`);
+              this.startDuel();
+            }
+          } catch(e) {}
+        }, 1000);
       }
       return;
+    }
+
+    if (this._pollWaitingInterval) {
+      clearInterval(this._pollWaitingInterval);
+      this._pollWaitingInterval = null;
     }
 
     // Deduct entry fee

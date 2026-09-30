@@ -211,29 +211,44 @@ class UpgraderEngine {
     const allSkins = (window.getAllSkinVariants ? window.getAllSkinVariants() : null) || window.catalogController?.skins || window.SKINS_DATABASE || [];
     if (allSkins.length === 0) return null;
 
-    // Exclude sacrificed skins strictly by skinId, id, or baseId
-    const sacrificedSkinIds = new Set(this.selectedItems.map(it => it.skinId || it.id || it.baseId));
-    const minTargetPrice = totalBet > 0 ? Math.max(0.1, totalBet * 1.02) : 0.1;
-    const desiredPrice = (totalBet * (1 - this.houseEdge) * 100) / this.desiredChance;
+    // Comprehensive exclusion set of sacrificed items
+    const sacrificedIds = new Set(this.selectedItems.flatMap(it => [it.skinId, it.id, it.baseId, it.instanceId].filter(Boolean)));
+    const sacrificedNames = new Set(this.selectedItems.map(it => (it.name || '').trim().toLowerCase()));
+    const sacrificedBaseNames = new Set(this.selectedItems.map(it => (it.baseName || it.name || '').split('(')[0].trim().toLowerCase()));
 
-    let candidates = allSkins.filter(s => typeof s.price === 'number' && s.price >= minTargetPrice && !sacrificedSkinIds.has(s.id) && !sacrificedSkinIds.has(s.baseId));
+    const isSacrificed = (s) => {
+      if (sacrificedIds.has(s.id) || sacrificedIds.has(s.baseId)) return true;
+      const sName = (s.name || '').trim().toLowerCase();
+      if (sacrificedNames.has(sName)) return true;
+      const sBase = (s.baseName || s.name || '').split('(')[0].trim().toLowerCase();
+      if (sacrificedBaseNames.has(sBase) && this.selectedItems.length === 1) return true;
+      return false;
+    };
+
+    // Target must be strictly worth more than totalBet
+    const minTargetPrice = totalBet > 0 ? Math.max(0.1, totalBet * 1.03) : 0.1;
+    let candidates = allSkins.filter(s => typeof s.price === 'number' && s.price >= minTargetPrice && !isSacrificed(s));
+
     if (candidates.length === 0 && totalBet > 0) {
-      candidates = allSkins.filter(s => typeof s.price === 'number' && s.price > totalBet && !sacrificedSkinIds.has(s.id));
+      candidates = allSkins.filter(s => typeof s.price === 'number' && s.price > totalBet && !isSacrificed(s));
     }
     if (candidates.length === 0) {
-      candidates = allSkins.filter(s => typeof s.price === 'number' && !sacrificedSkinIds.has(s.id));
+      candidates = allSkins.filter(s => typeof s.price === 'number' && !isSacrificed(s));
     }
     if (candidates.length === 0) {
       candidates = allSkins;
     }
 
+    // Direct mathematical error minimization against desiredChance
     let closest = candidates[0];
-    let minDiff = Math.abs(closest.price - desiredPrice);
-    for (let i = 1; i < candidates.length; i++) {
-      const diff = Math.abs(candidates[i].price - desiredPrice);
+    let minDiff = Infinity;
+    for (let i = 0; i < candidates.length; i++) {
+      const s = candidates[i];
+      const actualChance = Math.min(90, Math.max(0.01, (totalBet / s.price) * (1 - this.houseEdge) * 100));
+      const diff = Math.abs(actualChance - this.desiredChance);
       if (diff < minDiff) {
         minDiff = diff;
-        closest = candidates[i];
+        closest = s;
       }
     }
     this.targetSkin = closest;
@@ -242,33 +257,45 @@ class UpgraderEngine {
 
   applyDesiredMultiplier() {
     if (!this.desiredMultiplier || this.desiredMultiplier <= 0) return null;
-    const totalBet = this.getTotalBetAmount();
+    const totalBet = this.getTotalBetAmount() || 10;
     const allSkins = (window.getAllSkinVariants ? window.getAllSkinVariants() : null) || window.catalogController?.skins || window.SKINS_DATABASE || [];
     if (allSkins.length === 0) return null;
 
-    const sacrificedSkinIds = new Set(this.selectedItems.map(it => it.skinId || it.id || it.baseId));
-    const effectiveBet = totalBet > 0 ? totalBet : 10;
-    const desiredPrice = effectiveBet * this.desiredMultiplier;
-    const minTargetPrice = totalBet > 0 ? Math.max(0.1, totalBet * 1.02) : 0.1;
+    const sacrificedIds = new Set(this.selectedItems.flatMap(it => [it.skinId, it.id, it.baseId, it.instanceId].filter(Boolean)));
+    const sacrificedNames = new Set(this.selectedItems.map(it => (it.name || '').trim().toLowerCase()));
+    const sacrificedBaseNames = new Set(this.selectedItems.map(it => (it.baseName || it.name || '').split('(')[0].trim().toLowerCase()));
 
-    let candidates = allSkins.filter(s => typeof s.price === 'number' && s.price >= minTargetPrice && !sacrificedSkinIds.has(s.id) && !sacrificedSkinIds.has(s.baseId));
+    const isSacrificed = (s) => {
+      if (sacrificedIds.has(s.id) || sacrificedIds.has(s.baseId)) return true;
+      const sName = (s.name || '').trim().toLowerCase();
+      if (sacrificedNames.has(sName)) return true;
+      const sBase = (s.baseName || s.name || '').split('(')[0].trim().toLowerCase();
+      if (sacrificedBaseNames.has(sBase) && this.selectedItems.length === 1) return true;
+      return false;
+    };
+
+    const minTargetPrice = totalBet > 0 ? Math.max(0.1, totalBet * 1.03) : 0.1;
+    let candidates = allSkins.filter(s => typeof s.price === 'number' && s.price >= minTargetPrice && !isSacrificed(s));
+
     if (candidates.length === 0 && totalBet > 0) {
-      candidates = allSkins.filter(s => typeof s.price === 'number' && s.price > totalBet && !sacrificedSkinIds.has(s.id));
+      candidates = allSkins.filter(s => typeof s.price === 'number' && s.price > totalBet && !isSacrificed(s));
     }
     if (candidates.length === 0) {
-      candidates = allSkins.filter(s => typeof s.price === 'number' && !sacrificedSkinIds.has(s.id));
+      candidates = allSkins.filter(s => typeof s.price === 'number' && !isSacrificed(s));
     }
     if (candidates.length === 0) {
       candidates = allSkins;
     }
 
     let closest = candidates[0];
-    let minDiff = Math.abs(closest.price - desiredPrice);
-    for (let i = 1; i < candidates.length; i++) {
-      const diff = Math.abs(candidates[i].price - desiredPrice);
+    let minDiff = Infinity;
+    for (let i = 0; i < candidates.length; i++) {
+      const s = candidates[i];
+      const actualMult = s.price / totalBet;
+      const diff = Math.abs(actualMult - this.desiredMultiplier);
       if (diff < minDiff) {
         minDiff = diff;
-        closest = candidates[i];
+        closest = s;
       }
     }
     this.targetSkin = closest;

@@ -385,6 +385,10 @@ class EconomyManager {
     window.authManager.saveCurrentUser();
     window.SoundManager?.playCash();
 
+    if (typeof window.updateHeaderUserUI === 'function') window.updateHeaderUserUI(user);
+    if (typeof window.renderInventoryPage === 'function') window.renderInventoryPage();
+    if (typeof window.updateUpgraderUI === 'function') window.updateUpgraderUI();
+
     window.notify.success(
       'Предмет продан! 💵',
       `${item.name} продан за +$${sellPrice.toFixed(2)}`
@@ -409,6 +413,10 @@ class EconomyManager {
 
     window.authManager.saveCurrentUser();
     window.SoundManager?.playCash();
+
+    if (typeof window.updateHeaderUserUI === 'function') window.updateHeaderUserUI(user);
+    if (typeof window.renderInventoryPage === 'function') window.renderInventoryPage();
+    if (typeof window.updateUpgraderUI === 'function') window.updateUpgraderUI();
 
     window.notify.bigWin(
       'Инвентарь очищен! 💰',

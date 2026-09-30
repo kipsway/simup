@@ -94,10 +94,37 @@ function utf8ToBytesString(str) {
   return unescape(encodeURIComponent(str));
 }
 
+window.TITLES_LIST = [
+  { id: 'novice', name: 'Новичок', desc: 'Стартовый титул для каждого бойца', icon: '🌱' },
+  { id: 'upgrade_master', name: 'Мастер Апгрейдов', desc: 'Выиграть 5 апгрейдов на арене', icon: '⚡' },
+  { id: 'lucky', name: 'Ловец Удачи', desc: 'Выиграть апгрейд с шансом 25% или ниже', icon: '🍀' },
+  { id: 'case_opener', name: 'Кейсер', desc: 'Открыть 5 кейсов в симуляторе', icon: '📦' },
+  { id: 'collector', name: 'Коллекционер', desc: 'Собрать от 5 скинов в инвентаре', icon: '🎒' },
+  { id: 'highroller', name: 'Хайроллер', desc: 'Сделать одиночную ставку от $100', icon: '💎' },
+  { id: 'sniper', name: 'Снайпер', desc: 'Попробовать апгрейд с шансом 90%', icon: '🎯' },
+  { id: 'battle_king', name: 'Гладиатор', desc: 'Сыграть в Кейс Баттл 1 на 1', icon: '⚔️' },
+  { id: 'tycoon', name: 'Олигарх', desc: 'Накопить на балансе $1,000.00', icon: '💰' },
+  { id: 'legend', name: 'Легенда SIMUP', desc: 'Выполнить 8 любых достижений', icon: '👑' }
+];
+
+window.ACHIEVEMENTS_LIST = [
+  { id: 'ach_first_upgrade', title: 'Первый шаг', desc: 'Сделайте ваш первый апгрейд', icon: '⚡', reward: 15.00, xp: 50, target: 1, type: 'upgrades', titleUnlock: null },
+  { id: 'ach_win_5', title: 'Первые победы', desc: 'Выиграйте 5 апгрейдов', icon: '🏆', reward: 25.00, xp: 100, target: 5, type: 'won_upgrades', titleUnlock: 'Мастер Апгрейдов' },
+  { id: 'ach_lucky', title: 'Превзойти шансы', desc: 'Выиграйте с шансом 25% или ниже', icon: '🍀', reward: 35.00, xp: 120, target: 1, type: 'lucky_win', titleUnlock: 'Ловец Удачи' },
+  { id: 'ach_cases_5', title: 'Открыватель ящиков', desc: 'Откройте 5 кейсов', icon: '📦', reward: 20.00, xp: 80, target: 5, type: 'cases', titleUnlock: 'Кейсер' },
+  { id: 'ach_collector', title: 'Арсенал', desc: 'Соберите 5 скинов в инвентаре', icon: '🎒', reward: 30.00, xp: 100, target: 5, type: 'inventory', titleUnlock: 'Коллекционер' },
+  { id: 'ach_high_bet', title: 'Большие ставки', desc: 'Сделайте ставку от $100', icon: '💎', reward: 50.00, xp: 150, target: 1, type: 'high_bet', titleUnlock: 'Хайроллер' },
+  { id: 'ach_max_chance', title: 'Железный расчет', desc: 'Попробуйте апгрейд с шансом 90%', icon: '🎯', reward: 20.00, xp: 75, target: 1, type: 'chance_90', titleUnlock: 'Снайпер' },
+  { id: 'ach_battle', title: 'Боевое крещение', desc: 'Сыграйте в Кейс Баттл 1 на 1', icon: '⚔️', reward: 25.00, xp: 90, target: 1, type: 'battle', titleUnlock: 'Гладиатор' },
+  { id: 'ach_bank_loan', title: 'Кредитная линия', desc: 'Возьмите заём в Банке для старта', icon: '🏦', reward: 15.00, xp: 50, target: 1, type: 'loan', titleUnlock: null },
+  { id: 'ach_balance_1k', title: 'Капиталист', desc: 'Достигните баланса в $1,000.00', icon: '💰', reward: 100.00, xp: 300, target: 1, type: 'balance', titleUnlock: 'Олигарх' }
+];
+
 class AuthManager {
   constructor() {
     this.STORAGE_KEY_USERS = 'simup_accounts_v1';
     this.STORAGE_KEY_SESSION = 'simup_session_v1';
+    this.RESET_MIGRATION_KEY = 'simup_clean_reset_v5_0';
     this.currentUser = null;
     this.onUserChangeCallbacks = [];
 
@@ -106,12 +133,21 @@ class AuthManager {
 
   init() {
     try {
+      // Clean slate reset for all accounts (level 0, empty inventory, $0 balance)
+      if (!localStorage.getItem(this.RESET_MIGRATION_KEY)) {
+        localStorage.removeItem(this.STORAGE_KEY_USERS);
+        localStorage.removeItem(this.STORAGE_KEY_SESSION);
+        localStorage.setItem(this.RESET_MIGRATION_KEY, 'true');
+        this.currentUser = null;
+      }
+
       const session = localStorage.getItem(this.STORAGE_KEY_SESSION);
       if (session) {
         const users = this.getAllUsers();
         const found = users.find(u => u.username && u.username.toLowerCase() === session.toLowerCase());
         if (found) {
           this.currentUser = found;
+          this.ensureUserIntegrity(this.currentUser);
         }
       }
       if (!this.currentUser) {
@@ -123,11 +159,26 @@ class AuthManager {
     }
   }
 
+  ensureUserIntegrity(u) {
+    if (!u) return;
+    let changed = false;
+    if (u.level === undefined) { u.level = 0; changed = true; }
+    if (u.xp === undefined) { u.xp = 0; changed = true; }
+    if (!u.equippedTitle) { u.equippedTitle = 'Новичок'; changed = true; }
+    if (!Array.isArray(u.unlockedTitles) || u.unlockedTitles.length === 0) { u.unlockedTitles = ['Новичок']; changed = true; }
+    if (!u.achievements || typeof u.achievements !== 'object') { u.achievements = {}; changed = true; }
+    if (!u.stats) { u.stats = {}; changed = true; }
+    if (!u.loans) { u.loans = { currentDebt: 0, totalBorrowed: 0, totalRepaid: 0, autoRepay: true }; changed = true; }
+    if (!u.inventory) { u.inventory = []; changed = true; }
+    if (changed) this.saveCurrentUser();
+  }
+
   ensureGuestUser() {
     try {
       const users = this.getAllUsers();
       if (users.length > 0) {
         this.currentUser = users[0];
+        this.ensureUserIntegrity(this.currentUser);
         localStorage.setItem(this.STORAGE_KEY_SESSION, this.currentUser.username);
         return this.currentUser;
       }
@@ -135,35 +186,34 @@ class AuthManager {
       const guest = {
         id: 'user_' + Date.now(),
         username: `Игрок_${randNum}`,
+        referralCode: `Игрок_${randNum}`.toUpperCase(),
+        referredBy: null,
+        referrals: { count: 0, totalBonus: 0, referredUsers: [] },
         salt: 'guest_salt',
         passwordHash: 'guest_hash',
-        balance: 500.00,
-        inventory: [
-          {
-            id: 'inv_starter_' + Date.now(),
-            skinId: 'cs2_ak47_redline_FT',
-            name: 'AK-47 | Красная линия',
-            nameEn: 'AK-47 | Redline',
-            wear: 'FT',
-            wearName: 'После полевых (FT)',
-            price: 24.50,
-            rarity: 'classified',
-            rarityColor: '#d32ce6',
-            category: 'rifle',
-            game: 'cs2',
-            image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdsZGHyd4_Bd1RvM1-F_ge4lOvs0Z-7tZqayXRh6yE8pGB8sr4R4iiR',
-            acquiredAt: Date.now(),
-            source: 'Стартовый набор'
-          }
-        ],
+        balance: 0.00, // Zero balance clean slate
+        inventory: [], // Empty inventory
+        level: 0, // Level 0
+        xp: 0,
+        equippedTitle: 'Новичок',
+        unlockedTitles: ['Новичок'],
+        achievements: {},
         stats: {
           totalUpgrades: 0,
-          upgradesWon: 0,
-          upgradesLost: 0,
+          wonUpgrades: 0,
+          lostUpgrades: 0,
           casesOpened: 0,
+          coinflipsPlayed: 0,
+          battlesPlayed: 0,
+          battlesWon: 0,
           totalWagered: 0,
           netProfit: 0,
-          bestWin: 0
+          bestWin: 0,
+          bestWinMultiplier: 0,
+          bestWinSkin: null,
+          maxSingleBet: 0,
+          contractsCount: 0,
+          hasTried90Pct: false
         },
         loans: {
           currentDebt: 0,
@@ -175,7 +225,6 @@ class AuthManager {
           currentStreak: 0,
           lastClaimDate: null
         },
-        claimedAchievements: [],
         history: [],
         createdAt: Date.now()
       };
@@ -276,13 +325,13 @@ class AuthManager {
       }
     } catch(e) {}
 
-    let initialBalance = 500.00;
+    let initialBalance = 0.00;
     let referredBy = null;
 
     if (effectiveRef) {
       const referrer = users.find(u => u.username && (u.username.toLowerCase() === effectiveRef.toLowerCase() || (u.referralCode && u.referralCode.toLowerCase() === effectiveRef.toLowerCase())));
       if (referrer && referrer.username.toLowerCase() !== cleanNick.toLowerCase()) {
-        initialBalance = 600.00; // +$100.00 bonus for using invite link!
+        initialBalance = 50.00; // Starter friend gift
         referredBy = referrer.username;
         // Credit inviter +$50.00 bonus
         referrer.balance = Number(((referrer.balance || 0) + 50.00).toFixed(2));
@@ -302,39 +351,38 @@ class AuthManager {
       referrals: { count: 0, totalBonus: 0, referredUsers: [] },
       passwordHash: passwordHash,
       salt: salt,
-      balance: initialBalance, // Starter capital ($500.00 or $600.00 with ref)
-      inventory: [
-        // Starter gift skin
-        {
-          instanceId: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
-          skinId: 'cs2_ak47_redline_FT',
-          name: 'AK-47 | Красная линия',
-          wear: 'FT',
-          wearName: 'После полевых (FT)',
-          game: 'cs2',
-          rarity: 'classified',
-          rarityColor: '#d32ce6',
-          price: 18.50,
-          image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV08u_mpSOhcjnPLfWl3lu-sR1jeTE8YXghRq2rhI6Z23yLIWQcANsM1uFqVm-x-rvjZPotZqfynNqvyggsXmLnx2whx1SLrs40_pZ_9I',
-          acquiredAt: Date.now()
-        }
-      ],
+      balance: initialBalance,
+      inventory: [],
+      level: 0,
+      xp: 0,
+      equippedTitle: 'Новичок',
+      unlockedTitles: ['Новичок'],
+      achievements: {},
       stats: {
         totalUpgrades: 0,
         wonUpgrades: 0,
         lostUpgrades: 0,
+        casesOpened: 0,
+        coinflipsPlayed: 0,
+        battlesPlayed: 0,
+        battlesWon: 0,
         bestWinSkin: null,
         bestWinMultiplier: 0,
+        maxSingleBet: 0,
         totalWagered: 0,
         netProfit: 0,
-        casesOpened: 0,
-        contractsCount: 0
+        contractsCount: 0,
+        hasTried90Pct: false
       },
       loans: {
         currentDebt: 0,
         totalBorrowed: 0,
         totalRepaid: 0,
-        interestAccrued: 0
+        autoRepay: true
+      },
+      dailyStreak: {
+        currentStreak: 0,
+        lastClaimDate: null
       },
       history: [],
       createdAt: Date.now()
@@ -344,7 +392,146 @@ class AuthManager {
     this.saveUsers(users);
     this.setCurrentUser(newUser);
 
-    return { success: true, user: newUser, bonusGot: initialBalance > 500 };
+    return { success: true, user: newUser, bonusGot: initialBalance > 0 };
+  }
+
+  changeNickname(newNick) {
+    if (!this.currentUser) return { success: false, error: 'Вы не авторизованы.' };
+    const clean = (newNick || '').trim();
+    if (!clean) return { success: false, error: 'Никнейм не может быть пустым.' };
+    if (clean.length < 3 || clean.length > 18) return { success: false, error: 'Длина ника должна быть от 3 до 18 символов.' };
+    if (!/^[a-zA-Zа-яА-Я0-9_\-\s]+$/i.test(clean)) {
+      return { success: false, error: 'Разрешены буквы, цифры, пробел, дефис и подчеркивание.' };
+    }
+    const users = this.getAllUsers();
+    const exists = users.find(u => u.id !== this.currentUser.id && u.username && u.username.toLowerCase() === clean.toLowerCase());
+    if (exists) {
+      return { success: false, error: `Никнейм "${clean}" уже занят другим игроком.` };
+    }
+    const oldNick = this.currentUser.username;
+    this.currentUser.username = clean;
+    this.currentUser.referralCode = clean.toUpperCase();
+    this.saveCurrentUser();
+    localStorage.setItem(this.STORAGE_KEY_SESSION, clean);
+    this.notifyListeners();
+    if (window.onlineDB && typeof window.onlineDB.upsertProfile === 'function') {
+      window.onlineDB.upsertProfile(this.currentUser).catch(() => {});
+    }
+    return { success: true, oldNick, newNick: clean };
+  }
+
+  equipTitle(titleName) {
+    if (!this.currentUser) return false;
+    if (!this.currentUser.unlockedTitles) this.currentUser.unlockedTitles = ['Новичок'];
+    if (!this.currentUser.unlockedTitles.includes(titleName)) {
+      return false;
+    }
+    this.currentUser.equippedTitle = titleName;
+    this.saveCurrentUser();
+    this.notifyListeners();
+    if (window.onlineDB && typeof window.onlineDB.upsertProfile === 'function') {
+      window.onlineDB.upsertProfile(this.currentUser).catch(() => {});
+    }
+    return true;
+  }
+
+  getAchievementProgress(ach) {
+    const u = this.currentUser;
+    if (!u) return { current: 0, target: 1, completed: false, percent: 0 };
+    let current = 0;
+    const target = ach.target || 1;
+
+    switch (ach.type) {
+      case 'upgrades':
+        current = u.stats?.totalUpgrades || 0;
+        break;
+      case 'won_upgrades':
+        current = u.stats?.wonUpgrades || 0;
+        break;
+      case 'lucky_win':
+        current = (u.stats?.bestWinMultiplier >= 4 || (u.history || []).some(h => h.type === 'upgrade' && h.isWin && h.chance <= 25)) ? 1 : 0;
+        break;
+      case 'cases':
+        current = u.stats?.casesOpened || 0;
+        break;
+      case 'inventory':
+        current = (u.inventory || []).length;
+        break;
+      case 'high_bet':
+        current = (u.stats?.maxSingleBet >= 100 || (u.history || []).some(h => (h.totalBet || 0) >= 100)) ? 1 : 0;
+        break;
+      case 'chance_90':
+        current = Boolean(u.stats?.hasTried90Pct || (u.history || []).some(h => (h.chance || 0) >= 85)) ? 1 : 0;
+        break;
+      case 'battle':
+        current = (u.stats?.battlesPlayed || 0);
+        break;
+      case 'loan':
+        current = (u.loans?.totalBorrowed || 0) > 0 ? 1 : 0;
+        break;
+      case 'balance':
+        current = Math.floor(u.balance || 0);
+        break;
+      default:
+        current = 0;
+    }
+
+    const completed = current >= target;
+    const percent = Math.min(100, Math.floor((current / target) * 100));
+    return { current, target, completed, percent };
+  }
+
+  claimAchievement(achId) {
+    if (!this.currentUser) return { success: false, error: 'Не авторизован' };
+    const ach = (window.ACHIEVEMENTS_LIST || []).find(a => a.id === achId);
+    if (!ach) return { success: false, error: 'Достижение не найдено' };
+
+    if (!this.currentUser.achievements) this.currentUser.achievements = {};
+    if (this.currentUser.achievements[achId]?.claimed) {
+      return { success: false, error: 'Награда уже получена' };
+    }
+
+    const prog = this.getAchievementProgress(ach);
+    if (!prog.completed) {
+      return { success: false, error: 'Условие достижения еще не выполнено' };
+    }
+
+    // Grant reward
+    this.currentUser.balance = Number((this.currentUser.balance + ach.reward).toFixed(2));
+    this.currentUser.xp = (this.currentUser.xp || 0) + (ach.xp || 50);
+    this.currentUser.level = Math.floor((this.currentUser.stats?.totalWagered || 0) / 250) + Math.floor((this.currentUser.xp || 0) / 500);
+
+    if (!this.currentUser.unlockedTitles) this.currentUser.unlockedTitles = ['Новичок'];
+    let unlockedTitle = null;
+    if (ach.titleUnlock && !this.currentUser.unlockedTitles.includes(ach.titleUnlock)) {
+      this.currentUser.unlockedTitles.push(ach.titleUnlock);
+      unlockedTitle = ach.titleUnlock;
+    }
+
+    // Check legend title
+    const claimedCount = Object.keys(this.currentUser.achievements).filter(k => this.currentUser.achievements[k]?.claimed).length + 1;
+    if (claimedCount >= 8 && !this.currentUser.unlockedTitles.includes('Легенда SIMUP')) {
+      this.currentUser.unlockedTitles.push('Легенда SIMUP');
+    }
+
+    this.currentUser.achievements[achId] = {
+      completed: true,
+      claimed: true,
+      claimedAt: Date.now()
+    };
+
+    this.saveCurrentUser();
+    this.notifyListeners();
+
+    if (window.SoundManager?.playWin) window.SoundManager.playWin();
+    if (window.confettiEffect) window.confettiEffect();
+
+    return {
+      success: true,
+      reward: ach.reward,
+      xp: ach.xp,
+      unlockedTitle: unlockedTitle
+    };
   }
 
   redeemReferralCode(code) {

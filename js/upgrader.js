@@ -6,7 +6,7 @@
 
 class UpgraderEngine {
   constructor() {
-    this.houseEdge = 0.12; // 12% balanced realistic esports house edge
+    this.houseEdge = 0.05; // 5% esports edge (~95% RTP, higher win rate)
     this.sectorOffset = 0; // rotation angle of sector
     this.isSpinning = false;
     this.speedMode = 'normal'; // 'fast' (1.2s), 'normal' (2.8s), 'slow' (5.0s)
@@ -18,6 +18,7 @@ class UpgraderEngine {
     this.selectedItems = []; // items from inventory sacrificed for upgrade
     this.targetSkin = null; // target skin to win
     this.desiredMultiplier = 2.0;
+    this.desiredChance = 50.0;
 
     // Provably Fair state
     this.clientSeed = this.generateClientSeed();
@@ -106,7 +107,10 @@ class UpgraderEngine {
       isSelected = true;
     }
     try {
-      if (localStorage.getItem('simup_last_target_mode') === 'multiplier' && this.desiredMultiplier) {
+      const mode = localStorage.getItem('simup_last_target_mode');
+      if (mode === 'chance' && this.desiredChance) {
+        this.applyDesiredChance();
+      } else if (mode === 'multiplier' && this.desiredMultiplier) {
         this.applyDesiredMultiplier();
       }
     } catch(e) {}
@@ -120,7 +124,10 @@ class UpgraderEngine {
   selectAllItems(items = []) {
     this.selectedItems = [...items];
     try {
-      if (localStorage.getItem('simup_last_target_mode') === 'multiplier' && this.desiredMultiplier) {
+      const mode = localStorage.getItem('simup_last_target_mode');
+      if (mode === 'chance' && this.desiredChance) {
+        this.applyDesiredChance();
+      } else if (mode === 'multiplier' && this.desiredMultiplier) {
         this.applyDesiredMultiplier();
       }
     } catch(e) {}
@@ -143,6 +150,37 @@ class UpgraderEngine {
       localStorage.setItem('simup_last_target_mode', 'multiplier');
     } catch(e) {}
     return this.applyDesiredMultiplier();
+  }
+
+  setDesiredChance(pct) {
+    const clamped = Math.min(90.0, Math.max(0.1, Number(pct)));
+    this.desiredChance = clamped;
+    try {
+      localStorage.setItem('simup_last_chance', String(clamped));
+      localStorage.setItem('simup_last_target_mode', 'chance');
+    } catch(e) {}
+    return this.applyDesiredChance();
+  }
+
+  applyDesiredChance() {
+    if (!this.desiredChance || this.desiredChance <= 0) return null;
+    const totalBet = this.getTotalBetAmount() || 10;
+    const allSkins = window.catalogController?.skins || window.SKINS_DATABASE || [];
+    if (allSkins.length === 0) return null;
+
+    // Formula: targetPrice = (totalBet * (1 - this.houseEdge) * 100) / desiredChance
+    const desiredPrice = (totalBet * (1 - this.houseEdge) * 100) / this.desiredChance;
+    let closest = allSkins[0];
+    let minDiff = Math.abs(closest.price - desiredPrice);
+    for (let i = 1; i < allSkins.length; i++) {
+      const diff = Math.abs(allSkins[i].price - desiredPrice);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = allSkins[i];
+      }
+    }
+    this.targetSkin = closest;
+    return closest;
   }
 
   applyDesiredMultiplier() {
@@ -187,16 +225,16 @@ class UpgraderEngine {
     return Number(itemsVal.toFixed(2));
   }
 
-  // Exact 1-to-1 Mathematical Chance calculation
+  // Exact 1-to-1 Mathematical Chance calculation (up to 90.00% MAX)
   calculateChance() {
     const totalBet = this.getTotalBetAmount();
     if (!this.targetSkin || this.targetSkin.price <= 0 || totalBet <= 0) {
       return 0;
     }
 
-    // Balanced odds formula: chance = (totalBetSkins / targetSkinPrice) * (1 - 0.12) * 100
+    // Balanced odds formula: chance = (totalBetSkins / targetSkinPrice) * (1 - 0.05) * 100
     const rawChance = (totalBet / this.targetSkin.price) * (1 - this.houseEdge) * 100;
-    const clamped = Math.min(75.00, Math.max(0.05, rawChance));
+    const clamped = Math.min(90.00, Math.max(0.01, rawChance));
     return Number(clamped.toFixed(2));
   }
 
@@ -280,10 +318,13 @@ class UpgraderEngine {
 
     window.authManager.saveCurrentUser();
 
-    // 2. Compute winning conditions & Roll
     const chance = this.calculateChance();
     const multiplier = this.calculateMultiplier();
     const { roll, hash } = await this.generateRollNumber();
+
+    if (chance >= 85) {
+      user.stats.hasTried90Pct = true;
+    }
 
     // Determine win mathematically:
     const isWin = (roll < chance);

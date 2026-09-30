@@ -62,6 +62,7 @@ class LeaderboardManager {
         bestWinSkin: user.stats?.bestWinSkin || null,
         bestWinMultiplier: user.stats?.bestWinMultiplier || 0,
         casesOpened: user.stats?.casesOpened || 0,
+        equippedTitle: user.equippedTitle || 'Новичок',
         createdAt: user.createdAt || Date.now()
       };
       // Keep the richest duplicate nickname

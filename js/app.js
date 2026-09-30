@@ -420,12 +420,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateHeaderUserUI(user) {
     if (user) {
       const totalWagered = user.stats?.totalWagered || 0;
-      const level = Math.max(1, Math.floor(totalWagered / 250) + 1);
+      const level = user.level !== undefined ? user.level : Math.floor(totalWagered / 250);
 
       headerBalanceEl.textContent = `$${user.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       userHeaderContainer.innerHTML = `
         <div class="user-profile-btn" id="header-user-btn" title="Профиль ${user.username}">
           <span class="user-name-label">${user.username}</span>
+          <span class="player-title-badge-header">${user.equippedTitle || 'Новичок'}</span>
           <span class="user-level-pill">LVL ${level}</span>
         </div>
       `;
@@ -809,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemsCount = user.inventory.length;
     const invValue = user.inventory.reduce((sum, item) => sum + (item.price || 0), 0);
     const totalWagered = user.stats?.totalWagered || 0;
-    const level = Math.max(1, Math.floor(totalWagered / 250) + 1);
+    const level = user.level !== undefined ? user.level : Math.floor(totalWagered / 250);
     const xpInCurrentLevel = Math.floor(totalWagered % 250);
     const progressPercent = Math.min(100, Math.floor((xpInCurrentLevel / 250) * 100));
 
@@ -821,7 +822,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>
               <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <h2 style="font-size: 24px; font-weight: 800; color: #fff;">${user.username}</h2>
+                <span class="player-title-badge">${user.equippedTitle || 'Новичок'}</span>
                 <span class="user-level-pill">LVL ${level}</span>
+                <button id="btn-edit-nickname" title="Сменить никнейм" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                  ✏️ Сменить ник
+                </button>
               </div>
               <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Регистрация: ${regDate} | ID: #${user.id.slice(-6)}</div>
               <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
@@ -915,6 +920,104 @@ document.addEventListener('DOMContentLoaded', () => {
                 ⚙️ Админка
               </button>
             </div>
+          </div>
+        </div>
+
+        <!-- TITLES SHOWCASE SECTION -->
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <div style="font-size: 15px; font-weight: 800; color: #fff;">🎖️ Титулы игрока</div>
+              <div style="font-size: 11.5px; color: var(--text-dim);">Титул отображается в шапке, рейтинге и дуэлях рядом с никнеймом</div>
+            </div>
+            <span style="font-size: 12px; font-weight: 800; color: var(--accent-color);">
+              Открыто: ${(user.unlockedTitles || ['Новичок']).length} из ${(window.TITLES_LIST || []).length}
+            </span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+            ${(window.TITLES_LIST || []).map(t => {
+              const isUnlocked = (user.unlockedTitles || ['Новичок']).includes(t.name) || t.id === 'novice';
+              const isEquipped = (user.equippedTitle || 'Новичок') === t.name;
+              return `
+                <div style="background: ${isEquipped ? 'rgba(255, 0, 77, 0.12)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isEquipped ? '#ff004d' : (isUnlocked ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)')}; border-radius: 8px; padding: 12px; opacity: ${isUnlocked ? '1' : '0.5'}; transition: all 0.2s;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="font-size: 18px;">${t.icon}</span>
+                    ${isEquipped ? `
+                      <span style="font-size: 10px; font-weight: 900; color: #fff; background: #ff004d; padding: 2px 7px; border-radius: 999px;">АКТИВЕН</span>
+                    ` : (isUnlocked ? `
+                      <button class="btn-equip-title" data-title-name="${t.name}" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; cursor: pointer;">Надеть</button>
+                    ` : `
+                      <span style="font-size: 10px; color: var(--text-dim);">🔒 Закрыто</span>
+                    `)}
+                  </div>
+                  <div style="font-weight: 800; font-size: 13px; color: #fff;">${t.name}</div>
+                  <div style="font-size: 11px; color: var(--text-dim); margin-top: 3px;">${t.desc}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- ACHIEVEMENTS SECTION -->
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <div style="font-size: 15px; font-weight: 800; color: #fff;">🏆 Достижения и награды</div>
+              <div style="font-size: 11.5px; color: var(--text-dim);">Выполняйте задания для получения бонусного баланса, опыта и титулов</div>
+            </div>
+            <span style="font-size: 12px; font-weight: 800; color: #10b981;">
+              Забрано: ${Object.keys(user.achievements || {}).filter(k => user.achievements[k]?.claimed).length} из ${(window.ACHIEVEMENTS_LIST || []).length}
+            </span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+            ${(window.ACHIEVEMENTS_LIST || []).map(ach => {
+              const status = (user.achievements || {})[ach.id];
+              const isClaimed = Boolean(status?.claimed);
+              const prog = window.authManager.getAchievementProgress(ach);
+              const canClaim = prog.completed && !isClaimed;
+
+              return `
+                <div style="background: ${canClaim ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${canClaim ? '#10b981' : (isClaimed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.05)')}; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s;">
+                  <div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                      <span style="font-size: 20px;">${ach.icon}</span>
+                      <span style="font-size: 11px; font-weight: 800; color: #ffd700; background: rgba(255,215,0,0.12); padding: 2px 7px; border-radius: 999px;">
+                        +$${ach.reward.toFixed(2)} | +${ach.xp} XP
+                      </span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 13.5px; color: #fff;">${ach.title}</div>
+                    <div style="font-size: 11.5px; color: var(--text-dim); margin: 4px 0 10px;">${ach.desc}</div>
+                    ${ach.titleUnlock ? `<div style="font-size: 11px; color: var(--accent-color); font-weight: 700; margin-bottom: 8px;">🎖️ Титул: «${ach.titleUnlock}»</div>` : ''}
+                  </div>
+
+                  <div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">
+                      <span>Прогресс:</span>
+                      <span style="font-weight: 700; color: #fff;">${prog.current} / ${prog.target}</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden; margin-bottom: 10px;">
+                      <div style="width: ${prog.percent}%; height: 100%; background: ${canClaim ? '#10b981' : 'linear-gradient(90deg, var(--accent-color), #ff004d)'}; border-radius: 999px;"></div>
+                    </div>
+
+                    ${isClaimed ? `
+                      <div style="text-align: center; font-size: 11.5px; font-weight: 800; color: #10b981; padding: 6px; background: rgba(16,185,129,0.08); border-radius: 6px;">
+                        ✅ Награда получена
+                      </div>
+                    ` : (canClaim ? `
+                      <button class="btn-claim-achievement" data-ach-id="${ach.id}" style="width: 100%; background: #10b981; color: #000; border: none; font-weight: 800; font-size: 12px; padding: 8px; border-radius: 6px; cursor: pointer;">
+                        Забрать награду 🎁
+                      </button>
+                    ` : `
+                      <div style="text-align: center; font-size: 11px; color: var(--text-dim); padding: 5px;">
+                        В процессе (${prog.percent}%)
+                      </div>
+                    `)}
+                  </div>
+                </div>
+              `;
+            }).join('')}
           </div>
         </div>
 
@@ -1316,6 +1419,49 @@ document.addEventListener('DOMContentLoaded', () => {
       switchTab('upgrader');
     });
 
+    // Nickname Change Listener
+    document.getElementById('btn-edit-nickname')?.addEventListener('click', () => {
+      const currentNick = user.username;
+      const newNick = prompt('Введите новый никнейм игрока (от 3 до 18 символов):', currentNick);
+      if (newNick && newNick.trim() && newNick.trim() !== currentNick) {
+        const res = window.authManager.changeNickname(newNick.trim());
+        if (res.success) {
+          window.notify.success('Никнейм изменен! ✨', `Ваш новый никнейм: ${res.newNick}!`);
+          renderProfilePage();
+          updateHeaderUserUI(window.authManager.currentUser);
+        } else {
+          window.notify.error('Ошибка смены ника', res.error || 'Не удалось сменить ник.');
+        }
+      }
+    });
+
+    // Equip Title Listeners
+    document.querySelectorAll('.btn-equip-title').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const titleName = btn.dataset.titleName;
+        if (window.authManager.equipTitle(titleName)) {
+          window.notify.success('Титул надет! 🎖️', `Вы надели титул «${titleName}»!`);
+          renderProfilePage();
+          updateHeaderUserUI(window.authManager.currentUser);
+        }
+      });
+    });
+
+    // Claim Achievement Listeners
+    document.querySelectorAll('.btn-claim-achievement').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const achId = btn.dataset.achId;
+        const res = window.authManager.claimAchievement(achId);
+        if (res.success) {
+          window.notify.bigWin('ДОСТИЖЕНИЕ ПОЛУЧЕНО! 🎁', `Награда: +$${res.reward.toFixed(2)} и +${res.xp} XP!${res.unlockedTitle ? ` Открыт титул «${res.unlockedTitle}»!` : ''}`);
+          renderProfilePage();
+          updateHeaderUserUI(window.authManager.currentUser);
+        } else {
+          window.notify.error('Ошибка', res.error || 'Не удалось получить награду.');
+        }
+      });
+    });
+
     // Attach individual item sell & upgrade listeners
     document.querySelectorAll('[data-sell-item]').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -1601,6 +1747,21 @@ document.addEventListener('DOMContentLoaded', () => {
       inputCustomMultiplier.value = currentMult.toFixed(1);
     }
 
+    // Update active chance chips & slider
+    const currentChance = chance > 0 ? chance : (window.upgraderEngine.desiredChance || 50);
+    const sliderCustomChance = document.getElementById('slider-custom-chance');
+    const labelChanceSliderReadout = document.getElementById('label-chance-slider-readout');
+    if (sliderCustomChance && document.activeElement !== sliderCustomChance) {
+      sliderCustomChance.value = Math.round(currentChance);
+    }
+    if (labelChanceSliderReadout) {
+      labelChanceSliderReadout.textContent = `${currentChance.toFixed(currentChance % 1 === 0 ? 0 : 1)}%`;
+    }
+    document.querySelectorAll('[data-quick-chance]').forEach(btn => {
+      const chipVal = parseFloat(btn.dataset.quickChance);
+      btn.classList.toggle('active', Math.abs(chipVal - currentChance) < 2.0);
+    });
+
     // Direction pills
     if (btnDirUnder) btnDirUnder.classList.toggle('active', window.upgraderEngine.direction === 'under');
     if (btnDirOver) btnDirOver.classList.toggle('active', window.upgraderEngine.direction === 'over');
@@ -1765,6 +1926,34 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       window.notify.info('🎲 Рандомный апгрейд', `Выпал множитель ${mult}x!`);
     }
+  });
+
+  // Quick Chance chips
+  document.querySelectorAll('[data-quick-chance]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ch = parseFloat(btn.dataset.quickChance);
+      const matched = window.upgraderEngine.setDesiredChance(ch);
+      const slider = document.getElementById('slider-custom-chance');
+      const label = document.getElementById('label-chance-slider-readout');
+      if (slider) slider.value = ch;
+      if (label) label.textContent = `${ch}%`;
+      updateUpgraderUI();
+      if (matched) {
+        window.notify.info(`Шанс ${ch}%`, `Подобран скин: ${matched.name} ($${matched.price.toFixed(2)})`);
+      } else {
+        window.notify.info(`Шанс ${ch}% выбран`, 'Выберите скины из инвентаря для ставки.');
+      }
+    });
+  });
+
+  // Chance Range Slider
+  const sliderCustomChance = document.getElementById('slider-custom-chance');
+  sliderCustomChance?.addEventListener('input', (e) => {
+    const ch = parseFloat(e.target.value);
+    const label = document.getElementById('label-chance-slider-readout');
+    if (label) label.textContent = `${ch}%`;
+    window.upgraderEngine.setDesiredChance(ch);
+    updateUpgraderUI(true);
   });
 
   // Quick multipliers
@@ -2274,6 +2463,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <div class="player-name-wrap">
                     <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                       <span style="font-weight: 800; color: #fff;">${p.username}</span>
+                      ${p.equippedTitle ? `<span class="player-title-badge-table">${p.equippedTitle}</span>` : ''}
                       ${isCurrent ? '<span class="you-badge">★ ВЫ</span>' : ''}
                       ${p.isOnline ? '<span class="global-player-badge" style="background:rgba(16,185,129,.14);border-color:rgba(16,185,129,.4);color:#6ee7b7;">● ONLINE</span>' : ''}
                       ${p.isGlobal ? '<span class="global-player-badge">🌐 Игрок</span>' : ''}
@@ -2357,6 +2547,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <div class="player-avatar-sm" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); font-weight: 800; font-size: 11px; color: var(--accent-color);">${(p.username || '?').substring(0, 2).toUpperCase()}</div>
                   <div class="player-name-wrap">
                     <span style="font-weight: 800; color: #fff;">${p.username}</span>
+                    ${p.equippedTitle ? `<span class="player-title-badge-table">${p.equippedTitle}</span>` : ''}
                     ${isCurrent ? '<span class="you-badge">★ ВЫ</span>' : ''}
                     ${!isCurrent && p.isGlobal ? '<span class="global-badge" title="Игрок глобального рейтинга" style="font-size:9.5px;font-weight:800;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:#38bdf8;padding:1px 6px;border-radius:20px;">🌐 TOP</span>' : ''}
                   </div>

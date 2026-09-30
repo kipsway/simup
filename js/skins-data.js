@@ -39,6 +39,106 @@ const WEAR_NAMES = {
 
 const SKINS_DATABASE = [
   {
+    "id": "cs2_karambit_blue_gem_387",
+    "game": "cs2",
+    "name": "★ Керамбит | Blue Gem #387",
+    "nameEn": "★ Karambit | Case Hardened Blue Gem #387",
+    "category": "knife",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1ObcTjxP0965h4WPqP_xMq3ehm5D8fp3htfx_Is_2VDkqBFrZWv3dYfEI1RsYwvZ_Fm7x-7o0cK87svNzydk6iI8pGB8srcwZps0",
+    "price": 1500000.00
+  },
+  {
+    "id": "cs2_ak47_case_hardened_scar_661",
+    "game": "cs2",
+    "name": "AK-47 | Blue Gem Pattern 661",
+    "nameEn": "AK-47 | Case Hardened Pattern 661 Scar",
+    "category": "rifle",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV08u_mpSOhcjnPLfWl3lu-sR1jeTE8YXghRq2rhI6Z23yLIWQcANsM1uFqVm-x-rvjZPotZqfynNqvyggsXmLnx2whx1SLrs40_pZ_9I",
+    "price": 850000.00
+  },
+  {
+    "id": "cs2_awp_dragon_lore_souvenir_fn",
+    "game": "cs2",
+    "name": "AWP | История о драконе (Сувенир FN)",
+    "nameEn": "AWP | Dragon Lore (Souvenir FN)",
+    "category": "sniper",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Wts2sab1iLvWHMWSF_uMvj-NoVha_mg8ijDCAnobsLGWebgVzA5EjQrMJ40G9xIHhMu_j4wOM2oJMnCuq2nlN73w54OdRVqoj5OSJ2HZV8Guh",
+    "price": 450000.00
+  },
+  {
+    "id": "cs2_m4a4_howl_stattrak_fn",
+    "game": "cs2",
+    "name": "M4A4 | Вой (StatTrak™ FN)",
+    "nameEn": "M4A4 | Howl (StatTrak™ Factory New)",
+    "category": "rifle",
+    "rarity": "contraband",
+    "image": "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09izh4-GkvP9Jrafw2lU6ccp0rqVpon3jVbtrRE_NW_zLYPBegE4MF3Qq1O8wOq905Xp7cvM1zI97Q3gV46h",
+    "price": 35000.00
+  },
+  {
+    "id": "cs2_gloves_pandora_box_fn",
+    "game": "cs2",
+    "name": "★ Спортивные перчатки | Ящик Пандоры (FN)",
+    "nameEn": "★ Sport Gloves | Pandora's Box (Factory New)",
+    "category": "gloves",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfxuHbZC597c2JmImMn-O6Nr_um25V4dB8xLvEotSn31Xh-0FtNmH2cY-dJwI-M1zX-1S_kO_vhcC76cmayXpqs3F2tyvan1q3hAYMMLK8H7R5kQ",
+    "price": 32000.00
+  },
+  {
+    "id": "cs2_butterfly_gamma_emerald",
+    "game": "cs2",
+    "name": "★ Нож-бабочка | Гамма-волны Изумруд",
+    "nameEn": "★ Butterfly Knife | Gamma Doppler Emerald",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tCvq4GKqPH1N77ummJW4NE_iLjA99nzigexr0NkYmH2dYSTdAU9ZQrW_lm2kO3pgcTuv8vLy3I1sj5iuyin5z3u1g",
+    "price": 28000.00
+  },
+  {
+    "id": "cs2_gloves_vice_fn",
+    "game": "cs2",
+    "name": "★ Спортивные перчатки | Порок (FN)",
+    "nameEn": "★ Sport Gloves | Vice (Factory New)",
+    "category": "gloves",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfxuHbZC597c2JmImMn-O6Nr_um25V4dB8xLvEotSn31Xh-0FtNmH2cY-dJwI-M1zX-1S_kO_vhcC76cmayXpqs3F2tyvan1q3hAYMMLK8H7R5kQ",
+    "price": 26000.00
+  },
+  {
+    "id": "cs2_m9_bayonet_sapphire",
+    "game": "cs2",
+    "name": "★ Штык-нож M9 | Волны Сапфир",
+    "nameEn": "★ M9 Bayonet | Doppler Sapphire",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Wts2sab1iLvWHMWSF_uMvj-NoVha_mg8ijDCAnobsLGWebgVzA5EjQrMJ40G9xIHhMu_j4wOM2oJMnCuq2nlN73w54OdRVqoj5OSJ2HZV8Guh",
+    "price": 24500.00
+  },
+  {
+    "id": "cs2_skeleton_crimson_web_fn",
+    "game": "cs2",
+    "name": "★ Скелетный нож | Кровавая паутина (FN)",
+    "nameEn": "★ Skeleton Knife | Crimson Web (Factory New)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1I5PeibbBiLs-bF1iHxOxlj-lsTj-q20twt2yGydf9eHOfbAZzD8Z1F7YC5xW8w4KxN-vrtFDf2oxGmC-r2HhXrnE8IzMD7FA",
+    "price": 18000.00
+  },
+  {
+    "id": "cs2_karambit_ruby_fn",
+    "game": "cs2",
+    "name": "★ Керамбит | Волны Рубин",
+    "nameEn": "★ Karambit | Doppler Ruby (Factory New)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJlY20k_jkI7fUhFRB4MRij7r--YXygED6-EtrNmihLYaXIQ83Nw6C-1C6k-zvgMO7up7NmHs2uykl43fYnUG3hQYMMLINmYZu2g",
+    "price": 16500.00
+  },
+  {
     "id": "cs2_butterfly_fade",
     "game": "cs2",
     "name": "★ Нож-бабочка | Градиент",

@@ -188,7 +188,7 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
   flex-wrap: nowrap;
 }
@@ -210,25 +210,26 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   padding: 3px;
   border-radius: 999px;
   gap: 3px;
-  margin-right: auto;
 }
 
 .desktop-nav-tabs {
-  margin-right: auto;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+  flex-shrink: 0;
 }
 
 .nav-tab-btn {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  padding: 8px 16px;
+  padding: 7px 14px;
   border-radius: var(--radius-sm);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   transition: all var(--transition-fast);
 }
 
@@ -244,12 +245,49 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   font-weight: 700;
 }
 
-/* HEADER USER CONTROLS */
+/* HEADER USER CONTROLS: Firmly constrained to prevent any out-of-bounds overflow */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  margin-left: auto;
+  max-width: 50%;
+  justify-content: flex-end;
+}
+
+#user-header-container {
+  display: flex;
+  align-items: center;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 220px;
+}
+
+.user-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+.user-name-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Hide wide text auxiliary buttons to prevent PC header overflow and match smartphone minimalism */
@@ -6063,10 +6101,20 @@ button {
   z-index: 1000;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  pointer-events: none;
 }
 
-.games-dropdown-menu.active {
+/* Explicitly disable opening on hover: ONLY click triggers .active */
+.games-nav-dropdown-wrap:hover .games-dropdown-menu,
+.games-dropdown-menu:hover {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.games-dropdown-menu.active,
+.games-nav-dropdown-wrap .games-dropdown-menu.active {
   display: flex !important;
+  pointer-events: auto !important;
   animation: fadeInDown 0.16s ease;
 }
 

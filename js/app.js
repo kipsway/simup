@@ -216,8 +216,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnDesktopGamesHub = document.getElementById('btn-desktop-games-hub');
   const gamesDropdownMenu = document.getElementById('games-dropdown-menu');
 
-  // Toggle mini-games dropdown on CLICK (not hover)
+  // Toggle mini-games dropdown on CLICK ONLY (never on hover)
   btnDesktopGamesHub?.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
     if (window.innerWidth <= 960) {
       openGamesHub();
@@ -643,13 +644,20 @@ document.addEventListener('DOMContentLoaded', () => {
   loanChips.forEach(btn => {
     btn.addEventListener('click', () => {
       const chipVal = btn.dataset.loanChip;
-      const user = window.authManager.currentUser;
-      if (chipVal === 'max') {
-        loanInputAmount.value = 50000;
-      } else {
-        loanInputAmount.value = chipVal;
+      const num = parseFloat(chipVal);
+      if (!isNaN(num)) {
+        loanInputAmount.value = Math.min(100000, num);
       }
     });
+  });
+
+  loanInputAmount?.addEventListener('input', () => {
+    if (!loanInputAmount) return;
+    const val = parseFloat(loanInputAmount.value);
+    if (!isNaN(val) && val > 100000) {
+      loanInputAmount.value = 100000;
+      window.notify?.warning?.('Лимит кредита', 'Максимальная сумма займа за один раз — $100,000.00');
+    }
   });
 
   btnTakeLoan?.addEventListener('click', () => {
@@ -732,6 +740,17 @@ document.addEventListener('DOMContentLoaded', () => {
     renderDailyStreak();
     renderAchievements();
   }
+
+  window.renderBankPage = renderBankPage;
+  window.updateHeaderUserUI = updateHeaderUserUI;
+
+  // React to any user profile updates (including auto-repay debt deductions)
+  window.authManager.subscribe((user) => {
+    if (user) {
+      updateHeaderUserUI(user);
+      renderBankPage();
+    }
+  });
 
   // =========================================================================
   // BLOCK 2: DAILY STREAK REWARDS

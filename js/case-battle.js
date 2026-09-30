@@ -1142,6 +1142,12 @@ class CaseBattleController {
       window.authManager.saveCurrentUser();
       window.updateHeaderUserUI?.(user);
 
+      // Auto-repay debt from duel winnings
+      const duelProfit = Number((this.totalStake / 2).toFixed(2));
+      if (duelProfit > 0 && window.economyManager?.autoDeductDebtFromWin) {
+        window.economyManager.autoDeductDebtFromWin(user, duelProfit);
+      }
+
       window.SoundManager?.playJackpot?.() || window.SoundManager?.playWin?.();
       window.confettiEffect?.();
 
@@ -1580,6 +1586,12 @@ class CaseBattleController {
 
       window.authManager.saveCurrentUser();
       window.updateHeaderUserUI?.(user);
+
+      // Auto-repay debt from case battle winnings
+      const cbProfit = Number((this.totalStake / 2).toFixed(2));
+      if (cbProfit > 0 && window.economyManager?.autoDeductDebtFromWin) {
+        window.economyManager.autoDeductDebtFromWin(user, cbProfit);
+      }
 
       window.SoundManager?.playJackpot?.() || window.SoundManager?.playWin?.();
       window.confettiEffect?.();

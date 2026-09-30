@@ -109,6 +109,9 @@ class EconomyManager {
     if (isNaN(val) || val < 10) {
       return { success: false, error: 'Минимальная сумма кредита — $10.00.' };
     }
+    if (val > 100000) {
+      return { success: false, error: 'Максимальная сумма кредита за один раз — $100,000.00.' };
+    }
 
     const totalToRepay = Number((val * (1 + this.LOAN_INTEREST_RATE)).toFixed(2));
 
@@ -145,12 +148,19 @@ class EconomyManager {
     const candidate = Number((profitAmount * 0.20).toFixed(2));
     const toDeduct = Math.min(candidate, user.loans.currentDebt, user.balance);
 
-    if (toDeduct >= 0.50) {
+    if (toDeduct >= 0.01) {
       user.balance = Number((user.balance - toDeduct).toFixed(2));
       user.loans.currentDebt = Number((user.loans.currentDebt - toDeduct).toFixed(2));
       user.loans.totalRepaid = Number(((user.loans.totalRepaid || 0) + toDeduct).toFixed(2));
 
       window.authManager.saveCurrentUser();
+
+      if (typeof window.updateHeaderUserUI === 'function') {
+        window.updateHeaderUserUI(user);
+      }
+      if (typeof window.renderBankPage === 'function') {
+        window.renderBankPage();
+      }
 
       window.notify.info(
         'Автопогашение кредита 🏦',

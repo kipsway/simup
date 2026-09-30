@@ -1782,20 +1782,20 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
 
 .wheel-top-controls {
   width: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 14px;
   position: relative;
   z-index: 10;
 }
 
 .wheel-controls-left {
+  justify-self: start;
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
   min-width: 0;
 }
 
@@ -1828,18 +1828,20 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   box-shadow: 0 0 10px rgba(255, 0, 77, 0.4);
 }
 
-/* MINIMALIST SIMUP BRAND BADGE (PINNED TO THE RIGHT OF WHEEL CONTROLS) */
+/* MINIMALIST SIMUP BRAND BADGE:
+   ON PC: STRICTLY CENTERED DIRECTLY ABOVE THE WHEEL */
 .arena-brand-badge {
+  justify-self: center;
+  margin: 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
+  gap: 7px;
+  padding: 5px 13px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 0, 77, 0.35);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   flex-shrink: 0;
-  margin-left: auto;
   user-select: none;
   transition: all 0.2s ease;
   height: 32px;
@@ -1868,6 +1870,14 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   text-transform: uppercase;
   line-height: 1;
   display: inline-block;
+}
+
+.wheel-controls-right {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 /* OVER / UNDER SWITCH */
@@ -6883,6 +6893,17 @@ html, body {
   }
 
   .wheel-controls-left {
+    order: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    min-width: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .wheel-controls-right {
+    order: 2 !important;
     display: flex !important;
     align-items: center !important;
     gap: 4px !important;
@@ -6895,7 +6916,7 @@ html, body {
     flex-shrink: 1 !important;
   }
 
-  .wheel-controls-left::-webkit-scrollbar {
+  .wheel-controls-right::-webkit-scrollbar {
     display: none !important;
   }
 
@@ -6918,8 +6939,9 @@ html, body {
     min-height: 28px !important;
   }
 
-  /* Right-pinned minimalist brand badge */
+  /* Right-pinned minimalist brand badge on mobile */
   .arena-brand-badge {
+    order: 3 !important;
     margin-left: auto !important;
     flex-shrink: 0 !important;
     padding: 4px 8px !important;

@@ -271,33 +271,36 @@
         <div class="upgrader-col-center">
           <!-- Top row: Speed mode switcher (Left), Minimalist SIMUP Logo (Center on PC, Right on Mobile), Arrow Style & Random (Right on PC) -->
           <div class="wheel-top-controls">
-            <!-- Left: Speed Switcher -->
-            <div class="wheel-controls-left">
-              <div class="speed-switcher-pill" id="speed-switcher">
-                <button class="btn-speed-pill" data-speed="fast">⚡ 1.2s</button>
-                <button class="btn-speed-pill active" data-speed="normal">⚡ 3.5s</button>
-                <button class="btn-speed-pill" data-speed="slow">⚡ 7.6s</button>
+            <!-- Left block on Mobile (Stacked: Row 1 Speed Switcher, Row 2 Arrow Style & Random Upgrade) -->
+            <div class="wheel-controls-stacked-left">
+              <!-- Row 1 (Mobile) / Column 1 (PC): Speed Switcher -->
+              <div class="wheel-controls-left">
+                <div class="speed-switcher-pill" id="speed-switcher">
+                  <button class="btn-speed-pill" data-speed="fast">⚡ 1.2s</button>
+                  <button class="btn-speed-pill active" data-speed="normal">⚡ 3.5s</button>
+                  <button class="btn-speed-pill" data-speed="slow">⚡ 7.6s</button>
+                </div>
+              </div>
+
+              <!-- Row 2 (Mobile) / Column 3 (PC): Arrow Style Selector & Random Upgrade -->
+              <div class="wheel-controls-right">
+                <button class="btn-turbo-pill" id="btn-quick-arrow-style" title="Сменить стиль стрелки">
+                  <span id="label-arrow-style-name">🎯 Лазер</span>
+                </button>
+
+                <button class="btn-turbo-pill" id="btn-random-upgrade" title="Выбрать случайный множитель от 1.1x до 1000x!">
+                  <span>🎲 Рандом x</span>
+                </button>
               </div>
             </div>
 
-            <!-- Center on PC (Strictly Centered Above the Wheel) / Right on Mobile -->
+            <!-- Right on Mobile / Center on PC (Strictly Centered Above the Wheel): Minimalist SIMUP Logo -->
             <div class="arena-brand-badge" title="SIMUP Upgrader">
               <svg class="arena-brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <polygon points="12,2 22,7 22,17 12,22 2,17 2,7" stroke="#ff004d" stroke-width="2" fill="rgba(255, 0, 77, 0.12)" stroke-linejoin="round"/>
                 <path d="M12 7L16.5 12H13.5V17H10.5V12H7.5L12 7Z" fill="#ff004d"/>
               </svg>
               <span class="arena-brand-text">SIMUP</span>
-            </div>
-
-            <!-- Right on PC / Mid on Mobile: Arrow Style Selector & Random Upgrade -->
-            <div class="wheel-controls-right">
-              <button class="btn-turbo-pill" id="btn-quick-arrow-style" title="Сменить стиль стрелки">
-                <span id="label-arrow-style-name">🎯 Лазер</span>
-              </button>
-
-              <button class="btn-turbo-pill" id="btn-random-upgrade" title="Выбрать случайный множитель от 1.1x до 1000x!">
-                <span>🎲 Рандом x</span>
-              </button>
             </div>
           </div>
 

@@ -221,6 +221,22 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('btn-mobile-games-hub')?.addEventListener('click', openGamesHub);
 
+  // Direct click / touch handlers for games hub cards and dropdown items (100% reliable on mobile & desktop)
+  document.querySelectorAll('.games-hub-card, .games-drop-item').forEach(card => {
+    const handleGameSelect = (e) => {
+      const tabId = card.getAttribute('data-tab');
+      if (tabId) {
+        e.preventDefault();
+        window.SoundManager?.playClick();
+        closeGamesHub();
+        document.getElementById('games-dropdown-menu')?.classList.remove('active');
+        switchTab(tabId);
+      }
+    };
+    card.addEventListener('click', handleGameSelect);
+    card.addEventListener('touchend', handleGameSelect, { passive: false });
+  });
+
   // Delegated clicks for all navigation items including dropdown and hub
   document.addEventListener('click', (e) => {
     const target = e.target.closest('[data-tab]');
@@ -232,6 +248,28 @@ document.addEventListener('DOMContentLoaded', () => {
       switchTab(tabId);
     }
   });
+
+  // Smooth hover with grace period for mini-games dropdown (prevents closing when cursor moves down)
+  const gamesNavWrap = document.querySelector('.games-nav-dropdown-wrap');
+  const gamesDropdownMenu = document.getElementById('games-dropdown-menu');
+  let dropdownGraceTimer = null;
+
+  if (gamesNavWrap && gamesDropdownMenu) {
+    const showDropdown = () => {
+      if (dropdownGraceTimer) clearTimeout(dropdownGraceTimer);
+      gamesDropdownMenu.classList.add('active');
+    };
+    const hideDropdown = () => {
+      dropdownGraceTimer = setTimeout(() => {
+        gamesDropdownMenu.classList.remove('active');
+      }, 350); // 350ms grace timeout
+    };
+
+    gamesNavWrap.addEventListener('mouseenter', showDropdown);
+    gamesNavWrap.addEventListener('mouseleave', hideDropdown);
+    gamesDropdownMenu.addEventListener('mouseenter', showDropdown);
+    gamesDropdownMenu.addEventListener('mouseleave', hideDropdown);
+  }
 
   // Desktop Nav horizontal scroll support (chevrons + mouse wheel)
   const desktopNavScroller = document.getElementById('desktop-nav-scroller');
@@ -396,13 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         overlay.classList.remove('active');
       }
-    });
-  });
-
-  // Prevent any click inside modal window from bubbling to overlay
-  document.querySelectorAll('.modal-window').forEach(win => {
-    win.addEventListener('click', (e) => {
-      e.stopPropagation();
     });
   });
 

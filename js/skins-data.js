@@ -8425,7 +8425,28 @@ const SKINS_DATABASE = [
 function getAllSkinVariants() {
   const result = [];
 
+  const PASS_EXCLUSIVE_NAMES = [
+    'Belt of the Iron Surge', 'Toxic Double Sheet Metal Door', 'Retrowave Hunting Bow',
+    'Arms of Desolation', 'Dragon AK-47', 'Blackout AK47', 'Tempered MP5',
+    'Vigil Triumph', 'Frostbite Metal Facemask', 'The Emperor', 'Kantusa the Script Sword',
+    'Glory SAR', 'Bloodsport', 'Darkclaw Emissary Staff', 'Fire Jacket',
+    'Horror Bag', 'Feast of Abscession', 'Manifold Paradox'
+  ];
+
   SKINS_DATABASE.forEach(base => {
+    const isPassExclusive = base.exclusive === 'pass' || PASS_EXCLUSIVE_NAMES.some(n => base.name && base.name.includes(n));
+    const isCaseExclusive = !isPassExclusive && (
+      base.exclusive === 'case' ||
+      base.rarity === 'contraband' ||
+      base.category === 'knife' ||
+      base.category === 'gloves' ||
+      (base.price && base.price >= 5000) ||
+      (base.name && (base.name.includes('Blue Gem') || base.name.includes('Dragon Lore') || base.name.includes('Howl') || base.name.includes('Alien Red') || base.name.includes('Golden Baby Roshan')))
+    );
+
+    const exclusiveType = isPassExclusive ? 'pass' : (isCaseExclusive ? 'case' : null);
+    const exclusiveLabel = isPassExclusive ? '👑 Эксклюзив PASS' : (isCaseExclusive ? '🔒 Только из кейсов' : null);
+
     if (base.wears) {
       // CS2 item with wear conditions
       Object.keys(base.wears).forEach(wearKey => {
@@ -8445,7 +8466,9 @@ function getAllSkinVariants() {
           fallbackSvg: base.fallbackSvg,
           wear: wearKey,
           wearName: WEAR_NAMES[wearKey] || wearKey,
-          price: wearInfo.price
+          price: wearInfo.price,
+          exclusive: exclusiveType,
+          exclusiveLabel: exclusiveLabel
         });
       });
     } else {
@@ -8465,7 +8488,9 @@ function getAllSkinVariants() {
         fallbackSvg: base.fallbackSvg,
         wear: 'STANDARD',
         wearName: WEAR_NAMES.STANDARD,
-        price: base.price
+        price: base.price,
+        exclusive: exclusiveType,
+        exclusiveLabel: exclusiveLabel
       });
     }
   });

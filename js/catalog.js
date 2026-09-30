@@ -147,7 +147,11 @@ class CatalogController {
       const trendClass = trendPct >= 0 ? 'trend-up' : 'trend-down';
       const trendSign = trendPct >= 0 ? '▲ +' : '▼ ';
 
-      const cartControl = inCart ? `
+      const cartControl = skin.exclusive ? `
+        <div class="skin-exclusive-badge ${skin.exclusive === 'pass' ? 'badge-pass' : 'badge-case'}" style="margin-top:6px; padding:6px 8px; border-radius:6px; font-size:11px; font-weight:800; text-align:center; background:${skin.exclusive === 'pass' ? 'rgba(255, 215, 0, 0.12)' : 'rgba(255, 0, 77, 0.12)'}; border:1px solid ${skin.exclusive === 'pass' ? 'rgba(255, 215, 0, 0.35)' : 'rgba(255, 0, 77, 0.35)'}; color:${skin.exclusive === 'pass' ? '#ffd700' : '#ff3366'};" title="${skin.exclusiveLabel} (не продается в магазине)">
+          ${skin.exclusiveLabel || '🔒 Эксклюзив'}
+        </div>
+      ` : (inCart ? `
         <div class="cart-qty-controls" style="display:flex;gap:6px;margin-top:6px;">
           <button type="button" class="btn-catalog-cart qty-minus" data-cart-dec-id="${skin.id}" title="Убрать одну штуку" style="flex:0 0 36px;">−</button>
           <button type="button" class="btn-catalog-cart in-cart" data-cart-toggle-id="${skin.id}" title="Добавить ещё одну (сейчас ×${cartQty})" style="flex:1;">
@@ -158,7 +162,7 @@ class CatalogController {
         <button type="button" class="btn-catalog-cart" data-cart-toggle-id="${skin.id}" title="Добавить в корзину (можно несколько штук)">
           🛒 В корзину
         </button>
-      `;
+      `);
 
       html += `
         <div class="skin-card skin-rarity-${skin.rarity}" data-skin-id="${skin.id}" style="--rarity-clr: ${skin.rarityColor}; cursor: pointer;">

@@ -220,6 +220,13 @@ class CatalogCart {
 
   addItem(skin, qtyToAdd = 1) {
     if (!skin) return;
+    if (skin.exclusive) {
+      const msg = skin.exclusive === 'pass'
+        ? `Скин "${skin.name}" является наградой SIMUP PASS и не продается в магазине!`
+        : `Скин "${skin.name}" является кейс-эксклюзивом и не продается в магазине!`;
+      window.notify?.warning('Эксклюзивный предмет', msg);
+      return;
+    }
     const qty = Math.max(1, Math.min(99, parseInt(qtyToAdd, 10) || 1));
     const existing = this.items.find(i => i.id === skin.id);
     if (existing) {

@@ -296,16 +296,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openAuthModal(mode = 'register') {
     setAuthMode(mode);
-    modalAuth.classList.add('active');
+    modalAuth?.classList.add('active');
   }
 
   window.showAuthModal = openAuthModal;
 
   function closeAuthModal() {
+    if (!window.authManager || !window.authManager.isAuthenticated()) {
+      return; // Mandatory auth: cannot dismiss
+    }
     modalAuth?.classList.remove('active');
   }
-
-  authModalClose?.addEventListener('click', closeAuthModal);
 
   function setAuthMode(mode) {
     currentAuthMode = mode;
@@ -313,8 +314,8 @@ document.addEventListener('DOMContentLoaded', () => {
       authModeRegisterBtn?.classList.add('active');
       authModeLoginBtn?.classList.remove('active');
       if (authModalTitle) authModalTitle.textContent = 'Регистрация в SIMUP';
-      if (authModalSubtitle) authModalSubtitle.innerHTML = 'Создайте профиль со стартовым балансом <strong>$500.00</strong> и скином!';
-      if (authSubmitBtn) authSubmitBtn.textContent = 'Создать аккаунт (+ $500.00)';
+      if (authModalSubtitle) authModalSubtitle.innerHTML = 'Создайте профиль со стартовым бонусом <strong>$5,000.00</strong>!';
+      if (authSubmitBtn) authSubmitBtn.textContent = 'Создать аккаунт (+ $5,000.00)';
       if (authToggleHint) {
         authToggleHint.innerHTML = 'Уже есть аккаунт? <a href="#" id="auth-link-switch" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Войти в профиль</a>';
         document.getElementById('auth-link-switch')?.addEventListener('click', (e) => {
@@ -353,26 +354,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (currentAuthMode === 'register') {
       const res = await window.authManager.register(username, password);
-      if (res.success) {
+      if (res && res.success) {
         localStorage.setItem('simup_has_authenticated', '1');
-        modalAuth.classList.remove('active');
+        modalAuth?.classList.remove('active');
         authForm.reset();
         const bonusMsg = res.bonusGot ? 'Стартовый подарок $5,000.00 по ссылке друга зачислен!' : 'Аккаунт успешно создан!';
         window.notify.bigWin('Добро пожаловать!', `Аккаунт ${res.user.username} создан! ${bonusMsg}`);
+        updateHeaderUserUI(res.user);
       } else {
-        window.notify.error('Ошибка регистрации', res.error);
+        window.notify.error('Ошибка регистрации', res?.error || 'Не удалось зарегистрироваться');
       }
     } else {
       const res = await window.authManager.login(username, password);
-      if (res.success) {
+      if (res && res.success) {
         localStorage.setItem('simup_has_authenticated', '1');
-        modalAuth.classList.remove('active');
+        modalAuth?.classList.remove('active');
         authForm.reset();
         window.notify.success('С возвращением!', `Вы успешно вошли как ${res.user.username}.`);
+        updateHeaderUserUI(res.user);
       } else {
-        window.notify.error('Ошибка входа', res.error);
+        window.notify.error('Ошибка входа', res?.error || 'Не удалось войти');
       }
     }
+  });
+
+  // Universal backdrop dismissal for modals (except mandatory auth)
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        if (overlay.id === 'modal-auth' && (!window.authManager || !window.authManager.isAuthenticated())) {
+          return; // Mandatory auth
+        }
+        overlay.classList.remove('active');
+      }
+    });
   });
 
   // Prompt nickname & password modal on first launch and check URL parameters (?ref= and ?battle=)
@@ -384,12 +399,11 @@ document.addEventListener('DOMContentLoaded', () => {
       window.notify?.info('🤝 Приглашение', `Вас пригласил игрок ${refParam}! Зарегистрируйтесь и получите стартовый подарок +$5,000.00!`);
     }
 
-    const cur = window.authManager?.currentUser;
-    const isGuest = !cur || cur.salt === 'guest_salt' || (cur.username && cur.username.startsWith('Игрок_'));
-    if (isGuest && (!localStorage.getItem('simup_has_authenticated') || refParam)) {
+    const isAuth = window.authManager && window.authManager.isAuthenticated();
+    if (!isAuth) {
       setTimeout(() => {
         openAuthModal('register');
-      }, 500);
+      }, 100);
     }
 
     const battleParam = urlParams.get('battle');
@@ -1649,46 +1663,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const startAngle = (winStartDeg - 90) * (Math.PI / 180);
     const endAngle = (winEndDeg - 90) * (Math.PI / 180);
 
-    // Outer rich cherry glow pass
+    // Outer rich cherry glow pass (butt cap for strict mathematical proportionality)
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, radius, startAngle, endAngle, false);
-    ctx.lineWidth = thickness + 6;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = 'rgba(255, 0, 77, 0.7)';
+    ctx.lineWidth = thickness + 4;
+    ctx.lineCap = 'butt';
+    ctx.strokeStyle = 'rgba(255, 0, 77, 0.65)';
     ctx.shadowColor = '#ff004d';
-    ctx.shadowBlur = 22;
+    ctx.shadowBlur = 18;
     ctx.stroke();
     ctx.restore();
 
-    // Bright core ruby/white pass
+    // Bright core ruby pass
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, radius, startAngle, endAngle, false);
     ctx.lineWidth = thickness;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#ff2e5b';
+    ctx.lineCap = 'butt';
+    ctx.strokeStyle = '#ff1a53';
     ctx.stroke();
 
-    // Inner highlight line
+    // Inner bright laser highlight
     ctx.beginPath();
     ctx.arc(cx, cy, radius, startAngle, endAngle, false);
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2;
     ctx.strokeStyle = '#ffffff';
-    ctx.shadowColor = '#ff004d';
-    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 6;
     ctx.stroke();
 
-    // Glowing boundary beads (exact start & end limits)
+    // Razor-sharp radial boundary pins at exact win zone limits (makes 0.5% vs 5.0% distinct)
+    const rIn = radius - thickness / 2 - 3;
+    const rOut = radius + thickness / 2 + 3;
     [startAngle, endAngle].forEach(ang => {
-      const bx = cx + Math.cos(ang) * radius;
-      const by = cy + Math.sin(ang) * radius;
+      const x1 = cx + Math.cos(ang) * rIn;
+      const y1 = cy + Math.sin(ang) * rIn;
+      const x2 = cx + Math.cos(ang) * rOut;
+      const y2 = cy + Math.sin(ang) * rOut;
       ctx.beginPath();
-      ctx.arc(bx, by, (thickness / 2) + 1, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
       ctx.shadowColor = '#ff004d';
-      ctx.shadowBlur = 12;
-      ctx.fill();
+      ctx.shadowBlur = 8;
+      ctx.stroke();
     });
     ctx.restore();
   }
@@ -2816,7 +2836,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
     if (e.code === 'Escape') {
-      document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+      document.querySelectorAll('.modal-overlay.active').forEach(m => {
+        if (m.id === 'modal-auth' && (!window.authManager || !window.authManager.isAuthenticated())) return;
+        m.classList.remove('active');
+      });
       return;
     }
 

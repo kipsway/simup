@@ -145,18 +145,29 @@ class AuthManager {
       if (session) {
         const users = this.getAllUsers();
         const found = users.find(u => u.username && u.username.toLowerCase() === session.toLowerCase());
-        if (found) {
+        if (found && found.passwordHash && found.passwordHash !== 'guest_hash') {
           this.currentUser = found;
           this.ensureUserIntegrity(this.currentUser);
         }
       }
       if (!this.currentUser) {
-        this.ensureGuestUser();
+        this.currentUser = null;
       }
     } catch (e) {
       console.error('SIMUP Auth: Error initializing session', e);
-      this.ensureGuestUser();
+      this.currentUser = null;
     }
+  }
+
+  isAuthenticated() {
+    return Boolean(
+      this.currentUser &&
+      this.currentUser.username &&
+      this.currentUser.salt &&
+      this.currentUser.salt !== 'guest_salt' &&
+      this.currentUser.passwordHash &&
+      this.currentUser.passwordHash !== 'guest_hash'
+    );
   }
 
   ensureUserIntegrity(u) {
@@ -174,69 +185,7 @@ class AuthManager {
   }
 
   ensureGuestUser() {
-    try {
-      const users = this.getAllUsers();
-      if (users.length > 0) {
-        this.currentUser = users[0];
-        this.ensureUserIntegrity(this.currentUser);
-        localStorage.setItem(this.STORAGE_KEY_SESSION, this.currentUser.username);
-        return this.currentUser;
-      }
-      const randNum = Math.floor(1000 + Math.random() * 9000);
-      const guest = {
-        id: 'user_' + Date.now(),
-        username: `Игрок_${randNum}`,
-        referralCode: `Игрок_${randNum}`.toUpperCase(),
-        referredBy: null,
-        referrals: { count: 0, totalBonus: 0, referredUsers: [] },
-        salt: 'guest_salt',
-        passwordHash: 'guest_hash',
-        balance: 0.00, // Zero balance clean slate
-        inventory: [], // Empty inventory
-        level: 0, // Level 0
-        xp: 0,
-        equippedTitle: 'Новичок',
-        unlockedTitles: ['Новичок'],
-        achievements: {},
-        stats: {
-          totalUpgrades: 0,
-          wonUpgrades: 0,
-          lostUpgrades: 0,
-          casesOpened: 0,
-          coinflipsPlayed: 0,
-          battlesPlayed: 0,
-          battlesWon: 0,
-          totalWagered: 0,
-          netProfit: 0,
-          bestWin: 0,
-          bestWinMultiplier: 0,
-          bestWinSkin: null,
-          maxSingleBet: 0,
-          contractsCount: 0,
-          hasTried90Pct: false
-        },
-        loans: {
-          currentDebt: 0,
-          totalBorrowed: 0,
-          totalRepaid: 0,
-          autoRepay: true
-        },
-        dailyStreak: {
-          currentStreak: 0,
-          lastClaimDate: null
-        },
-        history: [],
-        createdAt: Date.now()
-      };
-      users.push(guest);
-      this.saveUsers(users);
-      this.currentUser = guest;
-      localStorage.setItem(this.STORAGE_KEY_SESSION, guest.username);
-      return this.currentUser;
-    } catch (err) {
-      console.error('SIMUP Auth: Error creating guest session', err);
-      return null;
-    }
+    return null;
   }
 
   getAllUsers() {
@@ -293,7 +242,7 @@ class AuthManager {
     return sha256Pure(utf8ToBytesString(raw));
   }
 
-  async register(username, password) {
+  async register(username, password, refCode = '') {
     const cleanNick = (username || '').trim();
     if (!cleanNick) {
       return { success: false, error: 'Введите никнейм игрока.' };
@@ -309,7 +258,7 @@ class AuthManager {
     }
 
     const users = this.getAllUsers();
-    const exists = users.find(u => u.username && u.username.toLowerCase() === cleanNick.toLowerCase());
+    const exists = users.find(u => u.username && u.username.trim().toLowerCase() === cleanNick.toLowerCase());
     if (exists) {
       return { success: false, error: `Игрок с никнеймом "${cleanNick}" уже существует! Нажмите «Вход» или выберите другой ник.` };
     }
@@ -317,10 +266,10 @@ class AuthManager {
     const salt = this.generateSalt();
     const passwordHash = await this.hashPassword(password, salt);
 
-    // Referral code logic
+    // Referral code logic (from argument, or from localStorage)
     let effectiveRef = (refCode || '').trim();
     try {
-      if (!effectiveRef) {
+      if (!effectiveRef && typeof localStorage !== 'undefined') {
         effectiveRef = (localStorage.getItem('simup_ref_code') || '').trim();
       }
     } catch(e) {}
@@ -571,34 +520,52 @@ class AuthManager {
 
   async login(username, password) {
     const cleanNick = (username || '').trim();
-    if (!cleanNick || !password) {
+    const cleanPass = (password || '').trim();
+    if (!cleanNick || !cleanPass) {
       return { success: false, error: 'Заполните никнейм и пароль.' };
     }
 
     const users = this.getAllUsers();
-    const user = users.find(u => u.username && u.username.toLowerCase() === cleanNick.toLowerCase());
+    const user = users.find(u => u.username && u.username.trim().toLowerCase() === cleanNick.toLowerCase());
 
     if (!user) {
-      return { success: false, error: `Игрок с никнеймом "${cleanNick}" не найден. Пожалуйста, зарегистрируйтесь!` };
+      return { success: false, error: `Игрок с никнеймом "${cleanNick}" не найден. Пожалуйста, проверьте правильность ника или зарегистрируйтесь!` };
     }
 
-    // Hash check
-    const incomingHash = await this.hashPassword(password, user.salt || '');
-    if (incomingHash !== user.passwordHash) {
-      // Legacy backwards-compatibility check (if old account had raw token)
-      const oldRaw = password + (user.salt || '') + '_simup_sec_token_2026';
+    // Hash check with multi-layer backwards-compatibility
+    let passwordMatches = false;
+    const incomingHash = await this.hashPassword(cleanPass, user.salt || '');
+    if (incomingHash === user.passwordHash) {
+      passwordMatches = true;
+    } else {
+      // Legacy fallback 1: token schema
+      const oldRaw = cleanPass + (user.salt || '') + '_simup_sec_token_2026';
       const legacyFallbackHash = sha256Pure(utf8ToBytesString(oldRaw));
       if (legacyFallbackHash === user.passwordHash) {
-        // Upgrade account to new hashing schema
-        user.salt = this.generateSalt();
-        user.passwordHash = await this.hashPassword(password, user.salt);
-        this.saveCurrentUser();
+        passwordMatches = true;
       } else {
-        return { success: false, error: 'Неверный пароль. Проверьте правильность ввода.' };
+        // Legacy fallback 2: direct pure hash
+        if (sha256Pure(cleanPass) === user.passwordHash) {
+          passwordMatches = true;
+        }
       }
     }
 
+    if (!passwordMatches) {
+      return { success: false, error: 'Неверный пароль. Проверьте правильность ввода.' };
+    }
+
+    // Upgrade hash to current standard if needed
+    if (incomingHash !== user.passwordHash) {
+      user.salt = this.generateSalt();
+      user.passwordHash = await this.hashPassword(cleanPass, user.salt);
+      this.saveCurrentUser();
+    }
+
     this.setCurrentUser(user);
+    try {
+      localStorage.setItem('simup_has_authenticated', '1');
+    } catch(e) {}
     return { success: true, user: user };
   }
 

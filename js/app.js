@@ -319,6 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function switchTab(tabId) {
+    // Close any active modal overlay so tab is immediately visible
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+
     document.querySelectorAll('.nav-tab-btn, .mobile-bottom-tab').forEach(b => {
       b.classList.toggle('active', b.dataset.tab === tabId);
     });
@@ -339,7 +342,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof renderLeaderboard === 'function') renderLeaderboard();
     } else if (tabId === 'catalog') {
       if (window.CatalogController?.renderGrid) window.CatalogController.renderGrid();
+      if (window.catalogController?.render) window.catalogController.render();
       if (window.CatalogCart?.updateUI) window.CatalogCart.updateUI();
+      if (window.catalogCart?.updateUI) window.catalogCart.updateUI();
     } else if (tabId === 'casebattle') {
       if (window.CaseBattleController?.init) window.CaseBattleController.init();
     } else if (tabId === 'pass') {
@@ -348,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (window.AdminPanelController?.render) window.AdminPanelController.render();
     }
   }
+  window.switchTab = switchTab;
 
   // =========================================================================
   // AUTHENTICATION MODAL (BLOCK 1: RELIABLE LOGIN & NO AVATARS)
@@ -488,8 +494,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (user && profileContainer) {
       renderProfilePage();
     }
-    // Re-render inventory drawer & arena
+    // Re-render inventory page & drawer & arena
     try {
+      if (typeof renderInventoryPage === 'function') {
+        renderInventoryPage();
+      }
       if (typeof renderInventoryDrawer === 'function') {
         renderInventoryDrawer();
       }
@@ -533,6 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   }
+  window.updateHeaderUserUI = updateHeaderUserUI;
 
   // Initial user header display
   if (window.authManager.currentUser) {
@@ -1862,33 +1872,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ctx.clearRect(0, 0, w, h);
 
+    // 0. Textured Disc Background (Obsidian carbon texture with cyber radial lines)
+    ctx.save();
+    const bgGrad = ctx.createRadialGradient(cx, cy, 30, cx, cy, radius + 22);
+    bgGrad.addColorStop(0, 'rgba(18, 10, 22, 0.45)');
+    bgGrad.addColorStop(0.7, 'rgba(10, 5, 14, 0.75)');
+    bgGrad.addColorStop(1, 'rgba(4, 2, 6, 0.95)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius + 20, 0, Math.PI * 2);
+    ctx.fillStyle = bgGrad;
+    ctx.fill();
+
+    // Concentric cyber grid rings (dashed technical rings)
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    [radius - 28, radius - 20, radius + 18].forEach(r => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    // Dashed tech accent ring
+    ctx.beginPath();
+    ctx.setLineDash([4, 6]);
+    ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255, 0, 77, 0.25)';
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.setLineDash([2, 8]);
+    ctx.arc(cx, cy, radius - 8, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0, 255, 170, 0.18)';
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Radial Cyber Spokes (12 primary technical spokes with neon pips)
+    for (let s = 0; s < 12; s++) {
+      const spAng = (s / 12) * Math.PI * 2;
+      const xStart = cx + Math.cos(spAng) * (radius - 25);
+      const yStart = cy + Math.sin(spAng) * (radius - 25);
+      const xEnd = cx + Math.cos(spAng) * (radius - 12);
+      const yEnd = cy + Math.sin(spAng) * (radius - 12);
+      ctx.beginPath();
+      ctx.moveTo(xStart, yStart);
+      ctx.lineTo(xEnd, yEnd);
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.stroke();
+
+      // Outer illuminated tech pip
+      const px = cx + Math.cos(spAng) * (radius + 15);
+      const py = cy + Math.sin(spAng) * (radius + 15);
+      ctx.beginPath();
+      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = s % 3 === 0 ? '#ff004d' : 'rgba(255, 255, 255, 0.35)';
+      ctx.fill();
+    }
+    ctx.restore();
+
     // 1. Draw outer hairline ring
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, radius + 15, 0, Math.PI * 2);
     ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.stroke();
 
     // Inner hairline
     ctx.beginPath();
     ctx.arc(cx, cy, radius - 15, 0, Math.PI * 2);
     ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.stroke();
 
     // 2. Base dark obsidian circular track
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.lineWidth = thickness;
-    ctx.strokeStyle = 'rgba(14, 9, 16, 0.92)';
+    ctx.strokeStyle = 'rgba(18, 11, 20, 0.95)';
     ctx.stroke();
 
     // Dark track inner border
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.lineWidth = thickness - 4;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
     ctx.stroke();
     ctx.restore();
 
@@ -1910,7 +1978,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
       ctx.lineWidth = isMajor ? 2 : (isMedium ? 1.2 : 0.8);
-      ctx.strokeStyle = isMajor ? 'rgba(255, 255, 255, 0.35)' : (isMedium ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)');
+      ctx.strokeStyle = isMajor ? 'rgba(255, 255, 255, 0.45)' : (isMedium ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.07)');
       ctx.stroke();
     }
     ctx.restore();
@@ -1920,16 +1988,16 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.beginPath();
     ctx.moveTo(cx, cy + radius - 15);
     ctx.lineTo(cx, cy + radius + 15);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#00ffaa';
+    ctx.shadowColor = '#00ffaa';
+    ctx.shadowBlur = 8;
     ctx.stroke();
     ctx.restore();
 
     if (effectiveChance <= 0) return;
 
     // 5. Draw winning glowing sector centered AT THE BOTTOM (180° / 6 o'clock)
-    // Needle degrees: 0° is top, 90° is right, 180° is bottom, 270° is left.
-    // Canvas radians: rad = (deg - 90) * PI / 180.
     const angleSpanDeg = (effectiveChance / 100) * 360;
     const halfSpan = angleSpanDeg / 2;
     const winStartDeg = 180 - halfSpan;
@@ -1938,13 +2006,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const startAngle = (winStartDeg - 90) * (Math.PI / 180);
     const endAngle = (winEndDeg - 90) * (Math.PI / 180);
 
-    // Outer rich cherry glow pass (butt cap for strict mathematical proportionality)
+    // Outer rich cherry glow pass
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, radius, startAngle, endAngle, false);
     ctx.lineWidth = thickness + 4;
     ctx.lineCap = 'butt';
-    ctx.strokeStyle = 'rgba(255, 0, 77, 0.65)';
+    ctx.strokeStyle = 'rgba(255, 0, 77, 0.7)';
     ctx.shadowColor = '#ff004d';
     ctx.shadowBlur = 18;
     ctx.stroke();
@@ -1968,9 +2036,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.shadowBlur = 6;
     ctx.stroke();
 
-    // Razor-sharp radial boundary pins at exact win zone limits (makes 0.5% vs 5.0% distinct)
-    const rIn = radius - thickness / 2 - 3;
-    const rOut = radius + thickness / 2 + 3;
+    // Razor-sharp radial boundary pins at exact win zone limits
+    const rIn = radius - thickness / 2 - 4;
+    const rOut = radius + thickness / 2 + 4;
     [startAngle, endAngle].forEach(ang => {
       const x1 = cx + Math.cos(ang) * rIn;
       const y1 = cy + Math.sin(ang) * rIn;
@@ -1979,10 +2047,10 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
       ctx.strokeStyle = '#ffffff';
       ctx.shadowColor = '#ff004d';
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 10;
       ctx.stroke();
     });
     ctx.restore();
@@ -3207,6 +3275,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const inspectSkinFloat = document.getElementById('inspect-skin-float');
   const inspectSkinRarity = document.getElementById('inspect-skin-rarity');
   const btnInspectSetTarget = document.getElementById('btn-inspect-set-target');
+  const btnInspectBuyDirect = document.getElementById('btn-inspect-buy-direct');
   let currentInspectedSkin = null;
 
   function openSkinInspectModal(skin, meta = {}) {
@@ -3223,6 +3292,15 @@ document.addEventListener('DOMContentLoaded', () => {
     inspectSkinRarity.style.color = skin.rarityColor || '#fff';
     inspectGlowBg.style.background = skin.rarityColor || '#00ff88';
 
+    if (btnInspectBuyDirect) {
+      if (skin.exclusive) {
+        btnInspectBuyDirect.style.display = 'none';
+      } else {
+        btnInspectBuyDirect.style.display = 'inline-flex';
+        btnInspectBuyDirect.textContent = `⚡ Купить ($${skin.price.toFixed(2)})`;
+      }
+    }
+
     // Deterministic realistic float based on skin id/name
     let hash = 0;
     const str = skin.name + (skin.id || skin.instanceId || 'simup');
@@ -3237,6 +3315,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   inspectModalClose?.addEventListener('click', () => {
     modalSkinInspect.classList.remove('active');
+  });
+
+  btnInspectBuyDirect?.addEventListener('click', () => {
+    if (!currentInspectedSkin) return;
+    if (window.catalogCart && typeof window.catalogCart.buyDirect === 'function') {
+      const ok = window.catalogCart.buyDirect(currentInspectedSkin, 1);
+      if (ok) modalSkinInspect.classList.remove('active');
+    } else if (typeof window.buySkin === 'function') {
+      const ok = window.buySkin(currentInspectedSkin);
+      if (ok) modalSkinInspect.classList.remove('active');
+    }
   });
 
   btnInspectSetTarget?.addEventListener('click', () => {
@@ -4737,6 +4826,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
   window.switchTab = switchTab;
+  window.updateUpgraderUI = updateUpgraderUI;
+  window.renderInventoryPage = renderInventoryPage;
+  window.updateHeaderUserUI = updateHeaderUserUI;
+
+  function buySkin(skinOrId) {
+    const skin = typeof skinOrId === 'string'
+      ? ((window.SKINS_DATABASE || []).find(s => s.id === skinOrId) || (window.catalogController?.skins || []).find(s => s.id === skinOrId))
+      : skinOrId;
+    if (!skin) return false;
+    if (window.catalogCart && typeof window.catalogCart.buyDirect === 'function') {
+      return window.catalogCart.buyDirect(skin);
+    }
+    const user = window.authManager?.currentUser;
+    if (!user) {
+      window.notify?.warning('Вход в аккаунт', 'Пожалуйста, войдите в профиль для совершения покупок!');
+      if (typeof window.showAuthModal === 'function') window.showAuthModal('login');
+      return false;
+    }
+    const price = (typeof window.marketEconomy?.getPrice === 'function' ? window.marketEconomy.getPrice(skin.id) : null) || skin.price || 0;
+    if ((user.balance || 0) < price) {
+      const diff = (price - (user.balance || 0)).toFixed(2);
+      window.notify?.warning('Недостаточно средств', `Вам не хватает $${diff} на балансе. Пополните баланс в Банке!`);
+      if (typeof switchTab === 'function') switchTab('bank');
+      return false;
+    }
+    user.balance = parseFloat((user.balance - price).toFixed(2));
+    if (!user.inventory) user.inventory = [];
+    const invItem = {
+      instanceId: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      id: skin.id,
+      skinId: skin.id,
+      name: skin.name,
+      game: skin.game || 'cs2',
+      category: skin.category || 'rifle',
+      rarity: skin.rarity || 'Mil-Spec',
+      rarityColor: skin.rarityColor || '#4b69ff',
+      image: skin.image || skin.fallbackSvg,
+      wear: skin.wear || 'FN',
+      price: price,
+      obtainedAt: new Date().toISOString(),
+      source: 'Каталог (Купить)'
+    };
+    user.inventory.unshift(invItem);
+    window.authManager.saveCurrentUser();
+    window.SoundManager?.playSuccess?.();
+    window.notify?.success('Покупка успешна! 🎉', `Скин «${skin.name}» за $${price.toFixed(2)} добавлен в ваш инвентарь!`);
+    updateHeaderUserUI(user);
+    updateUpgraderUI();
+    renderInventoryPage();
+    if (window.catalogController) window.catalogController.render();
+    return true;
+  }
+  window.buySkin = buySkin;
 
   // Responsive dynamic re-scaler for PC & Smartphones
   let resizeTimer = null;

@@ -245,16 +245,15 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   font-weight: 700;
 }
 
-/* HEADER USER CONTROLS: Placed left-adjacent, no overflow */
+/* HEADER USER CONTROLS */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-  margin-left: 10px;
-  margin-right: auto;
-  max-width: none;
-  justify-content: flex-start;
+  margin-left: auto;
+  max-width: 50%;
+  justify-content: flex-end;
 }
 
 #user-header-container {

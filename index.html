@@ -35,7 +35,7 @@
   <link rel="preconnect" href="https://community.steamstatic.com" crossorigin>
   <link rel="preconnect" href="https://community.cloudflare.steamstatic.com" crossorigin>
   <link rel="preconnect" href="https://steamcommunity-a.akamaihd.net" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=4.5">
+  <link rel="stylesheet" href="css/style.css?v=4.7">
 
   <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
   <script type="application/ld+json">
@@ -121,6 +121,13 @@
                 <div class="drop-desc">Ракета с иксом до 1000x</div>
               </div>
             </div>
+            <div class="games-drop-item" data-tab="admin">
+              <span class="drop-icon">⚙️</span>
+              <div class="drop-info">
+                <div class="drop-title">Панель Админа</div>
+                <div class="drop-desc">Управление балансом и долгами</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -135,6 +142,9 @@
         </button>
         <button class="nav-tab-btn" data-tab="bank">
           <span>🏦</span> Банк
+        </button>
+        <button class="nav-tab-btn" data-tab="admin" title="Панель администратора / Создателя">
+          <span>⚙️</span> Админка
         </button>
       </nav>
 
@@ -277,6 +287,16 @@
                 <button class="btn-turbo-pill" id="btn-random-upgrade" title="Выбрать случайный множитель от 1.1x до 1000x!">
                   <span>🎲 Рандом x</span>
                 </button>
+              </div>
+            </div>
+
+            <!-- Right on Mobile: Minimalist SIMUP Logo (hidden on PC via CSS @media) -->
+            <div class="arena-brand-badge" title="SIMUP Upgrader">
+              <svg class="arena-brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="12,2 22,7 22,17 12,22 2,17 2,7" stroke="#ff004d" stroke-width="2" fill="rgba(255, 0, 77, 0.12)" stroke-linejoin="round"/>
+                <path d="M12 7L16.5 12H13.5V17H10.5V12H7.5L12 7Z" fill="#ff004d"/>
+              </svg>
+              <span class="arena-brand-text">SIMUP</span>
             </div>
           </div>
 
@@ -1510,8 +1530,11 @@
       </div>
 
       <div style="display: flex; gap: 10px;">
-        <button class="btn-submit-action" id="btn-inspect-set-target" style="margin-top: 0; padding: 12px; font-size: 14px;">
-          🎯 Поставить целью Апгрейда
+        <button class="btn-submit-action" id="btn-inspect-set-target" style="flex: 1; margin-top: 0; padding: 12px; font-size: 13.5px;">
+          🎯 В апгрейд
+        </button>
+        <button class="btn-submit-action" id="btn-inspect-buy-direct" style="flex: 1; margin-top: 0; padding: 12px; font-size: 13.5px; background: linear-gradient(135deg, #10b981, #059669); border-color: #10b981; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);">
+          🛒 Купить скин
         </button>
       </div>
     </div>
@@ -1867,6 +1890,14 @@
             <div class="games-hub-card-desc">Беспроцентные и инвестиционные займы для старта и отыгрыша.</div>
           </div>
         </div>
+
+        <div class="games-hub-card" data-tab="admin">
+          <div class="games-hub-card-icon" style="color: #f59e0b;">⚙️</div>
+          <div>
+            <div class="games-hub-card-title">Панель Админа</div>
+            <div class="games-hub-card-desc">Управление балансом, списание долгов, выдача прав и инструменты создателя.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1905,35 +1936,35 @@
     window.SIMUP_SUPABASE_URL = "https://btnsijgkefzhnnidcbou.supabase.co";
     window.SIMUP_SUPABASE_ANON_KEY = "sb_publishable_y5d9oDSY42gfFZoWvn074Q_mD_9zxOV";
   </script>
-  <script src="js/sound.js?v=4.5"></script>
-  <script src="js/skins-data.js?v=4.5"></script>
-  <script src="js/notifications.js?v=4.5"></script>
-  <script src="js/auth.js?v=4.5"></script>
-  <script src="js/economy.js?v=4.5"></script>
-  <script src="js/market-economy.js?v=4.5"></script>
-  <script src="js/catalog.js?v=4.5"></script>
-  <script src="js/upgrader.js?v=4.5"></script>
-  <script src="js/cases-data.js?v=4.5"></script>
-  <script src="js/cases.js?v=4.5"></script>
-  <script src="js/players-db.js?v=4.5"></script>
-  <script src="js/online-db.js?v=4.5"></script>
-  <script src="js/leaderboard.js?v=4.5"></script>
-  <script src="js/contracts.js?v=4.5"></script>
-  <script src="js/lucky-wheel.js?v=4.5"></script>
-  <script src="js/case-builder.js?v=4.5"></script>
-  <script src="js/mines.js?v=4.5"></script>
-  <script src="js/quests.js?v=4.5"></script>
-  <script src="js/coinflip.js?v=4.5"></script>
-  <script src="js/crash.js?v=4.5"></script>
-  <script src="js/case-battle.js?v=4.5"></script>
-  <script src="js/simup-pass.js?v=4.5"></script>
-  <script src="js/admin-panel.js?v=4.5"></script>
-  <script src="js/qrcode.js?v=4.5"></script>
-  <script src="js/app.js?v=4.5"></script>
+  <script src="js/sound.js?v=4.7"></script>
+  <script src="js/skins-data.js?v=4.7"></script>
+  <script src="js/notifications.js?v=4.7"></script>
+  <script src="js/auth.js?v=4.7"></script>
+  <script src="js/economy.js?v=4.7"></script>
+  <script src="js/market-economy.js?v=4.7"></script>
+  <script src="js/catalog.js?v=4.7"></script>
+  <script src="js/upgrader.js?v=4.7"></script>
+  <script src="js/cases-data.js?v=4.7"></script>
+  <script src="js/cases.js?v=4.7"></script>
+  <script src="js/players-db.js?v=4.7"></script>
+  <script src="js/online-db.js?v=4.7"></script>
+  <script src="js/leaderboard.js?v=4.7"></script>
+  <script src="js/contracts.js?v=4.7"></script>
+  <script src="js/lucky-wheel.js?v=4.7"></script>
+  <script src="js/case-builder.js?v=4.7"></script>
+  <script src="js/mines.js?v=4.7"></script>
+  <script src="js/quests.js?v=4.7"></script>
+  <script src="js/coinflip.js?v=4.7"></script>
+  <script src="js/crash.js?v=4.7"></script>
+  <script src="js/case-battle.js?v=4.7"></script>
+  <script src="js/simup-pass.js?v=4.7"></script>
+  <script src="js/admin-panel.js?v=4.7"></script>
+  <script src="js/qrcode.js?v=4.7"></script>
+  <script src="js/app.js?v=4.7"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=4.5').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=4.7').then(reg => {
           reg.update();
         }).catch(() => {});
       });

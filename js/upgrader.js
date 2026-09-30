@@ -43,9 +43,20 @@ class UpgraderEngine {
   }
 
   generateRandomHex(length = 32) {
-    const arr = new Uint8Array(length);
-    crypto.getRandomValues(arr);
-    return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+    try {
+      const _crypto = (typeof window !== 'undefined' && window.crypto) ? window.crypto : (typeof crypto !== 'undefined' ? crypto : null);
+      if (_crypto && typeof _crypto.getRandomValues === 'function') {
+        const arr = new Uint8Array(length);
+        _crypto.getRandomValues(arr);
+        return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+      }
+    } catch (e) {}
+    let str = '';
+    const hex = '0123456789abcdef';
+    for (let i = 0; i < length * 2; i++) {
+      str += hex.charAt(Math.floor(Math.random() * hex.length));
+    }
+    return str;
   }
 
   async sha256(str) {

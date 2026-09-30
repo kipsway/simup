@@ -393,9 +393,79 @@ class CatalogCart {
     this.closeCartModal();
 
     // Update Header and Inventory
-    if (typeof updateHeaderUserUI === 'function') updateHeaderUserUI(user);
-    if (typeof updateUpgraderUI === 'function') updateUpgraderUI();
+    if (typeof window.updateHeaderUserUI === 'function') window.updateHeaderUserUI(user);
+    else if (typeof updateHeaderUserUI === 'function') updateHeaderUserUI(user);
+
+    if (typeof window.updateUpgraderUI === 'function') window.updateUpgraderUI();
+    else if (typeof updateUpgraderUI === 'function') updateUpgraderUI();
+
+    if (typeof window.renderInventoryPage === 'function') window.renderInventoryPage();
     if (window.catalogController) window.catalogController.render();
+  }
+
+  buyDirect(skin, qtyToAdd = 1) {
+    const user = window.authManager?.currentUser;
+    if (!user) {
+      window.notify?.warning('Вход в аккаунт', 'Пожалуйста, войдите в профиль для совершения покупок!');
+      if (typeof window.showAuthModal === 'function') window.showAuthModal('login');
+      return false;
+    }
+    if (!skin) return false;
+    if (skin.exclusive) {
+      const msg = skin.exclusive === 'pass'
+        ? `Скин "${skin.name}" является наградой SIMUP PASS и не продается в магазине!`
+        : `Скин "${skin.name}" является кейс-эксклюзивом и не продается в магазине!`;
+      window.notify?.warning('Эксклюзивный предмет', msg);
+      return false;
+    }
+
+    const livePrice = (typeof window.marketEconomy?.getPrice === 'function' ? window.marketEconomy.getPrice(skin.id) : null) || skin.price || 0;
+    const qty = Math.max(1, parseInt(qtyToAdd, 10) || 1);
+    const total = parseFloat((livePrice * qty).toFixed(2));
+
+    if ((user.balance || 0) < total) {
+      const diff = (total - (user.balance || 0)).toFixed(2);
+      window.notify?.warning('Недостаточно средств', `Вам не хватает $${diff} на балансе. Пополните баланс в Банке!`);
+      if (typeof window.switchTab === 'function') window.switchTab('bank');
+      return false;
+    }
+
+    user.balance = parseFloat((user.balance - total).toFixed(2));
+    if (!user.inventory) user.inventory = [];
+
+    for (let n = 0; n < qty; n++) {
+      const invItem = {
+        instanceId: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        id: skin.id,
+        skinId: skin.id,
+        name: skin.name,
+        game: skin.game || 'cs2',
+        category: skin.category || 'rifle',
+        rarity: skin.rarity || 'Mil-Spec',
+        rarityColor: skin.rarityColor || '#4b69ff',
+        image: skin.image || skin.fallbackSvg,
+        wear: skin.wear || 'FN',
+        price: livePrice,
+        obtainedAt: new Date().toISOString(),
+        source: 'Каталог (Купить)'
+      };
+      user.inventory.unshift(invItem);
+    }
+
+    window.authManager.saveCurrentUser();
+    window.SoundManager?.playSuccess?.();
+    window.notify?.success('Покупка успешна! 🎉', `Куплен скин «${skin.name}» (${qty > 1 ? qty + ' шт. — ' : ''}$${total.toFixed(2)}). Предмет добавлен в инвентарь!`);
+
+    if (typeof window.updateHeaderUserUI === 'function') window.updateHeaderUserUI(user);
+    else if (typeof updateHeaderUserUI === 'function') updateHeaderUserUI(user);
+
+    if (typeof window.updateUpgraderUI === 'function') window.updateUpgraderUI();
+    else if (typeof updateUpgraderUI === 'function') updateUpgraderUI();
+
+    if (typeof window.renderInventoryPage === 'function') window.renderInventoryPage();
+    if (window.catalogController) window.catalogController.render();
+    this.updateUI();
+    return true;
   }
 
   openModal() {

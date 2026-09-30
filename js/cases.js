@@ -239,6 +239,111 @@ class CasesManager {
     requestAnimationFrame(animFrame);
   }
 
+  openMultipleCases({ caseData, count, onComplete }) {
+    if (this.isSpinning) return;
+    const user = window.authManager?.currentUser;
+    if (!user) {
+      window.notify?.error('Ошибка', 'Сначала авторизуйтесь в профиле.');
+      return;
+    }
+
+    const qty = Math.max(1, parseInt(count, 10) || 1);
+    const totalCost = Number((caseData.price * qty).toFixed(2));
+
+    if (user.balance < totalCost) {
+      window.notify?.error(
+        'Недостаточно средств',
+        `Стоимость открытия ${qty} кейсов: $${totalCost.toFixed(2)}, ваш баланс: $${user.balance.toFixed(2)}.`
+      );
+      return;
+    }
+
+    this.isSpinning = true;
+
+    // Deduct cost
+    user.balance = Number((user.balance - totalCost).toFixed(2));
+    user.stats.casesOpened = (user.stats.casesOpened || 0) + qty;
+    user.stats.totalWagered = Number(((user.stats.totalWagered || 0) + totalCost).toFixed(2));
+
+    const droppedItems = [];
+    let hasBigWin = false;
+
+    for (let i = 0; i < qty; i++) {
+      const winner = this.rollWinner(caseData);
+      const wonItem = {
+        instanceId: 'case_drop_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7) + '_' + i,
+        skinId: winner.id,
+        name: winner.name,
+        nameEn: winner.nameEn,
+        wear: winner.wear,
+        wearName: winner.wearName,
+        game: winner.game,
+        rarity: winner.rarity,
+        rarityColor: winner.rarityColor,
+        price: winner.price,
+        image: winner.image,
+        category: winner.category,
+        acquiredAt: Date.now()
+      };
+
+      droppedItems.push(wonItem);
+      user.inventory.unshift(wonItem);
+
+      if (!user.stats.bestWinSkin || wonItem.price > (user.stats.bestWinSkin.price || 0)) {
+        user.stats.bestWinSkin = wonItem;
+      }
+      if (wonItem.rarity === 'extraordinary' || wonItem.rarity === 'contraband' || wonItem.price >= caseData.price * 5) {
+        hasBigWin = true;
+      }
+    }
+
+    const totalDroppedVal = Number(droppedItems.reduce((s, it) => s + (it.price || 0), 0).toFixed(2));
+    const netProfit = Number((totalDroppedVal - totalCost).toFixed(2));
+    user.stats.netProfit = Number(((user.stats.netProfit || 0) + netProfit).toFixed(2));
+
+    // Auto-repay bank debt from profitable drop
+    if (netProfit > 0 && window.economyManager?.autoDeductDebtFromWin) {
+      window.economyManager.autoDeductDebtFromWin(user, netProfit);
+    }
+
+    if (!user.history) user.history = [];
+    user.history.unshift({
+      type: 'case_multi',
+      caseId: caseData.id,
+      caseName: caseData.name,
+      count: qty,
+      cost: totalCost,
+      totalWon: totalDroppedVal,
+      profit: netProfit,
+      dropsCount: droppedItems.length,
+      date: Date.now()
+    });
+    if (user.history.length > 50) user.history.pop();
+
+    window.authManager.saveCurrentUser();
+    window.economyManager?.checkAchievements(user);
+
+    // Audio
+    if (hasBigWin || totalDroppedVal >= totalCost * 2) {
+      window.SoundManager?.playJackpot();
+    } else {
+      window.SoundManager?.playWin();
+    }
+
+    this.isSpinning = false;
+
+    if (onComplete) {
+      onComplete({
+        caseData,
+        count: qty,
+        totalCost,
+        totalDroppedVal,
+        netProfit,
+        droppedItems
+      });
+    }
+  }
+
   easeOutCubic(t) {
     return (--t) * t * t + 1;
   }

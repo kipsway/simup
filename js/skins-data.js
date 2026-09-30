@@ -39,6 +39,186 @@ const WEAR_NAMES = {
 
 const SKINS_DATABASE = [
   {
+    "id": "cs2_karambit_ch_387_fn_st",
+    "game": "cs2",
+    "name": "★ StatTrak™ Керамбит | Blue Gem #387 (FN)",
+    "nameEn": "★ StatTrak™ Karambit | Case Hardened Blue Gem #387 (FN)",
+    "category": "knife",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1ObcTjxP0965h4WPqP_xMq3ehm5D8fp3htfx_Is_2VDkqBFrZWv3dYfEI1RsYwvZ_Fm7x-7o0cK87svNzydk6iI8pGB8srcwZps0",
+    "price": 1500000
+  },
+  {
+    "id": "cs2_ak47_ch_661_st_fn",
+    "game": "cs2",
+    "name": "StatTrak™ AK-47 | Blue Gem #661 (4x Titan Holo)",
+    "nameEn": "StatTrak™ AK-47 | Case Hardened Scar #661 (4x Titan Holo)",
+    "category": "rifle",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV08u_mpSOhcjnPLfWl3lu-sR1jeTE8YXghRq2rhI6Z23yLIWQcANsM1uFqVm-x-rvjZPotZqfynNqvyggsXmLnx2whx1SLrs40_pZ_9I",
+    "price": 1000000
+  },
+  {
+    "id": "cs2_karambit_crimson_web_fn_1",
+    "game": "cs2",
+    "name": "★ StatTrak™ Керамбит | Кровавая паутина (#1 Float FN)",
+    "nameEn": "★ StatTrak™ Karambit | Crimson Web (#1 Float FN)",
+    "category": "knife",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1ObcTjxP09m7h5C0mfL3Ibrulpdo750n3LiVrNrx31Xm-BdsYWr3do6ddgA-NwyF-wTtxL--1p656pvImGwj5Hc7sM-7lA",
+    "price": 650000
+  },
+  {
+    "id": "cs2_awp_dragon_lore_souvenir_titan_fn",
+    "game": "cs2",
+    "name": "AWP | История о драконе (Сувенир 4x Titan Holo)",
+    "nameEn": "Souvenir AWP | Dragon Lore (4x Titan Katowice 2014)",
+    "category": "sniper",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Wts2sab1iLvWHMWSF_uMvj-NoVha_mg8ijDCAnobsLGWebgVzA5EjQrMJ40G9xIHhMu_j4wOM2oJMnCuq2nlN73w54OdRVqoj5OSJ2HZV8Guh",
+    "price": 450000
+  },
+  {
+    "id": "cs2_awp_dragon_lore_reason_fn",
+    "game": "cs2",
+    "name": "AWP | История о драконе (FN 4x Reason Holo)",
+    "nameEn": "AWP | Dragon Lore (FN 4x Reason Gaming Holo)",
+    "category": "sniper",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Wts2sab1iLvWHMWSF_uMvj-NoVha_mg8ijDCAnobsLGWebgVzA5EjQrMJ40G9xIHhMu_j4wOM2oJMnCuq2nlN73w54OdRVqoj5OSJ2HZV8Guh",
+    "price": 270000
+  },
+  {
+    "id": "cs2_m4a4_howl_st_fn_ibp",
+    "game": "cs2",
+    "name": "StatTrak™ M4A4 | Вой (4x iBUYPOWER Holo FN)",
+    "nameEn": "StatTrak™ M4A4 | Howl (4x iBUYPOWER Katowice 2014 Holo)",
+    "category": "rifle",
+    "rarity": "contraband",
+    "image": "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09izh4-GkvP9Jrafw2lU6ccp0rqVpon3jVbtrRE_NW_zLYPBegE4MF3Qq1O8wOq905Xp7cvM1zI97Q3gV46h",
+    "price": 220000
+  },
+  {
+    "id": "cs2_karambit_fade_titan_fn",
+    "game": "cs2",
+    "name": "★ Керамбит | Градиент (FN 4x Titan Holo)",
+    "nameEn": "★ Karambit | Fade 100% (FN 4x Titan Holo)",
+    "category": "knife",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1ObcTjxP09m7h5C0mfL3Ibrulpdo750n3LiVrNrx31Xm-BdsYWr3do6ddgA-NwyF-wTtxL--1p656pvImGwj5Hc7sM-7lA",
+    "price": 160000
+  },
+  {
+    "id": "cs2_vice_gloves_st_fn",
+    "game": "cs2",
+    "name": "★ StatTrak™ Спортивные перчатки | Порок (FN)",
+    "nameEn": "★ StatTrak™ Sport Gloves | Vice (FN)",
+    "category": "gloves",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tCvq4GGqPr1Ibndk1Rx5sR5teTE8YXghRrh-kZtZ2D2JoGdcAM7ZwvT-1S_kuy-h8TotZvNz3Vj6XY8pGB8s5Vd4K0",
+    "price": 38000
+  },
+  {
+    "id": "cs2_skeleton_fade_fn_st",
+    "game": "cs2",
+    "name": "★ StatTrak™ Скелетный нож | Градиент (FN)",
+    "nameEn": "★ StatTrak™ Skeleton Knife | Fade (FN)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1ObcTjxP09m7h5C0mfL3Ibrulpdo750n3LiVrNrx31Xm-BdsYWr3do6ddgA-NwyF-wTtxL--1p656pvImGwj5Hc7sM-7lA",
+    "price": 22500
+  },
+  {
+    "id": "cs2_butterfly_sapphire_mw",
+    "game": "cs2",
+    "name": "★ Нож-бабочка | Волны Сапфир (MW)",
+    "nameEn": "★ Butterfly Knife | Doppler Sapphire (MW)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tCvq4GGqPr1Ibndk1Rx5sR5teTE8YXghRrh-kZtZ2D2JoGdcAM7ZwvT-1S_kuy-h8TotZvNz3Vj6XY8pGB8s5Vd4K0",
+    "price": 21200
+  },
+  {
+    "id": "cs2_ak47_ch_661_st_fn",
+    "game": "cs2",
+    "name": "StatTrak™ AK-47 | Blue Gem #661 (4x Titan Holo)",
+    "nameEn": "StatTrak™ AK-47 | Case Hardened Scar #661 (4x Titan Holo)",
+    "category": "rifle",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV08u_mpSOhcjnPLfWl3lu-sR1jeTE8YXghRq2rhI6Z23yLIWQcANsM1uFqVm-x-rvjZPotZqfynNqvyggsXmLnx2whx1SLrs40_pZ_9I",
+    "price": 1000000
+  },
+  {
+    "id": "cs2_awp_dragon_lore_souvenir_titan_fn",
+    "game": "cs2",
+    "name": "AWP | История о драконе (Сувенир 4x Titan Holo)",
+    "nameEn": "Souvenir AWP | Dragon Lore (4x Titan Katowice 2014)",
+    "category": "sniper",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Wts2sab1iLvWHMWSF_uMvj-NoVha_mg8ijDCAnobsLGWebgVzA5EjQrMJ40G9xIHhMu_j4wOM2oJMnCuq2nlN73w54OdRVqoj5OSJ2HZV8Guh",
+    "price": 450000
+  },
+  {
+    "id": "cs2_m4a4_howl_st_fn_ibp",
+    "game": "cs2",
+    "name": "StatTrak™ M4A4 | Вой (4x iBUYPOWER Holo FN)",
+    "nameEn": "StatTrak™ M4A4 | Howl (4x iBUYPOWER Katowice 2014 Holo)",
+    "category": "rifle",
+    "rarity": "contraband",
+    "image": "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09izh4-GkvP9Jrafw2lU6ccp0rqVpon3jVbtrRE_NW_zLYPBegE4MF3Qq1O8wOq905Xp7cvM1zI97Q3gV46h",
+    "price": 220000
+  },
+  {
+    "id": "cs2_awp_gungnir_fn_reason",
+    "game": "cs2",
+    "name": "AWP | Гунгнир (FN 4x Reason Holo)",
+    "nameEn": "AWP | Gungnir (Factory New 4x Reason Gaming Holo)",
+    "category": "sniper",
+    "rarity": "contraband",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FABz7PLfYQJS5NO0m5O0m_7zO6-fzj9V7cAl2eyVpI-j21Xk_0dtYm-nI4fEdFc6NVCE-gK9xLzqg5656s-bmHFm7yEns37cnAv33087K3y99Q",
+    "price": 120000
+  },
+  {
+    "id": "cs2_ak47_wild_lotus_fn_dig",
+    "game": "cs2",
+    "name": "AK-47 | Дикий лотос (FN 4x Dignitas Holo)",
+    "nameEn": "AK-47 | Wild Lotus (Factory New 4x Team Dignitas Holo)",
+    "category": "rifle",
+    "rarity": "covert",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV1924g4qOh8j5Nr_Yg2Yf68F32e2Y89v30Qaw_0dtZDr3JdSVcVRvYVHQ_1K9wru5hsTvvsmYyXY37z5iuyhS_Wl0aA",
+    "price": 95000
+  },
+  {
+    "id": "cs2_butterfly_gamma_emerald_st",
+    "game": "cs2",
+    "name": "★ StatTrak™ Нож-бабочка | Гамма-волны Изумруд (FN)",
+    "nameEn": "★ StatTrak™ Butterfly Knife | Gamma Doppler Emerald (FN)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tCvq4GGqPr1Ibndk1Rx5sR5teTE8YXghRrh-kZtZ2D2JoGdcAM7ZwvT-1S_kuy-h8TotZvNz3Vj6XY8pGB8s5Vd4K0",
+    "price": 65000
+  },
+  {
+    "id": "cs2_m9_doppler_sapphire_st",
+    "game": "cs2",
+    "name": "★ StatTrak™ Штык-нож M9 | Волны Сапфир (FN)",
+    "nameEn": "★ StatTrak™ M9 Bayonet | Doppler Sapphire (FN)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf3qr3czxb49KzgL-Mh-PnJ6nkmnlu-NZlmOzA-LP5gVO8v11vYmGlco7De1JsNQuE81W4le_qjJ66u5qcn3tr7CIrs3ncnBXin1gSOf-o9GgC",
+    "price": 48000
+  },
+  {
+    "id": "cs2_karambit_doppler_ruby_st",
+    "game": "cs2",
+    "name": "★ StatTrak™ Керамбит | Волны Рубин (FN)",
+    "nameEn": "★ StatTrak™ Karambit | Doppler Ruby (FN)",
+    "category": "knife",
+    "rarity": "extraordinary",
+    "image": "https://community.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1ObcTjxP09m7h5C0mfL3Ibrulpdo750n3LiVrNrx31Xm-BdsYWr3do6ddgA-NwyF-wTtxL--1p656pvImGwj5Hc7sM-7lA",
+    "price": 42000
+  },
+  {
     "id": "cs2_karambit_blue_gem_387",
     "game": "cs2",
     "name": "★ Керамбит | Blue Gem #387",

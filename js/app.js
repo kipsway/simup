@@ -2456,8 +2456,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnWinUpgrade = document.getElementById('btn-win-upgrade');
   const btnWinOpenAgain = document.getElementById('btn-win-open-again');
 
+  // Multi-Case Controls & Win Modal Elements
+  const inputCaseQty = document.getElementById('input-case-qty');
+  const btnSpinCaseLabel = document.getElementById('btn-spin-case-label');
+  const modalMultiCaseWin = document.getElementById('modal-multi-case-win');
+  const multiWinModalClose = document.getElementById('multi-win-modal-close');
+  const multiWinTitle = document.getElementById('multi-win-title');
+  const multiWinSpent = document.getElementById('multi-win-spent');
+  const multiWinTotalVal = document.getElementById('multi-win-total-val');
+  const multiWinProfit = document.getElementById('multi-win-profit');
+  const btnMultiSellAll = document.getElementById('btn-multi-sell-all');
+  const btnMultiKeepAll = document.getElementById('btn-multi-keep-all');
+  const btnMultiOpenAgain = document.getElementById('btn-multi-open-again');
+  const multiDropsList = document.getElementById('multi-drops-list');
+
   let currentSelectedCase = null;
   let lastDroppedItem = null;
+  let lastMultiDropResult = null;
 
   function renderCasesGrid() {
     if (!casesGrid) return;
@@ -2556,7 +2571,10 @@ document.addEventListener('DOMContentLoaded', () => {
     modalCaseName.textContent = caseData.name;
     modalCaseDesc.textContent = caseData.description;
     modalCasePrice.textContent = `$${caseData.price.toFixed(2)}`;
-    btnSpinCasePrice.textContent = `($${caseData.price.toFixed(2)})`;
+
+    // Reset multi-open quantity to 1
+    if (inputCaseQty) inputCaseQty.value = '1';
+    updateCaseOpenButtonState();
 
     // Reset reel position
     caseReelTrack.style.transition = 'none';
@@ -2589,29 +2607,175 @@ document.addEventListener('DOMContentLoaded', () => {
     modalCaseOpen.classList.add('active');
   }
 
+  function updateCaseOpenButtonState() {
+    if (!currentSelectedCase) return;
+    const qty = Math.max(1, parseInt(inputCaseQty?.value, 10) || 1);
+    const totalPrice = Number((currentSelectedCase.price * qty).toFixed(2));
+    if (btnSpinCaseLabel) {
+      btnSpinCaseLabel.textContent = qty > 1 ? `📦 ОТКРЫТЬ ${qty} КЕЙСОВ` : '📦 ОТКРЫТЬ КЕЙС';
+    }
+    if (btnSpinCasePrice) {
+      btnSpinCasePrice.textContent = `($${totalPrice.toFixed(2)})`;
+    }
+    document.querySelectorAll('[data-case-qty]').forEach(chip => {
+      const chipVal = chip.dataset.caseQty;
+      if (chipVal === 'max') {
+        chip.classList.toggle('active', false);
+      } else {
+        chip.classList.toggle('active', parseInt(chipVal, 10) === qty);
+      }
+    });
+  }
+
+  // Multi-case quantity chips
+  document.querySelectorAll('[data-case-qty]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (!currentSelectedCase) return;
+      const chipVal = chip.dataset.caseQty;
+      if (chipVal === 'max') {
+        const user = window.authManager?.currentUser;
+        const userBal = user?.balance || 0;
+        const maxQty = Math.max(1, Math.floor(userBal / currentSelectedCase.price));
+        if (inputCaseQty) inputCaseQty.value = maxQty;
+        chip.classList.add('active');
+      } else {
+        const val = parseInt(chipVal, 10) || 1;
+        if (inputCaseQty) inputCaseQty.value = val;
+      }
+      updateCaseOpenButtonState();
+    });
+  });
+
+  inputCaseQty?.addEventListener('input', () => {
+    if (!inputCaseQty) return;
+    const val = parseInt(inputCaseQty.value, 10);
+    if (!isNaN(val) && val < 1) {
+      inputCaseQty.value = 1;
+    }
+    updateCaseOpenButtonState();
+  });
+
   caseOpenModalClose.addEventListener('click', () => {
     if (window.casesManager.isSpinning) return;
     modalCaseOpen.classList.remove('active');
   });
 
-  // Execute Case Spin
+  // Execute Case Spin (Single 60fps roulette OR Multi-Open with full drops list)
   btnSpinCase.addEventListener('click', () => {
     if (!currentSelectedCase || window.casesManager.isSpinning) return;
-    btnSpinCase.disabled = true;
+    const qty = Math.max(1, parseInt(inputCaseQty?.value, 10) || 1);
 
-    window.casesManager.openCase({
-      caseData: currentSelectedCase,
-      reelTrackElement: caseReelTrack,
-      onTick: () => {},
-      onComplete: ({ winner, caseData }) => {
-        btnSpinCase.disabled = false;
-        lastDroppedItem = winner;
-        modalCaseOpen.classList.remove('active');
-        showCaseWinModal(winner, caseData);
-        window.questsManager?.recordAction('open_cases', 1);
-        if (window.updateQuestsBadge) window.updateQuestsBadge();
+    if (qty === 1) {
+      btnSpinCase.disabled = true;
+      window.casesManager.openCase({
+        caseData: currentSelectedCase,
+        reelTrackElement: caseReelTrack,
+        onTick: () => {},
+        onComplete: ({ winner, caseData }) => {
+          btnSpinCase.disabled = false;
+          lastDroppedItem = winner;
+          modalCaseOpen.classList.remove('active');
+          showCaseWinModal(winner, caseData);
+          window.questsManager?.recordAction('open_cases', 1);
+          if (window.updateQuestsBadge) window.updateQuestsBadge();
+        }
+      });
+    } else {
+      btnSpinCase.disabled = true;
+      window.casesManager.openMultipleCases({
+        caseData: currentSelectedCase,
+        count: qty,
+        onComplete: (res) => {
+          btnSpinCase.disabled = false;
+          modalCaseOpen.classList.remove('active');
+          showMultiCaseWinModal(res);
+          window.questsManager?.recordAction('open_cases', res.count);
+          if (window.updateQuestsBadge) window.updateQuestsBadge();
+        }
+      });
+    }
+  });
+
+  function showMultiCaseWinModal(result) {
+    lastMultiDropResult = result;
+    if (multiWinTitle) multiWinTitle.textContent = `Выпавший дроп (${result.count} шт.)`;
+    if (multiWinSpent) multiWinSpent.textContent = `$${result.totalCost.toFixed(2)}`;
+    if (multiWinTotalVal) multiWinTotalVal.textContent = `$${result.totalDroppedVal.toFixed(2)}`;
+    if (multiWinProfit) {
+      if (result.netProfit >= 0) {
+        multiWinProfit.textContent = `+$${result.netProfit.toFixed(2)}`;
+        multiWinProfit.style.color = '#10b981';
+      } else {
+        multiWinProfit.textContent = `-$${Math.abs(result.netProfit).toFixed(2)}`;
+        multiWinProfit.style.color = '#ef4444';
+      }
+    }
+    if (btnMultiSellAll) {
+      btnMultiSellAll.textContent = `💵 Продать весь дроп ($${result.totalDroppedVal.toFixed(2)})`;
+    }
+
+    if (multiDropsList) {
+      multiDropsList.innerHTML = result.droppedItems.map(item => `
+        <div class="case-drop-preview-card skin-rarity-${item.rarity}" style="--rarity-clr: ${item.rarityColor || '#ffd700'}; position: relative; padding: 10px 8px; text-align: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between;">
+          <span class="case-drop-chance-pill" style="font-size: 9px; position: absolute; top: 6px; left: 6px;">${item.wear && item.wear !== 'STANDARD' ? item.wear : (item.game || 'CS2').toUpperCase()}</span>
+          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="drop-preview-img" style="width: 100%; height: 62px; object-fit: contain; margin: 4px 0;" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || item.skinId || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
+          <div class="drop-preview-name" style="font-size: 10.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;" title="${item.name}">${item.name}</div>
+          <div class="drop-preview-price" style="font-size: 12px; font-weight: 900; color: #ffd700; margin-top: 4px;">$${item.price.toFixed(2)}</div>
+        </div>
+      `).join('');
+    }
+
+    modalMultiCaseWin?.classList.add('active');
+
+    const curUser = window.authManager?.currentUser;
+    if (curUser && result.droppedItems && result.droppedItems.length > 0) {
+      const topDrops = [...result.droppedItems].sort((a, b) => b.price - a.price).slice(0, 3);
+      topDrops.forEach(item => {
+        addLiveDrop({
+          avatar: curUser.avatar || '🗡️',
+          username: curUser.username,
+          item,
+          type: 'case'
+        });
+      });
+    }
+  }
+
+  multiWinModalClose?.addEventListener('click', () => {
+    modalMultiCaseWin?.classList.remove('active');
+  });
+
+  btnMultiKeepAll?.addEventListener('click', () => {
+    modalMultiCaseWin?.classList.remove('active');
+    if (lastMultiDropResult) {
+      window.notify?.success('Инвентарь', `Все ${lastMultiDropResult.count} скинов сохранены в вашем инвентаре!`);
+    }
+  });
+
+  btnMultiSellAll?.addEventListener('click', () => {
+    if (!lastMultiDropResult || !lastMultiDropResult.droppedItems) return;
+    const itemsToSell = [...lastMultiDropResult.droppedItems];
+    let soldCount = 0;
+    let totalGot = 0;
+    itemsToSell.forEach(item => {
+      const res = window.economyManager?.sellItem(item.instanceId);
+      if (res && res.success) {
+        soldCount++;
+        totalGot += item.price;
       }
     });
+    modalMultiCaseWin?.classList.remove('active');
+    window.notify?.success(
+      'Весь дроп продан!',
+      `Продано ${soldCount} скинов на сумму $${totalGot.toFixed(2)}. Баланс пополнен!`
+    );
+  });
+
+  btnMultiOpenAgain?.addEventListener('click', () => {
+    modalMultiCaseWin?.classList.remove('active');
+    if (currentSelectedCase) {
+      openCaseModal(currentSelectedCase);
+    }
   });
 
   // Win Drop Modal Handlers

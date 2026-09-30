@@ -2149,6 +2149,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                       <span style="font-weight: 800; color: #fff;">${p.username}</span>
                       ${isCurrent ? '<span class="you-badge">★ ВЫ</span>' : ''}
+                      ${p.isGlobal ? '<span class="global-player-badge">🌐 Игрок</span>' : ''}
+                      ${!isCurrent && p.isGlobal ? '<span class="global-badge" title="Игрок глобального рейтинга" style="font-size:9.5px;font-weight:800;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:#38bdf8;padding:1px 6px;border-radius:20px;">🌐 TOP</span>' : ''}
                       ${p.currentDebt > 0 ? `<span class="loan-status-pill loan-status-danger" style="padding: 1px 6px; font-size: 9.5px;">⚠️ Долг: -$${p.currentDebt.toFixed(2)}</span>` : ''}
                     </div>
                   </div>
@@ -2229,6 +2231,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <div class="player-name-wrap">
                     <span style="font-weight: 800; color: #fff;">${p.username}</span>
                     ${isCurrent ? '<span class="you-badge">★ ВЫ</span>' : ''}
+                    ${!isCurrent && p.isGlobal ? '<span class="global-badge" title="Игрок глобального рейтинга" style="font-size:9.5px;font-weight:800;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:#38bdf8;padding:1px 6px;border-radius:20px;">🌐 TOP</span>' : ''}
                   </div>
                 </div>
               </td>

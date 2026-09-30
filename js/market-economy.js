@@ -54,6 +54,8 @@ class MarketEconomy {
 
   tick() {
     if (typeof SKINS_DATABASE === 'undefined' || SKINS_DATABASE.length < 2) return;
+    // Mobile perf: never re-render while tab hidden (battery + fps)
+    if (typeof document !== 'undefined' && document.hidden) return;
 
     // Pick 2 random skins to form a balanced pair
     const idxA = Math.floor(Math.random() * SKINS_DATABASE.length);
@@ -75,16 +77,34 @@ class MarketEconomy {
 
     this.saveState();
 
-    // Smooth UI re-render
-    if (window.catalogController && typeof window.catalogController.render === 'function') {
-      const activeTab = document.querySelector('.tab-content.active');
-      if (activeTab && (activeTab.id === 'tab-catalog' || activeTab.id === 'tab-upgrader')) {
-        window.catalogController.render();
+    // Mobile-friendly UI refresh: never re-render while hidden, modal open
+    // or user is typing in catalog search (prevents lag + focus steal)
+    try {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      if (document.getElementById('modal-cart')?.classList.contains('active')) {
+        window.catalogCart?.updateUI();
+        return;
       }
-    }
-    if (typeof updateUpgraderUI === 'function') {
-      try { updateUpgraderUI(); } catch (e) {}
-    }
+      const searchEl = document.getElementById('catalog-search');
+      if (searchEl && document.activeElement === searchEl) {
+        window.catalogCart?.updateUI();
+        return;
+      }
+    } catch (e) {}
+    const doRender = () => {
+      if (window.catalogController && typeof window.catalogController.render === 'function') {
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && (activeTab.id === 'tab-catalog' || activeTab.id === 'tab-upgrader')) {
+          window.catalogController.render();
+        }
+      }
+      if (typeof updateUpgraderUI === 'function') {
+        try { updateUpgraderUI(); } catch (e) {}
+      }
+      window.catalogCart?.updateUI();
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(doRender);
+    else doRender();
   }
 
   shiftSkinPrice(skin, deltaPct) {
@@ -161,10 +181,34 @@ class CatalogCart {
   load() {
     try {
       const stored = localStorage.getItem(this.storageKey);
-      if (stored) this.items = JSON.parse(stored);
+      if (stored) {
+        const raw = JSON.parse(stored);
+        if (Array.isArray(raw)) {
+          // Migrate legacy per-unit entries into grouped qty entries
+          const grouped = new Map();
+          raw.forEach(entry => {
+            if (!entry || !entry.id) return;
+            const qty = Math.max(1, parseInt(entry.qty || 1, 10) || 1);
+            if (grouped.has(entry.id)) {
+              grouped.get(entry.id).qty += qty;
+            } else {
+              grouped.set(entry.id, { ...entry, qty });
+            }
+          });
+          this.items = [...grouped.values()];
+        }
+      }
     } catch (e) {
       this.items = [];
     }
+  }
+
+  getLivePrice(item) {
+    try {
+      const live = window.marketEconomy?.getPrice(item.id);
+      if (typeof live === 'number' && live > 0) return live;
+    } catch (e) {}
+    return item.price || 0;
   }
 
   save() {
@@ -174,28 +218,72 @@ class CatalogCart {
     this.updateUI();
   }
 
-  addItem(skin) {
+  addItem(skin, qtyToAdd = 1) {
     if (!skin) return;
-    const cartItem = {
-      cartId: 'cart_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-      id: skin.id,
-      name: skin.name,
-      game: skin.game,
-      category: skin.category,
-      rarity: skin.rarity,
-      rarityColor: skin.rarityColor || '#888',
-      image: skin.image || skin.fallbackSvg,
-      wear: skin.wear || 'FN',
-      price: skin.price
-    };
-    this.items.push(cartItem);
+    const qty = Math.max(1, Math.min(99, parseInt(qtyToAdd, 10) || 1));
+    const existing = this.items.find(i => i.id === skin.id);
+    if (existing) {
+      existing.qty = Math.min(99, (existing.qty || 1) + qty);
+      // Refresh snapshot price to current market price
+      try {
+        const live = window.marketEconomy?.getPrice(skin.id);
+        if (typeof live === 'number' && live > 0) existing.price = live;
+      } catch (e) {}
+    } else {
+      this.items.push({
+        cartId: 'cart_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        id: skin.id,
+        name: skin.name,
+        game: skin.game,
+        category: skin.category,
+        rarity: skin.rarity,
+        rarityColor: skin.rarityColor || '#888',
+        image: skin.image || skin.fallbackSvg,
+        wear: skin.wear || 'FN',
+        price: skin.price,
+        qty
+      });
+    }
     this.save();
     window.SoundManager?.playClick();
-    window.notify?.success('В корзине! 🛒', `Скин "${skin.name}" добавлен в корзину ($${skin.price.toFixed(2)})`);
+    const totalQty = this.getQty(skin.id);
+    window.notify?.success('В корзине! 🛒', `«${skin.name}» × ${totalQty} — $${((skin.price || 0) * totalQty).toFixed(2)}`);
+  }
+
+  increment(skinId) {
+    const item = this.items.find(i => i.id === skinId);
+    if (!item) return;
+    item.qty = Math.min(99, (item.qty || 1) + 1);
+    this.save();
+    window.SoundManager?.playClick();
+    if (window.catalogController) window.catalogController.render();
+  }
+
+  decrement(skinId) {
+    const item = this.items.find(i => i.id === skinId);
+    if (!item) return;
+    item.qty = (item.qty || 1) - 1;
+    if (item.qty <= 0) {
+      this.items = this.items.filter(i => i.id !== skinId);
+    }
+    this.save();
+    window.SoundManager?.playClick();
+    if (window.catalogController) window.catalogController.render();
   }
 
   removeItem(cartId) {
-    this.items = this.items.filter(item => item.cartId !== cartId);
+    // Backward compatible: cartId may be legacy cartId OR skin id
+    const before = this.items.length;
+    this.items = this.items.filter(item => item.cartId !== cartId && item.id !== cartId);
+    if (this.items.length !== before) {
+      this.save();
+      window.SoundManager?.playClick();
+      if (window.catalogController) window.catalogController.render();
+    }
+  }
+
+  removeBySkin(skinId) {
+    this.items = this.items.filter(item => item.id !== skinId);
     this.save();
     window.SoundManager?.playClick();
   }
@@ -209,12 +297,21 @@ class CatalogCart {
     return this.items.some(item => item.id === skinId);
   }
 
-  getTotalPrice() {
-    return this.items.reduce((sum, item) => sum + (item.price || 0), 0);
+  getQty(skinId) {
+    const item = this.items.find(i => i.id === skinId);
+    return item ? (item.qty || 1) : 0;
+  }
+
+  getUniqueCount() {
+    return this.items.length;
   }
 
   getCount() {
-    return this.items.length;
+    return this.items.reduce((sum, item) => sum + (item.qty || 1), 0);
+  }
+
+  getTotalPrice() {
+    return this.items.reduce((sum, item) => sum + (this.getLivePrice(item) * (item.qty || 1)), 0);
   }
 
   openCartModal() {
@@ -252,31 +349,37 @@ class CatalogCart {
     user.balance = parseFloat((user.balance - total).toFixed(2));
     if (!user.inventory) user.inventory = [];
 
-    // Add purchased skins to inventory
+    // Add purchased skins to inventory (respecting quantity of each position)
     this.items.forEach(cartItem => {
-      const invItem = {
-        instanceId: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-        id: cartItem.id,
-        name: cartItem.name,
-        game: cartItem.game,
-        category: cartItem.category,
-        rarity: cartItem.rarity,
-        rarityColor: cartItem.rarityColor,
-        image: cartItem.image,
-        wear: cartItem.wear,
-        price: cartItem.price,
-        obtainedAt: new Date().toISOString(),
-        source: 'Каталог (Корзина)'
-      };
-      user.inventory.unshift(invItem);
+      const qty = Math.max(1, cartItem.qty || 1);
+      const unitPrice = this.getLivePrice(cartItem);
+      for (let n = 0; n < qty; n++) {
+        const invItem = {
+          instanceId: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+          id: cartItem.id,
+          skinId: cartItem.id,
+          name: cartItem.name,
+          game: cartItem.game,
+          category: cartItem.category,
+          rarity: cartItem.rarity,
+          rarityColor: cartItem.rarityColor,
+          image: cartItem.image,
+          wear: cartItem.wear,
+          price: unitPrice,
+          obtainedAt: new Date().toISOString(),
+          source: 'Каталог (Корзина)'
+        };
+        user.inventory.unshift(invItem);
+      }
     });
 
     window.authManager.saveCurrentUser();
 
-    const count = this.items.length;
+    const count = this.getCount();
+    const unique = this.getUniqueCount();
     this.clear();
     window.SoundManager?.playSuccess?.();
-    window.notify?.success('Покупка успешна! 🎉', `Куплено ${count} скинов на сумму $${total.toFixed(2)}. Предметы добавлены в инвентарь!`);
+    window.notify?.success('Покупка успешна! 🎉', `Куплено скинов: ${count} (позиций: ${unique}) на сумму $${total.toFixed(2)}. Предметы добавлены в инвентарь!`);
 
     this.closeCartModal();
 
@@ -379,13 +482,15 @@ class CatalogCart {
 
     listEl.innerHTML = this.items.map(item => {
       const currentPrice = window.marketEconomy?.getPrice(item.id) || item.price;
+      const qty = Math.max(1, item.qty || 1);
+      const lineTotal = currentPrice * qty;
       const trendPct = window.marketEconomy?.getChangePct(item.id) || 0;
       const trendClass = trendPct >= 0 ? 'trend-up' : 'trend-down';
       const trendSign = trendPct >= 0 ? '▲ +' : '▼ ';
       return `
         <div class="cart-item-row" data-cart-item-id="${item.cartId}">
           <div class="cart-item-left">
-            <img src="${item.image}" alt="${item.name}" class="cart-item-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id}');">
+            <img src="${item.image}" alt="${item.name}" class="cart-item-img" loading="lazy" decoding="async" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id}');">
             <div class="cart-item-details">
               <div class="cart-item-name" title="${item.name}">${item.name}</div>
               <div class="cart-item-meta">
@@ -394,13 +499,19 @@ class CatalogCart {
                 <span>${item.wear}</span>
                 <span class="price-trend ${trendClass}">${trendSign}${Math.abs(trendPct).toFixed(1)}%</span>
               </div>
+              <div class="cart-qty-stepper" style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <button class="qty-btn" data-cart-dec="${item.id}" title="Уменьшить количество" style="width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,.06);border:1px solid var(--border-color);color:#fff;font-weight:900;cursor:pointer;">−</button>
+                <span style="font-weight:900;color:#fff;font-size:13px;min-width:44px;text-align:center;">× ${qty}</span>
+                <button class="qty-btn" data-cart-inc="${item.id}" title="Добавить ещё один" style="width:26px;height:26px;border-radius:6px;background:rgba(var(--accent-rgb),.15);border:1px solid var(--accent-color);color:var(--accent-color);font-weight:900;cursor:pointer;">+</button>
+              </div>
             </div>
           </div>
           <div class="cart-item-right">
             <div class="cart-item-price-col">
-              <span class="cart-item-price">$${currentPrice.toFixed(2)}</span>
+              <span class="cart-item-price">$${lineTotal.toFixed(2)}</span>
+              <span style="font-size:11px;color:var(--text-muted);">$${currentPrice.toFixed(2)} / шт</span>
             </div>
-            <button class="cart-item-remove-btn" data-remove-cart-id="${item.cartId}" title="Удалить из корзины">&times;</button>
+            <button class="cart-item-remove-btn" data-remove-cart-id="${item.cartId}" title="Убрать позицию полностью">&times;</button>
           </div>
         </div>
       `;
@@ -410,6 +521,18 @@ class CatalogCart {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.removeItem(btn.dataset.removeCartId);
+      });
+    });
+    listEl.querySelectorAll('[data-cart-inc]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.increment(btn.dataset.cartInc);
+      });
+    });
+    listEl.querySelectorAll('[data-cart-dec]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.decrement(btn.dataset.cartDec);
       });
     });
   }

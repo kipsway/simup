@@ -5632,3 +5632,224 @@ body {
   }
 }
 
+/* ==========================================================================
+   SIMUP v3.9 — MOBILE PERFECT: читаемость active-табов, ноль наложений,
+   60fps на слабых смартфонах (убраны тяжёлые blur/тени, пагинация каталога,
+   content-visibility карточек, спокойный биржевой тик без перерисовок).
+   ========================================================================== */
+
+/* --- 1. Active-табы: всегда белый текст на акценте (фикс "чёрной надписи") --- */
+.mobile-subnav-btn.active,
+.mobile-bottom-tab.active,
+.game-pill-btn.active,
+.leaderboard-tab-btn.active,
+.btn-mult-chip.active,
+.btn-direction-pill.active,
+.btn-turbo-pill.active,
+.bet-chip.active,
+.nav-tab-btn.active,
+.mines-selector-chips .game-pill-btn.active {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55) !important;
+}
+.mobile-subnav-btn.active {
+  background: linear-gradient(135deg, var(--accent-color), #059669) !important;
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 2px 12px var(--accent-glow) !important;
+}
+.mobile-bottom-tab.active {
+  background: rgba(var(--accent-rgb), 0.16) !important;
+}
+.mobile-bottom-tab.active .mobile-bottom-label {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+/* iOS Safari: запрет авто-затемнения текста кнопок при :active */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-subnav-btn:active,
+.mobile-bottom-tab:active,
+.game-pill-btn:active {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+/* --- 2. Ноль наложений кнопок на мобиле --- */
+@media (max-width: 960px) {
+  /* Шапка: строгий один ряд без налезания */
+  .header-inner {
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+  }
+  .header-actions {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .header-actions::-webkit-scrollbar {
+    display: none !important;
+  }
+  /* Нижний док корзины всегда выше нижней навигации, в одну строку */
+  .catalog-cart-dock.active {
+    position: fixed !important;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 900 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  .cart-dock-right {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+  }
+  /* Полосы множителей и фильтров — горизонтальный скролл вместо налезания */
+  .quick-multipliers-bar,
+  .game-filter-pills,
+  .bet-chips-row,
+  .coin-side-buttons-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 6px !important;
+    max-width: 100% !important;
+  }
+  .quick-multipliers-bar::-webkit-scrollbar,
+  .game-filter-pills::-webkit-scrollbar,
+  .bet-chips-row::-webkit-scrollbar {
+    display: none !important;
+  }
+  .quick-multipliers-bar > *,
+  .game-filter-pills > *,
+  .bet-chips-row > * {
+    flex: 0 0 auto !important;
+  }
+  /* Футер модалки корзины: кнопки в ряд, без налезания */
+  .cart-footer-actions {
+    flex-wrap: nowrap !important;
+  }
+  .cart-item-row {
+    flex-wrap: nowrap !important;
+  }
+  .cart-item-right {
+    flex-shrink: 0 !important;
+  }
+  /* Таблицы рейтинга: свой скролл, не ломают layout */
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* --- 3. Производительность 60fps на слабых телефонах --- */
+@media (max-width: 768px) {
+  /* Backdrop-blur — главный источник лагов на Adreno/Mali: заменяем сплошным фоном */
+  .site-header,
+  .mobile-bottom-nav,
+  .upgrader-panel-box,
+  .upgrader-col-center,
+  .modal-window {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .site-header {
+    background: #0b0f18 !important;
+  }
+  .mobile-bottom-nav {
+    background: #0b0f18 !important;
+  }
+  .upgrader-panel-box,
+  .upgrader-col-center {
+    background: #0d1119 !important;
+    box-shadow: none !important;
+  }
+  body {
+    background-image: none !important;
+    background-color: #07090e !important;
+  }
+  /* Тяжёлые тени и свечения off — только transform/opacity анимации */
+  .skin-card,
+  .case-card,
+  .nav-tab-btn,
+  .mobile-subnav-btn,
+  .btn-upgrade-fire,
+  .btn-submit-action {
+    box-shadow: none !important;
+    will-change: auto !important;
+  }
+  /* Карточки скинов: рендер только видимых (главный выигрыш FPS в каталоге) */
+  .skin-card {
+    content-visibility: auto !important;
+    contain-intrinsic-size: auto 240px !important;
+    contain: layout style paint !important;
+  }
+  .skin-img {
+    content-visibility: auto !important;
+  }
+  /* Плавный скролл без jank */
+  .app-container,
+  .mobile-subnav-scroller,
+  .mobile-bottom-nav,
+  .inventory-drawer-scroll,
+  .cart-modal-body {
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+  }
+  /* Колесо апгрейда: чёткий размер, без layout-thrash */
+  .upgrader-wheel-box,
+  #wheel-canvas {
+    contain: layout style paint !important;
+  }
+}
+
+/* Экономия батареи/кадров: уважаем системную настройку */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- 4. Степпер количества в карточке каталога --- */
+.cart-qty-controls {
+  align-items: center;
+}
+.cart-qty-controls .qty-minus,
+.cart-qty-controls .qty-plus {
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+.btn-catalog-cart.in-cart {
+  background: rgba(var(--accent-rgb), 0.16) !important;
+  border-color: var(--accent-color) !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+/* --- 5. Бейдж глобального игрока в рейтинге --- */
+.global-player-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 9.5px;
+  font-weight: 800;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+  white-space: nowrap;
+}
+

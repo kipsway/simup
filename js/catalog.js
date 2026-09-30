@@ -13,6 +13,18 @@ class CatalogController {
     this.minPrice = 0;
     this.maxPrice = 999999;
     this.onSelectTargetCallback = null;
+    // Mobile performance: paginated rendering (avoid 100+ heavy cards at once)
+    this.visibleLimit = 30;
+    this.pageStep = 30;
+  }
+
+  resetPagination() {
+    this.visibleLimit = this.pageStep;
+  }
+
+  showMore() {
+    this.visibleLimit += this.pageStep;
+    this.render();
   }
 
   init() {
@@ -23,23 +35,28 @@ class CatalogController {
 
   setGameFilter(game) {
     this.selectedGame = game;
+    this.resetPagination();
   }
 
   setRarityFilter(rarity) {
     this.selectedRarity = rarity;
+    this.resetPagination();
   }
 
   setSearchQuery(q) {
     this.searchQuery = (q || '').trim().toLowerCase();
+    this.resetPagination();
   }
 
   setSortBy(sort) {
     this.sortBy = sort;
+    this.resetPagination();
   }
 
   setPriceRange(min, max) {
     this.minPrice = parseFloat(min) || 0;
     this.maxPrice = parseFloat(max) || 999999;
+    this.resetPagination();
   }
 
   getFilteredSkins() {
@@ -82,19 +99,25 @@ class CatalogController {
     const grid = document.getElementById('skins-grid');
     if (grid) {
       this.renderTo(grid, this.onSelectTargetCallback);
-      const count = this.getFilteredSkins().length;
+      const total = this.getFilteredSkins().length;
       const countBadge = document.getElementById('catalog-count-badge');
       if (countBadge) {
-        countBadge.textContent = `${count} скинов`;
+        countBadge.textContent = `${total} скинов`;
       }
     }
+  }
+
+  getVisibleSkins() {
+    return this.getFilteredSkins().slice(0, this.visibleLimit);
   }
 
   renderTo(containerElement, onSelectCallback) {
     if (!containerElement) return;
     this.onSelectTargetCallback = onSelectCallback;
 
-    const items = this.getFilteredSkins();
+    const allItems = this.getFilteredSkins();
+    const items = allItems.slice(0, this.visibleLimit);
+    const remaining = allItems.length - items.length;
     if (items.length === 0) {
       containerElement.innerHTML = `
         <div class="empty-catalog-state">
@@ -115,10 +138,24 @@ class CatalogController {
 
       const gameBadge = skin.game.toUpperCase();
       const wearBadge = skin.wear !== 'STANDARD' ? `<span class="wear-pill">${skin.wear}</span>` : '';
-      const inCart = window.catalogCart ? window.catalogCart.hasSkin(skin.id) : false;
+      const cartQty = window.catalogCart ? window.catalogCart.getQty(skin.id) : 0;
+      const inCart = cartQty > 0;
       const trendPct = skin.priceChangePct || 0;
       const trendClass = trendPct >= 0 ? 'trend-up' : 'trend-down';
       const trendSign = trendPct >= 0 ? '▲ +' : '▼ ';
+
+      const cartControl = inCart ? `
+        <div class="cart-qty-controls" style="display:flex;gap:6px;margin-top:6px;">
+          <button type="button" class="btn-catalog-cart qty-minus" data-cart-dec-id="${skin.id}" title="Убрать одну штуку" style="flex:0 0 36px;">−</button>
+          <button type="button" class="btn-catalog-cart in-cart" data-cart-toggle-id="${skin.id}" title="Добавить ещё одну (сейчас ×${cartQty})" style="flex:1;">
+            + Ещё · ×${cartQty}
+          </button>
+        </div>
+      ` : `
+        <button type="button" class="btn-catalog-cart" data-cart-toggle-id="${skin.id}" title="Добавить в корзину (можно несколько штук)">
+          🛒 В корзину
+        </button>
+      `;
 
       html += `
         <div class="skin-card skin-rarity-${skin.rarity}" data-skin-id="${skin.id}" style="--rarity-clr: ${skin.rarityColor}; cursor: pointer;">
@@ -129,7 +166,7 @@ class CatalogController {
             <button class="btn-card-inspect" data-inspect-skin-id="${skin.id}" title="Осмотреть скин" style="margin-left: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer;">🔍</button>
           </div>
           <div class="skin-img-wrap">
-            <img src="${skin.image || skin.fallbackSvg}" alt="${skin.name}" loading="lazy" class="skin-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${skin.id}');"/>
+            <img src="${skin.image || skin.fallbackSvg}" alt="${skin.name}" loading="lazy" decoding="async" class="skin-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${skin.id}');"/>
           </div>
           <div class="skin-info">
             <div class="skin-name" title="${skin.name}">${skin.name}</div>
@@ -138,14 +175,23 @@ class CatalogController {
                 <span class="skin-price">$${formattedPrice}</span>
                 <span class="price-trend ${trendClass}">${trendSign}${Math.abs(trendPct).toFixed(1)}%</span>
               </div>
-              <button type="button" class="btn-catalog-cart ${inCart ? 'in-cart' : ''}" data-cart-toggle-id="${skin.id}" title="${inCart ? 'Убрать из корзины' : 'Добавить в корзину'}">
-                ${inCart ? '✓ В корзине' : '🛒 В корзину'}
-              </button>
+              ${cartControl}
             </div>
           </div>
         </div>
       `;
     });
+
+    if (remaining > 0) {
+      html += `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 12px 0 4px;">
+          <button type="button" class="game-pill-btn" data-catalog-show-more style="padding: 12px 26px; font-size: 14px; font-weight: 800;">
+            Показать ещё ${Math.min(remaining, this.pageStep)} из ${remaining} ↓
+          </button>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Показано ${items.length} из ${allItems.length} — постраничная загрузка ускоряет телефон</div>
+        </div>
+      `;
+    }
 
     containerElement.innerHTML = html;
 
@@ -153,6 +199,13 @@ class CatalogController {
     if (!containerElement._hasDelegation) {
       containerElement._hasDelegation = true;
       containerElement.addEventListener('click', (e) => {
+        // 0. Show more pagination (mobile performance)
+        const showMoreBtn = e.target.closest('[data-catalog-show-more]');
+        if (showMoreBtn) {
+          e.stopPropagation();
+          this.showMore();
+          return;
+        }
         // 1. Inspect button
         const inspectBtn = e.target.closest('[data-inspect-skin-id]');
         if (inspectBtn) {
@@ -165,20 +218,23 @@ class CatalogController {
           return;
         }
 
-        // 2. Shopping Cart Toggle (Add or remove from batch cart)
+        // 2. Shopping Cart quantity controls (multiple identical skins)
+        const cartDecBtn = e.target.closest('[data-cart-dec-id]');
+        if (cartDecBtn) {
+          e.stopPropagation();
+          const skinId = cartDecBtn.dataset.cartDecId;
+          if (window.catalogCart) window.catalogCart.decrement(skinId);
+          // decrement() already re-renders; guard double render
+          return;
+        }
         const cartBtn = e.target.closest('[data-cart-toggle-id]');
         if (cartBtn) {
           e.stopPropagation();
           const skinId = cartBtn.dataset.cartToggleId;
           const skin = this.skins.find(s => s.id === skinId);
           if (!skin || !window.catalogCart) return;
-
-          if (window.catalogCart.hasSkin(skin.id)) {
-            const existing = window.catalogCart.items.find(i => i.id === skin.id);
-            if (existing) window.catalogCart.removeItem(existing.cartId);
-          } else {
-            window.catalogCart.addItem(skin);
-          }
+          // Each click adds ONE more identical skin (quantity support)
+          window.catalogCart.addItem(skin, 1);
           this.render();
           return;
         }

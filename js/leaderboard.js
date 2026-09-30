@@ -18,9 +18,11 @@ class LeaderboardManager {
 
   getAllPlayersData() {
     const rawUsers = window.authManager?.getAllUsers() || [];
-    
     // Map real authenticated/guest users
-    const realPlayers = rawUsers.map(user => {
+    const seen = new Map();
+    rawUsers.forEach(user => {
+      if (!user || !user.username) return;
+      const key = String(user.username).toLowerCase();
       const invValue = (user.inventory || []).reduce((s, it) => s + (it.price || 0), 0);
       const totalBalance = user.balance || 0;
       const grossWorth = totalBalance + invValue;
@@ -33,16 +35,17 @@ class LeaderboardManager {
       const netWorth = Number((grossWorth - debtPenalty).toFixed(2));
       const baseProfit = user.stats?.netProfit !== undefined ? user.stats.netProfit : (grossWorth - 500);
       const netProfit = Number((baseProfit - debtPenalty).toFixed(2));
-      
+
       const totalUpgrades = user.stats?.totalUpgrades || 0;
-      const wonUpgrades = user.stats?.wonUpgrades || 0;
+      const wonUpgrades = user.stats?.wonUpgrades || user.stats?.upgradesWon || 0;
       const winrate = totalUpgrades > 0 ? ((wonUpgrades / totalUpgrades) * 100).toFixed(1) : '0.0';
 
-      return {
+      const shaped = {
         id: user.id,
         username: user.username,
         initials: (user.username || '?').substring(0, 2).toUpperCase(),
         isRealUser: true,
+        isGlobal: false,
         grossWorth: Number(grossWorth.toFixed(2)),
         netWorth,
         netProfit,
@@ -61,9 +64,23 @@ class LeaderboardManager {
         casesOpened: user.stats?.casesOpened || 0,
         createdAt: user.createdAt || Date.now()
       };
+      // Keep the richest duplicate nickname
+      const prev = seen.get(key);
+      if (!prev || shaped.netWorth > prev.netWorth) seen.set(key, shaped);
     });
+    const realPlayers = [...seen.values()];
 
-    return realPlayers;
+    // Merge shared global roster (same on all devices), excluding name clashes
+    let globalPlayers = [];
+    try {
+      if (window.GlobalPlayersDB && typeof window.GlobalPlayersDB.getAll === 'function') {
+        globalPlayers = window.GlobalPlayersDB.getAll().filter(
+          g => g && g.username && !seen.has(String(g.username).toLowerCase())
+        );
+      }
+    } catch (e) { globalPlayers = []; }
+
+    return realPlayers.concat(globalPlayers);
   }
 
   getTopProfitPlayers() {

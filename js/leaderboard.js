@@ -80,7 +80,22 @@ class LeaderboardManager {
       }
     } catch (e) { globalPlayers = []; }
 
-    return realPlayers.concat(globalPlayers);
+    // Merge LIVE online players from Supabase (real people, other devices).
+    // Online rows win over the built-in demo roster on name clash.
+    let onlinePlayers = [];
+    try {
+      if (window.OnlineDB && typeof window.OnlineDB.getCached === 'function') {
+        onlinePlayers = window.OnlineDB.getCached().filter(
+          o => o && o.username && !seen.has(String(o.username).toLowerCase())
+        );
+        if (onlinePlayers.length > 0) {
+          const onlineNames = new Set(onlinePlayers.map(o => String(o.username).toLowerCase()));
+          globalPlayers = globalPlayers.filter(g => !onlineNames.has(String(g.username).toLowerCase()));
+        }
+      }
+    } catch (e) { onlinePlayers = []; }
+
+    return realPlayers.concat(onlinePlayers, globalPlayers);
   }
 
   getTopProfitPlayers() {

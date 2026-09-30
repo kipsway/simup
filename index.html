@@ -35,7 +35,7 @@
   <link rel="preconnect" href="https://community.steamstatic.com" crossorigin>
   <link rel="preconnect" href="https://community.cloudflare.steamstatic.com" crossorigin>
   <link rel="preconnect" href="https://steamcommunity-a.akamaihd.net" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=3.9">
+  <link rel="stylesheet" href="css/style.css?v=4.0">
 
   <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
   <script type="application/ld+json">
@@ -861,9 +861,9 @@
             </button>
           </div>
 
-          <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
-            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
-            <span>Глобальный рейтинг 🌐 • Ваш аккаунт подсвечен ★ ВЫ</span>
+          <div id="online-status-pill" style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #64748b;"></span>
+            <span>Офлайн • локальный рейтинг</span>
           </div>
         </div>
 
@@ -1625,30 +1625,40 @@
   </nav>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="js/sound.js?v=3.9"></script>
-  <script src="js/skins-data.js?v=3.9"></script>
-  <script src="js/notifications.js?v=3.9"></script>
-  <script src="js/auth.js?v=3.9"></script>
-  <script src="js/economy.js?v=3.9"></script>
-  <script src="js/market-economy.js?v=3.9"></script>
-  <script src="js/catalog.js?v=3.9"></script>
-  <script src="js/upgrader.js?v=3.9"></script>
-  <script src="js/cases-data.js?v=3.9"></script>
-  <script src="js/cases.js?v=3.9"></script>
-  <script src="js/players-db.js?v=3.9"></script>
-  <script src="js/leaderboard.js?v=3.9"></script>
-  <script src="js/contracts.js?v=3.9"></script>
-  <script src="js/lucky-wheel.js?v=3.9"></script>
-  <script src="js/case-builder.js?v=3.9"></script>
-  <script src="js/mines.js?v=3.9"></script>
-  <script src="js/quests.js?v=3.9"></script>
-  <script src="js/coinflip.js?v=3.9"></script>
-  <script src="js/crash.js?v=3.9"></script>
-  <script src="js/app.js?v=3.9"></script>
+  <!-- Supabase JS client (online leaderboard; silent offline fallback if blocked) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script>
+    // 🔑 ВСТАВЬТЕ СЮДА ДАННЫЕ СВОЕГО БЕСПЛАТНОГО ПРОЕКТА SUPABASE (см. supabase-setup.sql):
+    // window.SIMUP_SUPABASE_URL = "https://xyzcompany.supabase.co";
+    // window.SIMUP_SUPABASE_ANON_KEY = "eyJhbGciOi...";
+    window.SIMUP_SUPABASE_URL = "";
+    window.SIMUP_SUPABASE_ANON_KEY = "";
+  </script>
+  <script src="js/sound.js?v=4.0"></script>
+  <script src="js/skins-data.js?v=4.0"></script>
+  <script src="js/notifications.js?v=4.0"></script>
+  <script src="js/auth.js?v=4.0"></script>
+  <script src="js/economy.js?v=4.0"></script>
+  <script src="js/market-economy.js?v=4.0"></script>
+  <script src="js/catalog.js?v=4.0"></script>
+  <script src="js/upgrader.js?v=4.0"></script>
+  <script src="js/cases-data.js?v=4.0"></script>
+  <script src="js/cases.js?v=4.0"></script>
+  <script src="js/players-db.js?v=4.0"></script>
+  <script src="js/online-db.js?v=4.0"></script>
+  <script src="js/leaderboard.js?v=4.0"></script>
+  <script src="js/contracts.js?v=4.0"></script>
+  <script src="js/lucky-wheel.js?v=4.0"></script>
+  <script src="js/case-builder.js?v=4.0"></script>
+  <script src="js/mines.js?v=4.0"></script>
+  <script src="js/quests.js?v=4.0"></script>
+  <script src="js/coinflip.js?v=4.0"></script>
+  <script src="js/crash.js?v=4.0"></script>
+  <script src="js/app.js?v=4.0"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=3.9').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=4.0').then(reg => {
           reg.update();
         }).catch(() => {});
       });

@@ -2149,6 +2149,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                       <span style="font-weight: 800; color: #fff;">${p.username}</span>
                       ${isCurrent ? '<span class="you-badge">★ ВЫ</span>' : ''}
+                      ${p.isOnline ? '<span class="global-player-badge" style="background:rgba(16,185,129,.14);border-color:rgba(16,185,129,.4);color:#6ee7b7;">● ONLINE</span>' : ''}
                       ${p.isGlobal ? '<span class="global-player-badge">🌐 Игрок</span>' : ''}
                       ${!isCurrent && p.isGlobal ? '<span class="global-badge" title="Игрок глобального рейтинга" style="font-size:9.5px;font-weight:800;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:#38bdf8;padding:1px 6px;border-radius:20px;">🌐 TOP</span>' : ''}
                       ${p.currentDebt > 0 ? `<span class="loan-status-pill loan-status-danger" style="padding: 1px 6px; font-size: 9.5px;">⚠️ Долг: -$${p.currentDebt.toFixed(2)}</span>` : ''}
@@ -2262,6 +2263,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   lbViewProfitBtn?.addEventListener('click', () => renderLeaderboard('profit'));
   lbViewDebtorsBtn?.addEventListener('click', () => renderLeaderboard('debtors'));
+
+  // Online leaderboard live re-render (called by OnlineDB when fresh top arrives)
+  window.renderOnlineLeaderboard = window.requestLeaderboardRerender = function () {
+    try {
+      const activeTab = document.querySelector('.tab-content.active');
+      if (activeTab && activeTab.id === 'tab-leaderboard') {
+        renderLeaderboard(currentLeaderboardView);
+      }
+    } catch (e) {}
+  };
 
   // =========================================================================
   // LIVE DROPS TICKER & SKINOMETRY INSPECTOR

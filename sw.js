@@ -2,7 +2,7 @@
    SIMUP 2.0 - SERVICE WORKER (OFFLINE CACHE & FAST LOAD)
    ========================================================================== */
 
-const CACHE_NAME = 'simup-v3.9-cache';
+const CACHE_NAME = 'simup-v4.0-cache';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -22,6 +22,7 @@ const PRECACHE_URLS = [
   './js/cases.js',
   './js/leaderboard.js',
   './js/players-db.js',
+  './js/online-db.js',
   './js/contracts.js',
   './js/lucky-wheel.js',
   './js/case-builder.js',

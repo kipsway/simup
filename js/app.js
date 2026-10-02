@@ -1891,6 +1891,18 @@ function initMainApp() {
   // Draw wheel on canvas with 100% synchronized bottom-centered win zone (180 deg) & cherry glow
   function drawWheel(chance, direction = null, currentRoll = null) {
     if (!wheelCanvas) return;
+    const effectiveChance = (typeof chance === 'number' && chance > 0)
+      ? chance
+      : (window.upgraderEngine?.desiredChance || 50);
+
+    if (window.UpgraderWheelRenderer) {
+      if (!window.UpgraderWheelRenderer.canvas) {
+        window.UpgraderWheelRenderer.init('wheel-canvas', 'wheel-needle');
+      }
+      window.UpgraderWheelRenderer.render(effectiveChance, currentRoll);
+      return;
+    }
+
     const ctx = wheelCanvas.getContext('2d');
     if (!ctx) return;
     const w = wheelCanvas.width;
@@ -1899,10 +1911,6 @@ function initMainApp() {
     const cy = h / 2;
     const radius = 120;
     const thickness = 14;
-
-    const effectiveChance = (typeof chance === 'number' && chance > 0)
-      ? chance
-      : (window.upgraderEngine?.desiredChance || 50);
 
     ctx.clearRect(0, 0, w, h);
 

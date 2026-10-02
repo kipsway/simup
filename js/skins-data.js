@@ -9017,9 +9017,33 @@ if (typeof window !== 'undefined') {
   window.getAllSkinVariants = getAllSkinVariants;
 }
 
-// Universal error fallback handler to ensure skins never display broken icons
+// Universal 3-Tier Asset Pipeline handler to ensure skins never display broken icons or empty squares
+// Tier 1: community.cloudflare.steamstatic.com
+// Tier 2: Automatic failover to community.steamstatic.com & steamcommunity-a.akamaihd.net
+// Tier 3: Procedural cyber-aesthetic SVG silhouette with rarity gradient & glow
 function handleSkinImgError(imgEl, skinId, fallbackName, rarity, category, game) {
   if (!imgEl) return;
+  const currentSrc = imgEl.src || '';
+  const stage = parseInt(imgEl.dataset.mirrorStage || '0', 10);
+
+  const mirrors = [
+    'community.cloudflare.steamstatic.com',
+    'community.steamstatic.com',
+    'steamcommunity-a.akamaihd.net'
+  ];
+
+  // Tier 2: Try next Steam CDN mirror if current host failed
+  if (stage < mirrors.length - 1 && (currentSrc.includes('steamstatic.com') || currentSrc.includes('akamaihd.net'))) {
+    imgEl.dataset.mirrorStage = (stage + 1).toString();
+    const nextMirror = mirrors[stage + 1];
+    const newSrc = currentSrc.replace(/https?:\/\/[^\/]+/, 'https://' + nextMirror);
+    if (newSrc !== currentSrc) {
+      imgEl.src = newSrc;
+      return;
+    }
+  }
+
+  // Tier 3: Procedural Vector SVG Fallback
   imgEl.onerror = null;
   const skin = (typeof SKINS_DATABASE !== 'undefined' ? SKINS_DATABASE : window.SKINS_DATABASE)?.find(s => s.id === skinId);
   if (skin && skin.fallbackSvg) {
@@ -9027,7 +9051,12 @@ function handleSkinImgError(imgEl, skinId, fallbackName, rarity, category, game)
     return;
   }
   if (typeof generateSkinSvg === 'function') {
-    imgEl.src = generateSkinSvg(fallbackName || skin?.name || 'Skin', rarity || skin?.rarity || 'milspec', category || skin?.category || 'weapon', game || skin?.game || 'cs2');
+    imgEl.src = generateSkinSvg(
+      fallbackName || skin?.name || 'Item',
+      rarity || skin?.rarity || 'milspec',
+      category || skin?.category || 'weapon',
+      game || skin?.game || 'cs2'
+    );
   }
 }
 

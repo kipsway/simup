@@ -1,0 +1,350 @@
+/* ==========================================================================
+   SIMUP 3.0 - AAA ESPORTS UI COMPONENTS
+   High-performance buttons, cards, modals, form controls with 44px touch targets
+   ========================================================================== */
+
+/* ==================== BUTTON SYSTEM ==================== */
+button {
+  font-family: inherit;
+  border: none;
+  outline: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Primary Esports CTA Button */
+.btn-primary,
+.btn-action,
+.btn-upgrade-fire {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 20px;
+  background: var(--accent-gradient);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 13.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 16px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  will-change: transform;
+}
+
+.btn-primary:hover,
+.btn-action:hover,
+.btn-upgrade-fire:hover {
+  background: var(--accent-gradient-hover);
+  box-shadow: 0 6px 24px rgba(224, 30, 90, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform: translate3d(0, -2px, 0);
+}
+
+.btn-primary:active,
+.btn-action:active,
+.btn-upgrade-fire:active {
+  transform: translate3d(0, 1px, 0) scale(0.97);
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+.btn-primary:disabled,
+.btn-action:disabled,
+.btn-upgrade-fire:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: grayscale(0.8);
+}
+
+/* Secondary Button / Deposit Pill */
+.btn-deposit,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 16px;
+  background: var(--bg-tertiary);
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-deposit:hover,
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-highlight);
+  color: #fff;
+  transform: translate3d(0, -1px, 0);
+}
+
+.btn-deposit:active,
+.btn-secondary:active {
+  transform: scale(0.97);
+}
+
+/* Game Pills & Filter Chips */
+.game-pill-btn,
+.bet-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 6px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .game-pill-btn,
+  .bet-chip {
+    min-height: 44px;
+  }
+}
+
+.game-pill-btn:hover,
+.bet-chip:hover {
+  color: var(--text-main);
+  border-color: var(--border-light);
+  background: var(--bg-tertiary);
+}
+
+.game-pill-btn.active,
+.bet-chip.active {
+  background: var(--accent-gradient-subtle);
+  border-color: var(--accent-color);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(224, 30, 90, 0.2);
+}
+
+/* ==================== FORM CONTROLS ==================== */
+.form-input,
+.filter-select {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.filter-select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(224, 30, 90, 0.2);
+}
+
+.form-input::placeholder {
+  color: var(--text-dim);
+}
+
+select.filter-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238E95A5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+/* ==================== SKIN CARD ARCHITECTURE ==================== */
+.skin-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  will-change: transform;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.skin-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--rarity-color, var(--accent-color));
+  opacity: 0.8;
+}
+
+.skin-card:hover {
+  transform: translate3d(0, -4px, 0);
+  border-color: var(--border-highlight);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6), var(--cherry-border-glow);
+}
+
+.skin-card-img-wrap {
+  width: 100%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 6px 0;
+  position: relative;
+}
+
+.skin-card-img {
+  max-width: 90%;
+  max-height: 90px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+  transition: transform var(--transition-fast);
+}
+
+.skin-card:hover .skin-card-img {
+  transform: scale(1.08);
+}
+
+.skin-card-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.skin-card-price {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--success);
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.skin-card-wear-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+}
+
+/* ==================== MODAL OVERLAYS & WINDOWS ==================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(9, 10, 15, 0.85);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 16px;
+  box-sizing: border-box;
+  opacity: 0;
+  transition: opacity 0.22s var(--ease-cinematic);
+  isolation: isolate;
+}
+
+.modal-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+
+.modal-window {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--modal-shadow);
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  transform: translate3d(0, 20px, 0) scale(0.97);
+  transition: transform 0.22s var(--ease-cinematic);
+  will-change: transform;
+}
+
+.modal-overlay.active .modal-window {
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.modal-close-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  font-size: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal-close-btn:hover {
+  background: rgba(224, 30, 90, 0.15);
+  border-color: rgba(224, 30, 90, 0.3);
+  color: #fff;
+}
+
+.modal-body {
+  padding: 20px 24px;
+}

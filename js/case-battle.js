@@ -1204,7 +1204,9 @@ class CaseBattleController {
   setupCaseBattle(budgetPerPlayer) {
     const allCases = window.CASES_DATABASE || [];
     // Auto-select cases matching the budget
-    const affordable = allCases.filter(c => c.price <= budgetPerPlayer);
+    const affordable = allCases
+      .filter(c => c.price <= budgetPerPlayer)
+      .sort((a, b) => a.price - b.price);
     const chosenBaseCase = affordable.length > 0
       ? affordable[affordable.length - 1] // Highest affordable tier
       : allCases[0];
@@ -1555,7 +1557,8 @@ class CaseBattleController {
     const baseId = skinId ? skinId.replace(/_(FN|MW|FT|WW|BS)$/i, '') : '';
 
     // 1. Try exact ID match in all skin variants (with wear)
-    let found = allVariants.find(s => s.id === skinId);
+    let found = allVariants.find(s => s.id === skinId)
+      || (window.SKINS_DATABASE && window.SKINS_DATABASE.find(s => s.id === skinId));
     
     // 2. Try match base ID
     if (!found && baseId) {
@@ -1676,5 +1679,8 @@ class CaseBattleController {
 }
 
 if (typeof window !== 'undefined') {
-  window.CaseBattleController = new CaseBattleController();
+  const caseBattleInstance = new CaseBattleController();
+  window.CaseBattleController = caseBattleInstance;
+  window.caseBattleController = caseBattleInstance;
+  window.caseBattleEngine = caseBattleInstance;
 }

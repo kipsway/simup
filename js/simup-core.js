@@ -51,7 +51,7 @@
       this.bus = bus;
       this.initialized = false;
       this.activeTab = 'upgrader';
-      this.MINI_GAMES_TABS = ['casebattle', 'cases', 'contracts', 'mines', 'coinflip', 'crash'];
+      this.MINI_GAMES_TABS = ['generator', 'casebattle', 'cases', 'contracts', 'mines', 'coinflip', 'crash'];
     }
 
     // --- User Session Guarantee ($500.00 starting balance) ---
@@ -345,6 +345,8 @@
           if (typeof window.renderMinesBoard === 'function') window.renderMinesBoard();
         } else if (tabId === 'casebattle') {
           if (window.caseBattleEngine?.renderLobby) window.caseBattleEngine.renderLobby();
+        } else if (tabId === 'generator') {
+          if (window.ProceduralGenerator?.render) window.ProceduralGenerator.render();
         } else if (tabId === 'pass') {
           if (window.simupPassManager?.render) window.simupPassManager.render();
         } else if (tabId === 'admin') {
@@ -454,38 +456,87 @@
 
     // --- Global Click Delegation Engine (Never drops listeners) ---
     initEventDelegation() {
+      // 1. Keyboard shortcuts (Escape to close dropdown & modals, Shift + ~ for Admin Suite)
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const menu = document.getElementById('games-dropdown-menu');
+          const wrap = document.querySelector('.games-nav-dropdown-wrap');
+          if (menu) menu.classList.remove('active');
+          if (wrap) wrap.classList.remove('active');
+          this.closeModal();
+          this.closeGamesHub();
+        }
+        if (e.shiftKey && (e.key === '~' || e.key === '`' || e.code === 'Backquote')) {
+          e.preventDefault();
+          this.switchTab('admin');
+        }
+      });
+
+      // 2. Secret logo clicks counter for dev suite
+      let logoClickCount = 0;
+      let logoClickTimer = null;
+
       document.addEventListener('click', (e) => {
-        // 1. Tab switches
+        // Logo easter egg (5 rapid clicks)
+        if (e.target.closest('.header-brand-wrap')) {
+          logoClickCount++;
+          clearTimeout(logoClickTimer);
+          logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 1500);
+          if (logoClickCount >= 5) {
+            logoClickCount = 0;
+            window.notify?.info?.('⚙️ Dev Suite', 'Открыт доступ разработчика');
+            this.switchTab('admin');
+          }
+        }
+
+        // Tab switches
         const tabBtn = e.target.closest('[data-tab]');
         if (tabBtn) {
           const tabId = tabBtn.getAttribute('data-tab');
           if (tabId) {
             e.preventDefault();
             this.closeGamesHub();
+            const wrap = document.querySelector('.games-nav-dropdown-wrap');
+            const menu = document.getElementById('games-dropdown-menu');
+            if (wrap) wrap.classList.remove('active');
+            if (menu) menu.classList.remove('active');
             this.switchTab(tabId);
             return;
           }
         }
 
-        // 2. Games Hub toggles
-        if (e.target.closest('#btn-desktop-games-hub') || e.target.closest('#btn-mobile-games-hub')) {
+        // Games Hub / Dropdown toggles (Strictly on click/tap, no hover!)
+        const hubBtn = e.target.closest('#btn-desktop-games-hub') || e.target.closest('.btn-open-games-hub');
+        if (hubBtn) {
           e.preventDefault();
           if (window.innerWidth <= 960) {
             this.openGamesHub();
           } else {
+            const wrap = document.querySelector('.games-nav-dropdown-wrap');
             const menu = document.getElementById('games-dropdown-menu');
-            if (menu) menu.classList.toggle('active');
+            if (wrap && menu) {
+              const isOpen = menu.classList.contains('active');
+              if (isOpen) {
+                wrap.classList.remove('active');
+                menu.classList.remove('active');
+              } else {
+                wrap.classList.add('active');
+                menu.classList.add('active');
+              }
+            }
           }
           return;
         }
 
-        // 3. Close games dropdown if clicked outside
+        // Close games dropdown if clicked outside
         if (!e.target.closest('.games-nav-dropdown-wrap')) {
+          const wrap = document.querySelector('.games-nav-dropdown-wrap');
           const menu = document.getElementById('games-dropdown-menu');
+          if (wrap) wrap.classList.remove('active');
           if (menu) menu.classList.remove('active');
         }
 
-        // 4. Modal Close buttons
+        // Modal Close buttons
         const closeBtn = e.target.closest('.modal-close-btn, [data-modal-close]');
         if (closeBtn) {
           e.preventDefault();
@@ -494,7 +545,7 @@
           return;
         }
 
-        // 5. Deposit buttons -> Bank
+        // Deposit buttons -> Bank
         if (e.target.closest('.btn-deposit') && !e.target.closest('#modal-auth') && !e.target.closest('#tab-bank')) {
           const tabAttr = e.target.closest('.btn-deposit').getAttribute('data-tab');
           if (!tabAttr) {

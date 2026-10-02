@@ -151,8 +151,10 @@ class CoinflipEngine {
 
         // If staked skin, give back an equivalent or better skin
         if (res.stakedSkin) {
-          const allSkins = window.catalogController?.skins || [];
-          const matched = allSkins.filter(s => s.price >= res.betAmount * 1.5 && s.price <= res.payout * 1.1);
+          const pool = (window.catalogController?.skins && window.catalogController.skins.length > 0)
+            ? window.catalogController.skins
+            : (window.getAllSkinVariants ? window.getAllSkinVariants() : window.SKINS_DATABASE || []);
+          const matched = pool.filter(s => s.price >= res.betAmount * 1.5 && s.price <= res.payout * 1.15);
           const rewardSkin = matched.length > 0
             ? matched[Math.floor(Math.random() * matched.length)]
             : res.stakedSkin;

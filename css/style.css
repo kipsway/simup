@@ -7,32 +7,39 @@
 
 /* --- THEME DEFINITIONS --- */
 :root {
-  /* Play2Go Luxury Black & Cherry Wine (Default) */
-  --accent-color: #ff004d;
-  --accent-rgb: 255, 0, 77;
-  --accent-hover: #ff2e5b;
-  --accent-glow: rgba(255, 0, 77, 0.32);
-  --accent-gradient: linear-gradient(135deg, #ff004d 0%, #b8003a 100%);
-  --accent-gradient-hover: linear-gradient(135deg, #ff2e6d 0%, #d40046 100%);
+  /* SIMUP 3.0: Obsidian & Deep Cherry AAA Palette */
+  --accent-base: #8B002B;
+  --accent-color: #E01E5A;
+  --accent-rgb: 224, 30, 90;
+  --accent-hover: #FF2B6D;
+  --accent-glow: rgba(224, 30, 90, 0.35);
+  --cherry-border-glow: 0 0 16px rgba(224, 30, 90, 0.28);
+  --accent-gradient: linear-gradient(135deg, #E01E5A 0%, #8B002B 100%);
+  --accent-gradient-hover: linear-gradient(135deg, #FF2B6D 0%, #A8133E 100%);
+  --accent-gradient-subtle: linear-gradient(135deg, rgba(224, 30, 90, 0.15) 0%, rgba(139, 0, 43, 0.05) 100%);
 
-  --bg-primary: #080309;
-  --bg-secondary: #0e0710;
-  --bg-card: rgba(18, 11, 22, 0.68);
-  --bg-card-hover: rgba(26, 16, 32, 0.85);
-  --bg-glass: rgba(14, 8, 18, 0.85);
+  --bg-primary: #090A0F;
+  --bg-secondary: #0E1017;
+  --bg-tertiary: #141722;
+  --bg-card: rgba(14, 16, 23, 0.78);
+  --bg-card-hover: rgba(20, 23, 34, 0.92);
+  --bg-glass: rgba(14, 16, 23, 0.82);
 
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(255, 0, 77, 0.35);
+  --border-color: #1F2433;
+  --border-light: #2A3145;
+  --border-highlight: rgba(224, 30, 90, 0.45);
 
-  --text-main: #ffffff;
-  --text-muted: rgba(255, 255, 255, 0.65);
-  --text-dim: rgba(255, 255, 255, 0.40);
+  --text-main: #F3F4F6;
+  --text-muted: #8E95A5;
+  --text-dim: #5A6275;
 
-  --gold-glow: #ffd700;
-  --red-glow: #ff004d;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --success: #10b981;
+  --gold-glow: #F59E0B;
+  --gold-accent: #FBBF24;
+  --red-glow: #E01E5A;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --success: #10B981;
+  --info: #38BDF8;
 
   --radius-xs: 6px;
   --radius-sm: 10px;
@@ -7247,7 +7254,7 @@ button:active,
   opacity: 1 !important;
 }
 
-/* Liquid Frosted Glass Elegance */
+/* Liquid Frosted Glass Elegance - Optimized 16px blur with isolation */
 .upgrader-panel-box,
 .upgrader-col-center,
 .catalog-header-bar,
@@ -7257,12 +7264,13 @@ button:active,
 .profile-card-wrap,
 .modal-window,
 .games-hub-modal-content {
-  background: rgba(16, 10, 20, 0.72) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(14, 16, 23, 0.85) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: var(--radius-lg) !important;
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  isolation: isolate;
 }
 
 /* Refined Skin Cards Hover Physics */

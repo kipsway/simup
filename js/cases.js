@@ -16,7 +16,7 @@ class CasesManager {
     const custom = window.caseBuilderManager?.customCases || [];
     if (this.selectedGameFilter === 'custom') return custom;
     if (this.selectedGameFilter === 'all') return [...this.cases, ...custom];
-    return [...this.cases, ...custom].filter(c => c.game === this.selectedGameFilter);
+    return [...this.cases, ...custom].filter(c => c.game === this.selectedGameFilter || c.tier === this.selectedGameFilter);
   }
 
   setGameFilter(game) {
@@ -41,19 +41,23 @@ class CasesManager {
     const totalWeight = caseData.items.reduce((s, it) => s + it.weight, 0);
 
     return caseData.items.map(entry => {
-      const skin = allSkins.find(s => s.id === entry.skinId) || {
-        id: entry.skinId,
-        name: 'Неизвестный скин',
-        wear: 'FT',
-        price: 10.00,
-        rarity: 'milspec',
-        rarityColor: '#4b69ff',
-        image: ''
-      };
+      const skin = allSkins.find(s => s.id === entry.skinId)
+        || (window.SKINS_DATABASE && window.SKINS_DATABASE.find(s => s.id === entry.skinId))
+        || allSkins.find(s => s.baseId === entry.skinId)
+        || {
+          id: entry.skinId,
+          name: 'Неизвестный скин',
+          wear: 'FT',
+          price: 10.00,
+          rarity: 'milspec',
+          rarityColor: '#4b69ff',
+          image: ''
+        };
 
       const percent = ((entry.weight / totalWeight) * 100).toFixed(2);
       return {
         ...skin,
+        id: entry.skinId,
         weight: entry.weight,
         percent: Number(percent)
       };

@@ -71,25 +71,16 @@ class LeaderboardManager {
     });
     const realPlayers = [...seen.values()];
 
-    // Only REAL players: local registered users + real online players synced via Supabase!
-    // All simulated bots permanently removed per user request.
-    let onlinePlayers = [];
-    try {
-      if (window.OnlineDB && typeof window.OnlineDB.getCached === 'function') {
-        onlinePlayers = window.OnlineDB.getCached().filter(
-          o => o && o.username && !seen.has(String(o.username).toLowerCase())
-        );
-      }
-    } catch (e) { onlinePlayers = []; }
-
-    let result = realPlayers.concat(onlinePlayers);
-    if (result.length < 25 && window.GlobalPlayersDB && typeof window.GlobalPlayersDB.getAll === 'function') {
-      const globalPlayers = window.GlobalPlayersDB.getAll().filter(
+    // Autonomous 50-player living server roster (Pros, Streamers, Whales & Grinders)
+    let livingServerPlayers = [];
+    if (window.GlobalPlayersDB && typeof window.GlobalPlayersDB.getAll === 'function') {
+      livingServerPlayers = window.GlobalPlayersDB.getAll().filter(
         g => g && g.username && !seen.has(String(g.username).toLowerCase())
       );
-      result = result.concat(globalPlayers);
     }
-    return result;
+
+    // Merge real authenticated user seamlessly with 50 living server profiles
+    return realPlayers.concat(livingServerPlayers);
   }
 
 
@@ -176,4 +167,7 @@ class LeaderboardManager {
   }
 }
 
-window.leaderboardManager = new LeaderboardManager();
+if (typeof window !== 'undefined') {
+  window.LeaderboardManager = LeaderboardManager;
+  window.leaderboardManager = new LeaderboardManager();
+}

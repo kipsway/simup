@@ -33,7 +33,7 @@ class MinesEngine {
     const safeCount = this.gridSize - minesCount;
     if (gemsRevealed > safeCount) return 0;
 
-    let mult = 0.82; // 18% House Edge — hard to win
+    let mult = 0.97; // 3% House Edge (97% RTP)
     for (let i = 0; i < gemsRevealed; i++) {
       mult *= (this.gridSize - i) / (safeCount - i);
     }

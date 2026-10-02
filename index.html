@@ -37,7 +37,10 @@
   <link rel="preconnect" href="https://steamcommunity-a.akamaihd.net" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=5.4">
+  <link rel="stylesheet" href="css/design-system.css?v=6.0">
+  <link rel="stylesheet" href="css/layout.css?v=6.0">
+  <link rel="stylesheet" href="css/components.css?v=6.0">
+  <link rel="stylesheet" href="css/style.css?v=6.0">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <noscript>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap">
@@ -66,18 +69,34 @@
   <!-- ==================== HEADER ==================== -->
   <header class="site-header">
     <div class="header-inner">
+      <!-- BRAND LOGO -->
+      <div class="header-brand-wrap" data-tab="upgrader" title="SIMUP 3.0 — Платформа апгрейда скинов (клик x5 для Dev Suite)">
+        <div class="header-logo-icon">⚡</div>
+        <div class="header-brand-text">
+          <span class="header-brand-title">SIM<span>UP</span></span>
+          <span class="header-brand-subtitle">Esports Upgrade</span>
+        </div>
+      </div>
+
       <!-- MAIN NAVIGATION (Studio-Grade Minimalist Nav) -->
       <nav class="nav-tabs desktop-nav-tabs" id="desktop-nav-scroller" aria-label="Навигация сайта">
         <button class="nav-tab-btn active" data-tab="upgrader">
           <span>🎯</span> Апгрейд
         </button>
 
-        <!-- Consolidated Games Dropdown -->
+        <!-- Consolidated Games Dropdown (Strict Click Logic) -->
         <div class="games-nav-dropdown-wrap">
           <button class="nav-tab-btn btn-open-games-hub" id="btn-desktop-games-hub" type="button" title="Все мини-игры">
             <span>🎮</span> Мини-игры <span class="games-chevron">▾</span>
           </button>
           <div class="games-dropdown-menu" id="games-dropdown-menu">
+            <div class="games-drop-item" data-tab="generator">
+              <span class="drop-icon">⚡</span>
+              <div class="drop-info">
+                <div class="drop-title">Скин-генератор <span class="drop-badge-new">HOT</span></div>
+                <div class="drop-desc">Процедурный крафт, сиды и флоаты</div>
+              </div>
+            </div>
             <div class="games-drop-item" data-tab="casebattle">
               <span class="drop-icon">⚔️</span>
               <div class="drop-info">
@@ -450,13 +469,17 @@
         <div class="catalog-title-row">
           <div class="catalog-title">
             <span>📦</span> Кейсы CS2, Dota 2 и Rust
-            <span class="catalog-count-badge" id="cases-count-badge">15 кейсов</span>
+            <span class="catalog-count-badge" id="cases-count-badge">25 кейсов</span>
           </div>
 
-          <!-- Game Filter Pills -->
+          <!-- Game & Category Filter Pills -->
           <div class="game-filter-pills" id="cases-game-pills">
-            <button class="game-pill-btn active" data-cases-game="all">Все игры</button>
-            <button class="game-pill-btn" data-cases-game="cs2">🔫 CS2 (5)</button>
+            <button class="game-pill-btn active" data-cases-game="all">Все (25)</button>
+            <button class="game-pill-btn" data-cases-game="budget">🪙 Бюджет</button>
+            <button class="game-pill-btn" data-cases-game="weapons">🔫 Оружие</button>
+            <button class="game-pill-btn" data-cases-game="knives">🗡️ Ножи</button>
+            <button class="game-pill-btn" data-cases-game="gloves">🧤 Перчатки</button>
+            <button class="game-pill-btn" data-cases-game="elite">👑 Элитные</button>
             <button class="game-pill-btn" data-cases-game="dota2">🛡️ Dota 2 (5)</button>
             <button class="game-pill-btn" data-cases-game="rust">☢️ Rust (5)</button>
             <button class="game-pill-btn" data-cases-game="custom" id="pill-custom-cases">⭐ Мои кейсы (0)</button>
@@ -1172,6 +1195,145 @@
       <div id="pass-content-area"></div>
     </section>
 
+    <!-- TAB: FLAGSHIP PROCEDURAL SKIN GENERATOR & COLLECTOR -->
+    <section class="tab-content" id="tab-generator">
+      <div class="gen-dashboard-wrap" style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Header Banner & Navigation Chips -->
+        <div class="gen-header-banner" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; position: relative; overflow: hidden; isolation: isolate;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 16px var(--accent-glow);">
+              ⚡
+            </div>
+            <div>
+              <h2 style="font-size: 19px; font-weight: 900; letter-spacing: 0.5px; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                Скин-Генератор <span class="drop-badge-new">PRO V1.0</span>
+              </h2>
+              <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0;">
+                Инкрементальный симулятор: 5 процедурных слоев, Blue Gem, Float и Мега-комбо
+              </p>
+            </div>
+          </div>
+
+          <!-- Quick Metrics Bar -->
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <div class="gen-metric-chip" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: var(--radius-sm); font-size: 12px;">
+              <span style="color: var(--text-muted);">Крутка:</span>
+              <strong style="color: var(--accent-color); margin-left: 4px;">3 000 🪙</strong>
+            </div>
+            <div class="gen-metric-chip" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: var(--radius-sm); font-size: 12px;">
+              <span style="color: var(--text-muted);">Склад:</span>
+              <strong style="color: #fff; margin-left: 4px;" id="gen-metric-storage">0 / 15</strong>
+            </div>
+            <div class="gen-metric-chip" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: var(--radius-sm); font-size: 12px;">
+              <span style="color: var(--text-muted);">Сейф:</span>
+              <strong style="color: var(--gold-accent); margin-left: 4px;" id="gen-metric-vault">0 / 3</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8 Section Navigation Bar -->
+        <div class="gen-subnav-bar" style="display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px; border-bottom: 1px solid var(--border-color); scrollbar-width: none;">
+          <button class="game-pill-btn active gen-subtab-btn" data-gen-section="workbench" onclick="window.ProceduralGenerator?.switchSection('workbench')">⚡ Генератор</button>
+          <button class="game-pill-btn gen-subtab-btn" data-gen-section="collection" onclick="window.ProceduralGenerator?.switchSection('collection')">🎒 Склад (<span id="gen-nav-storage-count">0</span>)</button>
+          <button class="game-pill-btn gen-subtab-btn" data-gen-section="vault" onclick="window.ProceduralGenerator?.switchSection('vault')">🛡️ Сейф (<span id="gen-nav-vault-count">0</span>)</button>
+          <button class="game-pill-btn gen-subtab-btn" data-gen-section="upgrades" onclick="window.ProceduralGenerator?.switchSection('upgrades')">🚀 Улучшения</button>
+          <button class="game-pill-btn gen-subtab-btn" data-gen-section="autosell" onclick="window.ProceduralGenerator?.switchSection('autosell')">⚙️ Автопродажа</button>
+          <button class="game-pill-btn gen-subtab-btn" data-gen-section="atlas" onclick="window.ProceduralGenerator?.switchSection('atlas')">📖 Атлас Редкостей</button>
+          <button class="game-pill-btn gen-subtab-btn" data-gen-section="quests" onclick="window.ProceduralGenerator?.switchSection('quests')">🎯 Контракты 24h</button>
+          <button class="game-pill-btn gen-subtab-btn" data-gen-section="stats" onclick="window.ProceduralGenerator?.switchSection('stats')">📊 Статистика</button>
+        </div>
+
+        <!-- Dynamic Content Engine Container -->
+        <div id="gen-content-area" style="min-height: 480px; position: relative;">
+          <!-- Active Section 1: Workbench (Default) -->
+          <div class="gen-section-view active" id="gen-view-workbench">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+              
+              <!-- Left: Skin Preview & Inspection Stage -->
+              <div class="gen-card-stage" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; min-height: 380px;">
+                <div id="gen-skin-rarity-pill" style="position: absolute; top: 16px; left: 16px; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 4px; background: rgba(0,0,0,0.6); color: var(--text-muted); border: 1px solid var(--border-color);">
+                  Ожидание крутки...
+                </div>
+                <div id="gen-skin-price-tag" style="position: absolute; top: 16px; right: 16px; font-size: 18px; font-weight: 900; color: var(--success); font-variant-numeric: tabular-nums;">
+                  0 🪙
+                </div>
+                
+                <!-- Center Stage Art -->
+                <div style="position: relative; width: 220px; height: 180px; display: flex; align-items: center; justify-content: center; margin: 24px 0;">
+                  <div id="gen-skin-backglow" style="position: absolute; width: 180px; height: 180px; border-radius: 50%; opacity: 0.15; filter: blur(30px); background: var(--accent-color);"></div>
+                  <img id="gen-skin-artwork" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='80'%3E⚡%3C/text%3E%3C/svg%3E" alt="Скин" style="max-width: 90%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 12px 24px rgba(0,0,0,0.8));">
+                </div>
+
+                <div id="gen-skin-title" style="font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 6px; text-align: center;">
+                  Нажмите «Крутить» для генерации
+                </div>
+                <div id="gen-skin-subtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">
+                  Случайная комбинация из 5 процедурных слоев
+                </div>
+
+                <!-- 5 Layer Badges Strip -->
+                <div id="gen-layers-strip" style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; width: 100%; margin-top: 10px;">
+                  <span class="bet-chip" style="font-size: 10.5px; opacity: 0.6;">Float: —</span>
+                  <span class="bet-chip" style="font-size: 10.5px; opacity: 0.6;">Seed: —</span>
+                  <span class="bet-chip" style="font-size: 10.5px; opacity: 0.6;">StatTrak: —</span>
+                  <span class="bet-chip" style="font-size: 10.5px; opacity: 0.6;">Стикеры: —</span>
+                </div>
+              </div>
+
+              <!-- Right: Control Deck & Procedures -->
+              <div class="gen-card-controls" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; display: flex; flex-direction: column; justify-content: space-between; gap: 16px;">
+                <div>
+                  <div style="font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Панель управления генератором
+                  </div>
+                  <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 20px;">
+                    Каждая крутка создает уникальный экземпляр оружия со сложной рыночной оценкой на основе совпадения параметров.
+                  </p>
+
+                  <!-- Primary Roll CTA -->
+                  <button id="btn-gen-roll-once" class="btn-primary" style="width: 100%; height: 52px; font-size: 16px; font-weight: 900; margin-bottom: 12px;">
+                    ⚡ Крутить оружие (3 000 🪙)
+                  </button>
+
+                  <!-- Fast Auto-Roll Toggle -->
+                  <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 16px;">
+                    <div style="display: flex; flex-direction: column;">
+                      <span style="font-size: 13px; font-weight: 700; color: #fff;">Быстрый авто-ролл</span>
+                      <span style="font-size: 11px; color: var(--text-muted);">Непрерывная генерация до остановки</span>
+                    </div>
+                    <label class="switch-toggle" style="cursor: pointer;">
+                      <input type="checkbox" id="gen-auto-roll-toggle" style="display: none;">
+                      <span class="toggle-pill" id="gen-auto-roll-pill" style="display: block; width: 44px; height: 24px; background: var(--border-light); border-radius: 12px; position: relative; transition: all 0.2s;">
+                        <span style="position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: all 0.2s;" id="gen-auto-roll-knob"></span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Instant Action Buttons -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                  <button id="btn-gen-action-sell" class="btn-deposit" style="font-size: 12px; font-weight: 800; color: var(--success); padding: 10px 6px;" disabled>
+                    💵 Продать
+                  </button>
+                  <button id="btn-gen-action-keep" class="btn-deposit" style="font-size: 12px; font-weight: 800; color: var(--info); padding: 10px 6px;" disabled>
+                    🎒 На склад
+                  </button>
+                  <button id="btn-gen-action-vault" class="btn-deposit" style="font-size: 12px; font-weight: 800; color: var(--gold-accent); padding: 10px 6px;" disabled>
+                    🛡️ В сейф
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Other sub-sections will be injected dynamically by ProceduralSkinGenerator -->
+        </div>
+
+      </div>
+    </section>
+
     <!-- TAB: ADMIN PANEL -->
     <section class="tab-content" id="tab-admin">
       <div id="admin-content-area"></div>
@@ -1798,6 +1960,14 @@
       </div>
 
       <div class="games-hub-grid">
+        <div class="games-hub-card" data-tab="generator">
+          <div class="games-hub-card-icon" style="color: #e01e5a;">⚡</div>
+          <div>
+            <div class="games-hub-card-title">Скин-генератор <span class="drop-badge-new">HOT</span></div>
+            <div class="games-hub-card-desc">Флагманский симулятор: 5 слоев процедурной генерации, флоаты, редкие паттерны, склад и сейф.</div>
+          </div>
+        </div>
+
         <div class="games-hub-card" data-tab="casebattle">
           <div class="games-hub-card-icon" style="color: #ff3366;">⚔️</div>
           <div>
@@ -1922,6 +2092,7 @@
   <script src="js/economy.js?v=5.4"></script>
   <script src="js/market-economy.js?v=5.4"></script>
   <script src="js/catalog.js?v=5.4"></script>
+  <script src="js/upgrader-wheel.js?v=6.0"></script>
   <script src="js/upgrader.js?v=5.4"></script>
   <script src="js/cases-data.js?v=5.4"></script>
   <script src="js/cases.js?v=5.4"></script>
@@ -1938,13 +2109,14 @@
   <script src="js/case-battle.js?v=5.4"></script>
   <script src="js/simup-pass.js?v=5.4"></script>
   <script src="js/admin-panel.js?v=5.4"></script>
+  <script src="js/procedural-generator.js?v=6.0"></script>
   <script src="js/qrcode.js?v=5.4"></script>
   <script src="js/simup-core.js?v=5.4"></script>
   <script src="js/app.js?v=5.4"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=5.4').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=6.0').then(reg => {
           reg.update();
         }).catch(() => {});
       });

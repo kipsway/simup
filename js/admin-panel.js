@@ -411,6 +411,58 @@ class AdminPanelController {
     this.render();
   }
 
+  grantGeneratorCoins(amount = 100000) {
+    if (window.ProceduralGenerator) {
+      window.ProceduralGenerator.state.coins += amount;
+      window.ProceduralGenerator.saveState();
+      window.notify?.bigWin('🪙 Монеты начислены', `+${amount.toLocaleString()} 🪙 для станка генератора!`);
+    }
+  }
+
+  grantBlueGemSkin(username) {
+    const users = window.authManager.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === (username || window.authManager.currentUser?.username || '').toLowerCase());
+    if (!target) return;
+    const blueGemItem = {
+      instanceId: 'dev_gem_' + Date.now(),
+      id: 'cs2_ak47_case_hardened',
+      name: 'AK-47 | Поверхностная закалка (Blue Gem #661)',
+      wear: 'FN',
+      wearTag: 'FN',
+      wearName: 'Factory New',
+      floatValue: 0.00387122,
+      paintSeed: 661,
+      blueGemTier: 'Tier 1 (#661 Scar Blue Gem)',
+      price: 38000.00,
+      rarity: 'classified',
+      rarityColor: '#d32ce6',
+      image: '',
+      obtainedAt: Date.now()
+    };
+    if (!target.inventory) target.inventory = [];
+    target.inventory.unshift(blueGemItem);
+    window.authManager.saveUsers(users);
+    if (window.authManager.currentUser?.id === target.id) {
+      window.authManager.saveCurrentUser();
+      window.updateHeaderUserUI?.(target);
+      if (typeof window.renderInventoryPage === 'function') window.renderInventoryPage();
+    }
+    window.notify?.bigWin('👑 Blue Gem Выдан!', `Легендарный AK-47 Blue Gem #661 добавлен игроку ${target.username}!`);
+  }
+
+  simulateGeneratorSpins(count = 50) {
+    if (!window.ProceduralGenerator) return;
+    for (let i = 0; i < count; i++) {
+      const item = window.ProceduralGenerator.rollProceduralSkin();
+      if (window.ProceduralGenerator.state.collection.length < window.ProceduralGenerator.getStorageMax()) {
+        window.ProceduralGenerator.state.collection.unshift(item);
+      }
+    }
+    window.ProceduralGenerator.state.totalRolls += count;
+    window.ProceduralGenerator.saveState();
+    window.notify?.success('Сгенерировано 50 скинов', '50 процедурных скинов добавлены на склад генератора!');
+  }
+
   deleteBug(id) {
     this.bugs = this.bugs.filter(b => b.id !== id);
     this.saveBugs();
@@ -525,6 +577,22 @@ class AdminPanelController {
                 <button id="btn-admin-submit-clear-debt" class="btn-sm-action" style="background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid #ffd700; font-weight: 800; padding: 8px; border-radius: 6px; cursor: pointer;">
                   🏦 Обнулить долг
                 </button>
+              </div>
+
+              <!-- Dev Suite Flagship Generator Tools -->
+              <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--accent-color); margin-bottom: 6px;">🛠️ Тест Скин-Генератора & Реликвий:</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+                  <button onclick="window.AdminPanelController.grantGeneratorCoins(100000)" class="btn-sm-action" style="background: rgba(224, 30, 90, 0.2); border: 1px solid var(--accent-color); color: #fff; font-size: 11px; padding: 6px; border-radius: 6px; cursor: pointer; font-weight: 800;">
+                    +100k 🪙
+                  </button>
+                  <button onclick="window.AdminPanelController.grantBlueGemSkin(document.getElementById('admin-credit-username').value)" class="btn-sm-action" style="background: rgba(0, 229, 255, 0.2); border: 1px solid #00e5ff; color: #00e5ff; font-size: 11px; padding: 6px; border-radius: 6px; cursor: pointer; font-weight: 800;">
+                    +Blue Gem #661
+                  </button>
+                  <button onclick="window.AdminPanelController.simulateGeneratorSpins(50)" class="btn-sm-action" style="background: rgba(255, 215, 0, 0.2); border: 1px solid #ffd700; color: #ffd700; font-size: 11px; padding: 6px; border-radius: 6px; cursor: pointer; font-weight: 800;">
+                    50 круток
+                  </button>
+                </div>
               </div>
             </div>
 

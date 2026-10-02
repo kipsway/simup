@@ -35,7 +35,7 @@
   <link rel="preconnect" href="https://community.steamstatic.com" crossorigin>
   <link rel="preconnect" href="https://community.cloudflare.steamstatic.com" crossorigin>
   <link rel="preconnect" href="https://steamcommunity-a.akamaihd.net" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=5.0">
+  <link rel="stylesheet" href="css/style.css?v=5.3">
 
   <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
   <script type="application/ld+json">
@@ -60,30 +60,23 @@
   <!-- ==================== HEADER ==================== -->
   <header class="site-header">
     <div class="header-inner">
-      <!-- MAIN NAVIGATION (Play2Go Clean Minimalist Hub) -->
+      <!-- MAIN NAVIGATION (Studio-Grade Minimalist Nav) -->
       <nav class="nav-tabs desktop-nav-tabs" id="desktop-nav-scroller" aria-label="Навигация сайта">
-        <button class="nav-tab-btn" data-tab="inventory">
-          <span>🎒</span> Инвентарь
+        <button class="nav-tab-btn active" data-tab="upgrader">
+          <span>🎯</span> Апгрейд
         </button>
 
         <!-- Consolidated Games Dropdown -->
         <div class="games-nav-dropdown-wrap">
           <button class="nav-tab-btn btn-open-games-hub" id="btn-desktop-games-hub" type="button" title="Все мини-игры">
-            <span>🎮</span> Мини-игры <span style="font-size: 10px; opacity: 0.6; margin-left: 2px;">▾</span>
+            <span>🎮</span> Мини-игры <span class="games-chevron">▾</span>
           </button>
           <div class="games-dropdown-menu" id="games-dropdown-menu">
-            <div class="games-drop-item" data-tab="upgrader">
-              <span class="drop-icon">🎯</span>
-              <div class="drop-info">
-                <div class="drop-title">Апгрейд (Главная)</div>
-                <div class="drop-desc">Колесо и прокачка скинов</div>
-              </div>
-            </div>
             <div class="games-drop-item" data-tab="casebattle">
               <span class="drop-icon">⚔️</span>
               <div class="drop-info">
-                <div class="drop-title">Дуэли 1v1 (Кейс & Апгрейд) <span class="drop-badge-new">NEW</span></div>
-                <div class="drop-desc">Кейс-батлы и Апгрейд-батлы 1 на 1</div>
+                <div class="drop-title">Дуэли 1v1 <span class="drop-badge-new">NEW</span></div>
+                <div class="drop-desc">Кейс-батлы и Апгрейд-батлы</div>
               </div>
             </div>
             <div class="games-drop-item" data-tab="cases">
@@ -121,11 +114,12 @@
                 <div class="drop-desc">Ракета с иксом до 1000x</div>
               </div>
             </div>
+            <div class="games-drop-divider"></div>
             <div class="games-drop-item" data-tab="admin">
               <span class="drop-icon">⚙️</span>
               <div class="drop-info">
                 <div class="drop-title">Панель Админа</div>
-                <div class="drop-desc">Управление балансом и долгами</div>
+                <div class="drop-desc">Баланс, займы и тесты</div>
               </div>
             </div>
           </div>
@@ -134,8 +128,8 @@
         <button class="nav-tab-btn" data-tab="catalog">
           <span>🛒</span> Каталог
         </button>
-        <button class="nav-tab-btn" data-tab="pass">
-          <span>👑</span> PASS
+        <button class="nav-tab-btn" data-tab="inventory">
+          <span>🎒</span> Инвентарь
         </button>
         <button class="nav-tab-btn" data-tab="leaderboard">
           <span>🏆</span> Топ
@@ -143,8 +137,8 @@
         <button class="nav-tab-btn" data-tab="bank">
           <span>🏦</span> Банк
         </button>
-        <button class="nav-tab-btn" data-tab="admin" title="Панель администратора / Создателя">
-          <span>⚙️</span> Админка
+        <button class="nav-tab-btn" data-tab="pass">
+          <span>👑</span> PASS
         </button>
       </nav>
 
@@ -262,30 +256,21 @@
         <div class="upgrader-col-center">
           <!-- Top row: Speed mode switcher (Left), Minimalist SIMUP Logo (Center on PC, Right on Mobile), Arrow Style & Random (Right on PC) -->
           <div class="wheel-top-controls">
-            <!-- Left block on Mobile (Stacked: Row 1 Speed Switcher, Row 2 Arrow Style & Random Upgrade) -->
-            <div class="wheel-controls-stacked-left">
-              <!-- Row 1 (Mobile) / Column 1 (PC): Speed Switcher -->
-              <div class="wheel-controls-left">
-                <div class="speed-switcher-pill" id="speed-switcher">
-                  <button class="btn-speed-pill" data-speed="fast">⚡ 1.2s</button>
-                  <button class="btn-speed-pill active" data-speed="normal">⚡ 3.5s</button>
-                  <button class="btn-speed-pill" data-speed="slow">⚡ 7.6s</button>
-                </div>
-              </div>
-
-              <!-- Row 2 (Mobile) / Column 3 (PC): Arrow Style Selector & Random Upgrade -->
-              <div class="wheel-controls-right">
-                <button class="btn-turbo-pill" id="btn-quick-arrow-style" title="Сменить стиль стрелки">
-                  <span id="label-arrow-style-name">🎯 Лазер</span>
-                </button>
-
-                <button class="btn-turbo-pill" id="btn-random-upgrade" title="Выбрать случайный множитель от 1.1x до 1000x!">
-                  <span>🎲 Рандом x</span>
-                </button>
-              </div>
+            <div class="speed-switcher-pill" id="speed-switcher">
+              <button class="btn-speed-pill" data-speed="fast">⚡ 1.2s</button>
+              <button class="btn-speed-pill active" data-speed="normal">⚡ 3.5s</button>
+              <button class="btn-speed-pill" data-speed="slow">⚡ 7.6s</button>
             </div>
 
+            <div class="wheel-controls-right">
+              <button class="btn-turbo-pill" id="btn-quick-arrow-style" title="Сменить стиль стрелки">
+                <span id="label-arrow-style-name">🎯 Лазер</span>
+              </button>
 
+              <button class="btn-turbo-pill" id="btn-random-upgrade" title="Выбрать случайный множитель от 1.1x до 1000x!">
+                <span>🎲 Рандом x</span>
+              </button>
+            </div>
           </div>
 
           <!-- 60fps Interactive Wheel Box (Clean canvas without overlays) -->
@@ -1948,12 +1933,12 @@
   <script src="js/simup-pass.js?v=5.2"></script>
   <script src="js/admin-panel.js?v=5.2"></script>
   <script src="js/qrcode.js?v=5.2"></script>
-  <script src="js/simup-core.js?v=5.2"></script>
-  <script src="js/app.js?v=5.2"></script>
+  <script src="js/simup-core.js?v=5.3"></script>
+  <script src="js/app.js?v=5.3"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=5.1').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=5.3').then(reg => {
           reg.update();
         }).catch(() => {});
       });

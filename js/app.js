@@ -220,6 +220,16 @@ function initMainApp() {
   const btnDesktopGamesHub = document.getElementById('btn-desktop-games-hub');
   const gamesDropdownMenu = document.getElementById('games-dropdown-menu');
 
+  function closeGamesDropdown() {
+    gamesDropdownMenu?.classList.remove('active');
+    btnDesktopGamesHub?.closest('.games-nav-dropdown-wrap')?.classList.remove('active');
+  }
+
+  function toggleGamesDropdown() {
+    const isNowActive = gamesDropdownMenu?.classList.toggle('active');
+    btnDesktopGamesHub?.closest('.games-nav-dropdown-wrap')?.classList.toggle('active', isNowActive);
+  }
+
   // Toggle mini-games dropdown on CLICK ONLY (never on hover)
   btnDesktopGamesHub?.addEventListener('click', (e) => {
     e.preventDefault();
@@ -227,7 +237,7 @@ function initMainApp() {
     if (window.innerWidth <= 960) {
       openGamesHub();
     } else {
-      gamesDropdownMenu?.classList.toggle('active');
+      toggleGamesDropdown();
     }
   });
   document.getElementById('btn-mobile-games-hub')?.addEventListener('click', openGamesHub);
@@ -277,7 +287,7 @@ function initMainApp() {
       if (tabId) {
         window.SoundManager?.playClick();
         closeGamesHub();
-        gamesDropdownMenu?.classList.remove('active');
+        closeGamesDropdown();
         switchTab(tabId);
       }
     });
@@ -287,7 +297,7 @@ function initMainApp() {
   document.addEventListener('click', (e) => {
     // Close desktop games dropdown if clicked outside
     if (!e.target.closest('.games-nav-dropdown-wrap')) {
-      gamesDropdownMenu?.classList.remove('active');
+      closeGamesDropdown();
     }
 
     if (e.target.closest('.games-hub-card') || e.target.closest('.games-drop-item')) {
@@ -299,7 +309,7 @@ function initMainApp() {
     const tabId = target.dataset.tab;
     if (tabId) {
       closeGamesHub();
-      gamesDropdownMenu?.classList.remove('active');
+      closeGamesDropdown();
       switchTab(tabId);
     }
   });
@@ -331,6 +341,7 @@ function initMainApp() {
   });
 
   function switchTab(tabId) {
+    closeGamesDropdown();
     // Close any active modal overlay so tab is immediately visible
     document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
 

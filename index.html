@@ -31,11 +31,17 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SIMUP">
-  <!-- Mobile speed: early connection to skin image CDNs -->
+  <!-- Mobile speed: early connection to skin image CDNs & fonts -->
   <link rel="preconnect" href="https://community.steamstatic.com" crossorigin>
   <link rel="preconnect" href="https://community.cloudflare.steamstatic.com" crossorigin>
   <link rel="preconnect" href="https://steamcommunity-a.akamaihd.net" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=5.3">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="css/style.css?v=5.4">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap">
+  </noscript>
 
   <!-- Schema.org JSON-LD Structured Data for Google & Yandex -->
   <script type="application/ld+json">
@@ -1901,7 +1907,7 @@
 
   <!-- ==================== SCRIPTS ==================== -->
   <!-- Supabase JS client (online leaderboard; silent offline fallback if blocked) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
   <script>
     // 🔑 ВСТАВЬТЕ СЮДА ДАННЫЕ СВОЕГО БЕСПЛАТНОГО ПРОЕКТА SUPABASE (см. supabase-setup.sql):
     // window.SIMUP_SUPABASE_URL = "https://xyzcompany.supabase.co";
@@ -1909,36 +1915,36 @@
     window.SIMUP_SUPABASE_URL = "https://btnsijgkefzhnnidcbou.supabase.co";
     window.SIMUP_SUPABASE_ANON_KEY = "sb_publishable_y5d9oDSY42gfFZoWvn074Q_mD_9zxOV";
   </script>
-  <script src="js/sound.js?v=5.2"></script>
-  <script src="js/skins-data.js?v=5.2"></script>
-  <script src="js/notifications.js?v=5.2"></script>
-  <script src="js/auth.js?v=5.2"></script>
-  <script src="js/economy.js?v=5.2"></script>
-  <script src="js/market-economy.js?v=5.2"></script>
-  <script src="js/catalog.js?v=5.2"></script>
-  <script src="js/upgrader.js?v=5.2"></script>
-  <script src="js/cases-data.js?v=5.2"></script>
-  <script src="js/cases.js?v=5.2"></script>
-  <script src="js/players-db.js?v=5.2"></script>
-  <script src="js/online-db.js?v=5.2"></script>
-  <script src="js/leaderboard.js?v=5.2"></script>
-  <script src="js/contracts.js?v=5.2"></script>
-  <script src="js/lucky-wheel.js?v=5.2"></script>
-  <script src="js/case-builder.js?v=5.2"></script>
-  <script src="js/mines.js?v=5.2"></script>
-  <script src="js/quests.js?v=5.2"></script>
-  <script src="js/coinflip.js?v=5.2"></script>
-  <script src="js/crash.js?v=5.2"></script>
-  <script src="js/case-battle.js?v=5.2"></script>
-  <script src="js/simup-pass.js?v=5.2"></script>
-  <script src="js/admin-panel.js?v=5.2"></script>
-  <script src="js/qrcode.js?v=5.2"></script>
-  <script src="js/simup-core.js?v=5.3"></script>
-  <script src="js/app.js?v=5.3"></script>
+  <script src="js/sound.js?v=5.4"></script>
+  <script src="js/skins-data.js?v=5.4"></script>
+  <script src="js/notifications.js?v=5.4"></script>
+  <script src="js/auth.js?v=5.4"></script>
+  <script src="js/economy.js?v=5.4"></script>
+  <script src="js/market-economy.js?v=5.4"></script>
+  <script src="js/catalog.js?v=5.4"></script>
+  <script src="js/upgrader.js?v=5.4"></script>
+  <script src="js/cases-data.js?v=5.4"></script>
+  <script src="js/cases.js?v=5.4"></script>
+  <script src="js/players-db.js?v=5.4"></script>
+  <script src="js/online-db.js?v=5.4"></script>
+  <script src="js/leaderboard.js?v=5.4"></script>
+  <script src="js/contracts.js?v=5.4"></script>
+  <script src="js/lucky-wheel.js?v=5.4"></script>
+  <script src="js/case-builder.js?v=5.4"></script>
+  <script src="js/mines.js?v=5.4"></script>
+  <script src="js/quests.js?v=5.4"></script>
+  <script src="js/coinflip.js?v=5.4"></script>
+  <script src="js/crash.js?v=5.4"></script>
+  <script src="js/case-battle.js?v=5.4"></script>
+  <script src="js/simup-pass.js?v=5.4"></script>
+  <script src="js/admin-panel.js?v=5.4"></script>
+  <script src="js/qrcode.js?v=5.4"></script>
+  <script src="js/simup-core.js?v=5.4"></script>
+  <script src="js/app.js?v=5.4"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=5.3').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=5.4').then(reg => {
           reg.update();
         }).catch(() => {});
       });

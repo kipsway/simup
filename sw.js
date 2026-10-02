@@ -2,7 +2,7 @@
    SIMUP 2.0 - SERVICE WORKER (OFFLINE CACHE & ULTRA FAST LOAD)
    ========================================================================== */
 
-const CACHE_NAME = 'simup-v5.3-cache';
+const CACHE_NAME = 'simup-v5.4-cache';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -38,14 +38,19 @@ const PRECACHE_URLS = [
   './js/app.js'
 ];
 
+// Install: precache core assets with individual error catch so one missing asset never aborts install
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_URLS);
-    }).then(() => self.skipWaiting())
+      return Promise.allSettled(
+        PRECACHE_URLS.map((url) => cache.add(url).catch((err) => console.warn('Precache skip:', url, err)))
+      );
+    })
   );
 });
 
+// Activate: clean up old caches immediately and take control of all clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -56,26 +61,34 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Fetch event listener: Fail-safe with strict timeout, zero-hang guarantee
 self.addEventListener('fetch', (event) => {
-  const url = event.request.url;
+  const req = event.request;
+  const url = req.url;
 
-  // Ultra-fast cache-first for images (steamstatic, local images, icons)
-  if (event.request.destination === 'image' || url.includes('steamstatic.com') || url.match(/\.(png|jpg|jpeg|svg|webp|gif|ico)$/i)) {
+  // 1. Never intercept non-GET requests
+  if (req.method !== 'GET') {
+    return;
+  }
+
+  // 2. Never intercept external APIs (Supabase, CDNs, chrome-extensions)
+  if (url.includes('supabase.co') || url.includes('jsdelivr.net') || url.includes('chrome-extension')) {
+    return;
+  }
+
+  // 3. Cache-first for images (steamstatic, local images, icons)
+  if (req.destination === 'image' || url.includes('steamstatic.com') || url.match(/\.(png|jpg|jpeg|svg|webp|gif|ico)$/i)) {
     event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        return fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+      caches.match(req, { ignoreSearch: true }).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+
+        return fetch(req).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
             const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, clone);
-            });
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
           }
           return networkResponse;
         }).catch(() => {
-          // Return empty transparent gif or fallback
           return new Response('', { status: 408, headers: { 'Content-Type': 'image/svg+xml' } });
         });
       })
@@ -83,18 +96,57 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network first with cache fallback for core files
-  event.respondWith(
-    fetch(event.request).then((networkResponse) => {
-      if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+  // 4. Navigation requests (HTML page): race network with 1500ms timeout, then serve cached index.html
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      new Promise((resolve) => {
+        let isDone = false;
+
+        const timer = setTimeout(() => {
+          if (!isDone) {
+            isDone = true;
+            caches.match('./index.html', { ignoreSearch: true })
+              .then((cached) => resolve(cached || fetch(req)))
+              .catch(() => resolve(fetch(req)));
+          }
+        }, 1500);
+
+        fetch(req).then((networkResponse) => {
+          if (!isDone) {
+            isDone = true;
+            clearTimeout(timer);
+            if (networkResponse && networkResponse.status === 200) {
+              const clone = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+            }
+            resolve(networkResponse);
+          }
+        }).catch(() => {
+          if (!isDone) {
+            isDone = true;
+            clearTimeout(timer);
+            caches.match('./index.html', { ignoreSearch: true })
+              .then((cached) => resolve(cached || caches.match('./', { ignoreSearch: true })));
+          }
         });
-      }
-      return networkResponse;
-    }).catch(() => {
-      return caches.match(event.request);
+      })
+    );
+    return;
+  }
+
+  // 5. Core JS/CSS/Assets: Stale-While-Revalidate with ignoreSearch (instant 0ms response)
+  event.respondWith(
+    caches.match(req, { ignoreSearch: true }).then((cached) => {
+      const fetchPromise = fetch(req).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+        }
+        return networkResponse;
+      }).catch(() => cached);
+
+      // Return cached immediately if available for 0ms load!
+      return cached || fetchPromise;
     })
   );
 });

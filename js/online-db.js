@@ -39,9 +39,22 @@
     init() {
       const url = (window.SIMUP_SUPABASE_URL || '').trim();
       const key = (window.SIMUP_SUPABASE_ANON_KEY || '').trim();
-      if (!url || !key || !window.supabase || typeof window.supabase.createClient !== 'function') {
+      if (!url || !key) {
         this.setStatus('offline');
         return; // keys not configured yet — silent offline mode
+      }
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        this.setStatus('offline');
+        // If async Supabase script is still loading in background, retry cleanly
+        if (!this._retryTimer) {
+          this._retryTimer = setTimeout(() => {
+            this._retryTimer = null;
+            if (window.supabase && typeof window.supabase.createClient === 'function' && !this.client) {
+              this.init();
+            }
+          }, 2000);
+        }
+        return;
       }
       try {
         this.client = window.supabase.createClient(url, key);

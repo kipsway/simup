@@ -312,22 +312,33 @@
           if (typeof window.updateUpgraderUI === 'function') window.updateUpgraderUI();
           if (typeof window.drawWheel === 'function') window.drawWheel();
         } else if (tabId === 'inventory') {
-          this.renderInventoryPage();
+          if (typeof window.renderInventoryPage === 'function') window.renderInventoryPage();
+          else this.renderInventoryPage();
         } else if (tabId === 'catalog') {
           if (window.catalogController?.render) window.catalogController.render();
           if (window.catalogCart?.updateUI) window.catalogCart.updateUI();
+        } else if (tabId === 'cases') {
+          if (typeof window.renderCasesGrid === 'function') window.renderCasesGrid();
+        } else if (tabId === 'contracts') {
+          if (typeof window.renderContractsDesk === 'function') window.renderContractsDesk();
+        } else if (tabId === 'bank') {
+          if (typeof window.renderBankPage === 'function') window.renderBankPage();
         } else if (tabId === 'profile') {
           if (typeof window.renderProfilePage === 'function') window.renderProfilePage();
         } else if (tabId === 'leaderboard') {
           if (typeof window.renderLeaderboard === 'function') window.renderLeaderboard();
         } else if (tabId === 'crash') {
           if (typeof window.renderCrashUI === 'function') window.renderCrashUI();
+          if (window.crashEngine?.resizeCanvas) window.crashEngine.resizeCanvas();
           requestAnimationFrame(() => {
             if (window.crashEngine?.resizeCanvas) window.crashEngine.resizeCanvas();
           });
           setTimeout(() => {
             if (window.crashEngine?.resizeCanvas) window.crashEngine.resizeCanvas();
-          }, 80);
+          }, 60);
+          setTimeout(() => {
+            if (window.crashEngine?.resizeCanvas) window.crashEngine.resizeCanvas();
+          }, 180);
         } else if (tabId === 'coinflip') {
           if (typeof window.renderCoinflipUI === 'function') window.renderCoinflipUI();
         } else if (tabId === 'mines') {

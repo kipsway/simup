@@ -1933,20 +1933,20 @@ h1, h2, h3, h4, .brand-logo, .tab-btn, .btn-primary, .skin-price {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 140px;
-  height: 140px;
+  width: 112px;
+  height: 112px;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 45%, rgba(18, 26, 42, 0.98) 0%, rgba(9, 13, 22, 0.98) 75%, rgba(4, 7, 12, 1) 100%);
-  border: 2px solid rgba(var(--accent-rgb), 0.45);
+  background: radial-gradient(circle at 50% 45%, rgba(18, 10, 24, 0.92) 0%, rgba(8, 4, 12, 0.95) 75%, rgba(4, 2, 6, 0.98) 100%);
+  border: 1.5px solid rgba(var(--accent-rgb), 0.45);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: 0 0 35px rgba(0, 0, 0, 0.95), 0 0 16px rgba(var(--accent-rgb), 0.2), inset 0 0 20px rgba(var(--accent-rgb), 0.1);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(var(--accent-rgb), 0.2);
   z-index: 15;
   pointer-events: none;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(6px);
 }
 
 .wheel-center-display::before {
@@ -6662,12 +6662,14 @@ button:active,
 
 @media (max-width: 768px) {
   .wheel-center-display {
-    width: 104px !important;
-    height: 104px !important;
-    background: radial-gradient(circle, rgba(18, 10, 24, 0.72) 0%, rgba(8, 4, 12, 0.80) 100%) !important;
+    width: 94px !important;
+    height: 94px !important;
+    background: radial-gradient(circle, rgba(18, 10, 24, 0.88) 0%, rgba(8, 4, 12, 0.95) 100%) !important;
+    border: 1.5px solid rgba(255, 0, 77, 0.4) !important;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.8) !important;
   }
   .wheel-center-chance {
-    font-size: 20px !important;
+    font-size: 18px !important;
   }
 }
 
@@ -6964,41 +6966,36 @@ html, body {
     white-space: nowrap !important;
   }
 
-  /* Wheel top controls on smartphones:
-     Left: Stacked block with speed switcher on row 1, and arrow style + random on row 2.
-     Right: ONLY the minimalist logo badge */
+  /* Wheel top controls on smartphones: clean single row, no bloated stacked rows */
   .wheel-top-controls {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 8px !important;
-    margin-bottom: 14px !important;
+    gap: 6px !important;
+    margin-bottom: 10px !important;
     width: 100% !important;
     position: relative !important;
   }
 
   .wheel-controls-stacked-left {
     display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
+    flex-direction: row !important;
+    align-items: center !important;
     gap: 6px !important;
-    flex: 1 !important;
-    min-width: 0 !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
   }
 
   .wheel-controls-left {
     display: flex !important;
     align-items: center !important;
     gap: 4px !important;
-    width: 100% !important;
   }
 
   .wheel-controls-right {
     display: flex !important;
     align-items: center !important;
     gap: 6px !important;
-    flex-wrap: nowrap !important;
-    width: 100% !important;
   }
 
   .speed-switcher-pill {
@@ -7007,7 +7004,7 @@ html, body {
   }
 
   .speed-switcher-pill .btn-speed-pill {
-    padding: 3px 6px !important;
+    padding: 4px 6px !important;
     font-size: 10px !important;
   }
 
@@ -7020,30 +7017,14 @@ html, body {
     min-height: 28px !important;
   }
 
-  /* Right-pinned minimalist brand badge on mobile: ONLY logo on the right */
+  /* Completely hide logo and brand badges everywhere per user request */
   .arena-brand-badge {
-    margin-left: auto !important;
-    flex-shrink: 0 !important;
-    align-self: center !important;
-    padding: 5px 10px !important;
-    height: 32px !important;
-    box-sizing: border-box !important;
-    gap: 6px !important;
+    display: none !important;
   }
 
-  .arena-brand-icon {
-    width: 15px !important;
-    height: 15px !important;
-  }
-
-  .arena-brand-text {
-    font-size: 12px !important;
-    letter-spacing: 0.7px !important;
-  }
-
-  /* A tiny bit more free space above wheel */
+  /* Free space above wheel */
   .upgrader-wheel-box {
-    margin-top: 14px !important;
+    margin-top: 10px !important;
     margin-bottom: 10px !important;
   }
 }
@@ -7076,18 +7057,14 @@ html, body {
     font-size: 9px !important;
   }
   .arena-brand-badge {
-    padding: 3px 6px !important;
-    gap: 4px !important;
-  }
-  .arena-brand-text {
-    font-size: 10.5px !important;
+    display: none !important;
   }
 }
 
 /* ==========================================================================
    BUTTON UNIFORMITY & SIZING (ADJACENT BUTTON SYMMETRY)
    ========================================================================== */
-.game-filter-pills, .inv-filter-chips-row, .preset-mults-row, .preset-chips-row, #price-quick-pills {
+.game-filter-pills, .inv-filter-chips-row, #price-quick-pills {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -7096,11 +7073,9 @@ html, body {
 
 .game-filter-pills .game-pill-btn,
 .inv-filter-chips-row .bet-chip,
-.preset-mults-row .btn-mult-chip,
-.preset-chips-row .bet-chip,
 #price-quick-pills .game-pill-btn {
-  min-height: 38px;
-  height: 38px;
+  min-height: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;

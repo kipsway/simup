@@ -247,12 +247,14 @@ class CatalogController {
         if (buyDirectBtn) {
           e.stopPropagation();
           const skinId = buyDirectBtn.dataset.buyDirectId;
-          const skin = this.skins.find(s => s.id === skinId);
+          const skin = (this.skins && this.skins.find(s => s.id === skinId)) ||
+                       (window.SKINS_DATABASE || []).find(s => s.id === skinId) ||
+                       (typeof window.getAllSkinVariants === 'function' ? window.getAllSkinVariants().find(s => s.id === skinId) : null);
           if (skin) {
-            if (window.SimupCore) {
+            if (typeof window.buySkin === 'function') {
+              window.buySkin(skin, 1);
+            } else if (window.SimupCore?.buySkin) {
               window.SimupCore.buySkin(skin, 1);
-            } else if (typeof window.buySkin === 'function') {
-              window.buySkin(skin);
             }
           }
           return;

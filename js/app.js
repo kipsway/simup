@@ -1741,29 +1741,37 @@ function initMainApp() {
       return;
     }
 
-    invPageGrid.innerHTML = filtered.map(item => `
-      <div class="skin-card skin-rarity-${item.rarity}" id="inv-card-${item.instanceId}" style="--rarity-clr: ${item.rarityColor || '#888'};">
-        <div class="skin-card-header">
-          <span class="game-badge game-${item.game || 'cs2'}">${(item.game || 'CS2').toUpperCase()}</span>
-          ${item.wear && item.wear !== 'STANDARD' ? `<span class="wear-pill">${item.wear}</span>` : ''}
-        </div>
-        <div class="skin-img-wrap">
-          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="skin-img" loading="lazy" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
-        </div>
-        <div class="skin-info">
-          <div class="skin-name" title="${item.name}">${item.name}</div>
-          <div class="skin-price" style="font-size: 15px; margin: 4px 0; color: #ff004d; font-weight: 800;">$${item.price.toFixed(2)}</div>
-          <div class="inv-card-actions" style="display: flex; gap: 6px; margin-top: 6px;">
-            <button class="btn-inv-sell-card" data-sell-instance="${item.instanceId}" style="flex: 1; padding: 7px 6px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 800; font-size: 11.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
-              💵 Продать
-            </button>
-            <button class="btn-inv-upgrade-card" data-upgrade-instance="${item.instanceId}" title="Использовать для апгрейда" style="padding: 7px 10px; background: rgba(255, 0, 77, 0.15); border: 1px solid rgba(255, 0, 77, 0.4); color: #ff004d; font-weight: 800; font-size: 11.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
-              🎯 В апгрейд
-            </button>
+    invPageGrid.innerHTML = filtered.map(item => {
+      const priceNum = Number(item.price || 0);
+      const priceStr = priceNum.toFixed(2);
+      const itemRarity = item.rarity || 'Mil-Spec';
+      const itemColor = item.rarityColor || '#4b69ff';
+      const itemName = item.name || 'Скин';
+      const itemImg = item.image || item.fallbackSvg || '';
+      return `
+        <div class="skin-card skin-rarity-${itemRarity}" id="inv-card-${item.instanceId}" style="--rarity-clr: ${itemColor};">
+          <div class="skin-card-header">
+            <span class="game-badge game-${item.game || 'cs2'}">${(item.game || 'CS2').toUpperCase()}</span>
+            ${item.wear && item.wear !== 'STANDARD' ? `<span class="wear-pill">${item.wear}</span>` : ''}
+          </div>
+          <div class="skin-img-wrap">
+            <img src="${itemImg}" alt="${itemName}" class="skin-img" loading="lazy" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${itemName.replace(/['\"\\]/g, '')}', '${itemRarity}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
+          </div>
+          <div class="skin-info">
+            <div class="skin-name" title="${itemName}">${itemName}</div>
+            <div class="skin-price" style="font-size: 15px; margin: 4px 0; color: #ff004d; font-weight: 800;">$${priceStr}</div>
+            <div class="inv-card-actions" style="display: flex; gap: 6px; margin-top: 6px;">
+              <button class="btn-inv-sell-card" data-sell-instance="${item.instanceId}" style="flex: 1; padding: 7px 6px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 800; font-size: 11.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                💵 Продать
+              </button>
+              <button class="btn-inv-upgrade-card" data-upgrade-instance="${item.instanceId}" title="Использовать для апгрейда" style="padding: 7px 10px; background: rgba(255, 0, 77, 0.15); border: 1px solid rgba(255, 0, 77, 0.4); color: #ff004d; font-weight: 800; font-size: 11.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                🎯 В апгрейд
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Attach individual sell and upgrade handlers
     invPageGrid.querySelectorAll('[data-sell-instance]').forEach(btn => {
@@ -1898,10 +1906,10 @@ function initMainApp() {
     ctx.fillStyle = bgGrad;
     ctx.fill();
 
-    // Concentric cyber grid rings (dashed technical rings)
-    ctx.lineWidth = 1.4;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-    [radius - 42, radius - 24, radius + 16].forEach(r => {
+    // Concentric cyber grid rings (high-contrast technical rings)
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    [radius - 44, radius - 26, radius + 16].forEach(r => {
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.stroke();
@@ -1909,43 +1917,52 @@ function initMainApp() {
 
     // Dashed tech accent ring (Cyber Ruby)
     ctx.beginPath();
-    ctx.setLineDash([5, 5]);
+    ctx.setLineDash([6, 6]);
     ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255, 0, 77, 0.75)';
+    ctx.strokeStyle = 'rgba(255, 0, 77, 0.85)';
     ctx.stroke();
 
-    // Dashed tech accent ring (Cyber Emerald)
+    // Dashed tech accent ring (Electric Cyan)
     ctx.beginPath();
-    ctx.setLineDash([3, 6]);
-    ctx.arc(cx, cy, radius - 14, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0, 255, 170, 0.65)';
+    ctx.setLineDash([4, 6]);
+    ctx.arc(cx, cy, radius - 16, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.75)';
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Radial Cyber Spokes (16 technical spokes with glowing neon pips)
-    for (let s = 0; s < 16; s++) {
-      const spAng = (s / 16) * Math.PI * 2;
-      const xStart = cx + Math.cos(spAng) * (radius - 52);
-      const yStart = cy + Math.sin(spAng) * (radius - 52);
-      const xEnd = cx + Math.cos(spAng) * (radius - 8);
-      const yEnd = cy + Math.sin(spAng) * (radius - 8);
+    // Radial Cyber Spokes (24 technical spokes with high-contrast neon pips)
+    for (let s = 0; s < 24; s++) {
+      const spAng = (s / 24) * Math.PI * 2;
+      const xStart = cx + Math.cos(spAng) * (radius - 48);
+      const yStart = cy + Math.sin(spAng) * (radius - 48);
+      const xEnd = cx + Math.cos(spAng) * (radius - 4);
+      const yEnd = cy + Math.sin(spAng) * (radius - 4);
+
       ctx.beginPath();
       ctx.moveTo(xStart, yStart);
       ctx.lineTo(xEnd, yEnd);
-      ctx.lineWidth = s % 4 === 0 ? 2.2 : 1.4;
-      ctx.strokeStyle = s % 4 === 0 ? 'rgba(255, 0, 77, 0.75)' : (s % 2 === 0 ? 'rgba(0, 240, 255, 0.65)' : 'rgba(255, 255, 255, 0.40)');
+      ctx.lineWidth = s % 6 === 0 ? 2.6 : (s % 3 === 0 ? 1.8 : 1.2);
+      ctx.strokeStyle = s % 6 === 0 ? '#ff004d' : (s % 3 === 0 ? '#00f0ff' : 'rgba(255, 255, 255, 0.55)');
       ctx.stroke();
 
       // Outer illuminated tech pip
-      const px = cx + Math.cos(spAng) * (radius + 14);
-      const py = cy + Math.sin(spAng) * (radius + 14);
+      const px = cx + Math.cos(spAng) * (radius + 15);
+      const py = cy + Math.sin(spAng) * (radius + 15);
       ctx.beginPath();
-      ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = s % 4 === 0 ? '#ff004d' : (s % 2 === 0 ? '#00f0ff' : '#ffffff');
-      ctx.shadowColor = s % 4 === 0 ? '#ff004d' : '#00f0ff';
+      ctx.arc(px, py, s % 6 === 0 ? 3.0 : 2.0, 0, Math.PI * 2);
+      ctx.fillStyle = s % 6 === 0 ? '#ff004d' : (s % 3 === 0 ? '#00f0ff' : '#ffffff');
+      ctx.shadowColor = s % 6 === 0 ? '#ff004d' : '#00f0ff';
       ctx.shadowBlur = 6;
       ctx.fill();
       ctx.shadowBlur = 0;
+
+      // Inner tech pip at base of spoke
+      const ipx = cx + Math.cos(spAng) * (radius - 46);
+      const ipy = cy + Math.sin(spAng) * (radius - 46);
+      ctx.beginPath();
+      ctx.arc(ipx, ipy, 1.8, 0, Math.PI * 2);
+      ctx.fillStyle = s % 6 === 0 ? '#ff004d' : 'rgba(255, 255, 255, 0.8)';
+      ctx.fill();
     }
     ctx.restore();
 
@@ -2216,9 +2233,9 @@ function initMainApp() {
 
     const sortType = arenaInvSort?.value || 'cheap';
     if (sortType === 'cheap') {
-      items.sort((a, b) => a.price - b.price);
+      items.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
     } else {
-      items.sort((a, b) => b.price - a.price);
+      items.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
     }
 
     const selectedIds = window.upgraderEngine.selectedItems.map(it => it.instanceId);
@@ -2235,15 +2252,18 @@ function initMainApp() {
 
     arenaInventoryDrawer.innerHTML = items.map(item => {
       const isSel = selectedIds.includes(item.instanceId);
+      const pr = Number(item.price || 0).toFixed(2);
+      const img = item.image || item.fallbackSvg || '';
+      const nm = item.name || 'Скин';
       return `
         <div class="drawer-item-row ${isSel ? 'selected' : ''}" data-drawer-id="${item.instanceId}">
           <div class="drawer-item-status-icon">${isSel ? '✓' : ''}</div>
-          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="drawer-item-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
+          <img src="${img}" alt="${nm}" class="drawer-item-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${nm.replace(/['\"\\]/g, '')}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
           <div style="flex: 1; min-width: 0; margin: 0 8px;">
-            <div class="drawer-item-name" title="${item.name}">${item.name}</div>
+            <div class="drawer-item-name" title="${nm}">${nm}</div>
             <div style="font-size: 9.5px; color: var(--text-dim);">${item.wear && item.wear !== 'STANDARD' ? item.wear : (item.game || 'CS2').toUpperCase()}</div>
           </div>
-          <span class="drawer-item-price">$${item.price.toFixed(2)}</span>
+          <span class="drawer-item-price">$${pr}</span>
         </div>
       `;
     }).join('');
@@ -3026,15 +3046,20 @@ function initMainApp() {
           else if (idx === 1) rankBadge = `<div class="rank-badge rank-silver">🥈 2</div>`;
           else if (idx === 2) rankBadge = `<div class="rank-badge rank-bronze">🥉 3</div>`;
 
-          const isPositive = p.netProfit >= 0;
+          const profitNum = Number(p.netProfit || 0);
+          const isPositive = profitNum >= 0;
           const profitColor = isPositive ? '#10b981' : '#ef4444';
           const profitSign = isPositive ? '+' : '';
+          const netWorthNum = Number(p.netWorth || 0);
+          const balNum = Number(p.balance || 0);
+          const debtNum = Number(p.currentDebt || 0);
+          const penaltyNum = Number(p.debtPenalty || 0);
 
           const bestDropHtml = p.bestWinSkin ? `
             <div style="display: flex; align-items: center; gap: 8px;">
               ${p.bestWinSkin.image ? `<img src="${p.bestWinSkin.image}" alt="" style="width: 32px; height: 22px; object-fit: contain;">` : '<span style="font-size: 16px;">🏆</span>'}
-              <span style="font-weight: 800; color: #fff;">$${(p.bestWinSkin.price || 0).toFixed(2)}</span>
-              ${p.bestWinMultiplier > 0 ? `<span style="font-size: 11px; color: var(--accent-color); font-weight: 800;">(${p.bestWinMultiplier}x)</span>` : ''}
+              <span style="font-weight: 800; color: #fff;">$${(Number(p.bestWinSkin.price) || 0).toFixed(2)}</span>
+              ${(p.bestWinMultiplier || 0) > 0 ? `<span style="font-size: 11px; color: var(--accent-color); font-weight: 800;">(${p.bestWinMultiplier}x)</span>` : ''}
             </div>
           ` : `<span style="color: var(--text-dim); font-size: 12px;">—</span>`;
 
@@ -3046,30 +3071,30 @@ function initMainApp() {
                   <div class="player-avatar-sm" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); font-weight: 800; font-size: 11px; color: var(--accent-color);">${(p.username || '?').substring(0, 2).toUpperCase()}</div>
                   <div class="player-name-wrap">
                     <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                      <span style="font-weight: 800; color: #fff;">${p.username}</span>
+                      <span style="font-weight: 800; color: #fff;">${p.username || 'Игрок'}</span>
                       ${p.equippedTitle ? `<span class="player-title-badge-table">${p.equippedTitle}</span>` : ''}
                       ${isCurrent ? '<span class="you-badge">★ ВЫ</span>' : ''}
                       ${p.isOnline ? '<span class="global-player-badge" style="background:rgba(16,185,129,.14);border-color:rgba(16,185,129,.4);color:#6ee7b7;">● ONLINE</span>' : ''}
                       ${p.isGlobal ? '<span class="global-player-badge">🌐 Игрок</span>' : ''}
                       ${!isCurrent && p.isGlobal ? '<span class="global-badge" title="Игрок глобального рейтинга" style="font-size:9.5px;font-weight:800;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:#38bdf8;padding:1px 6px;border-radius:20px;">🌐 TOP</span>' : ''}
-                      ${p.currentDebt > 0 ? `<span class="loan-status-pill loan-status-danger" style="padding: 1px 6px; font-size: 9.5px;">⚠️ Долг: -$${p.currentDebt.toFixed(2)}</span>` : ''}
+                      ${debtNum > 0 ? `<span class="loan-status-pill loan-status-danger" style="padding: 1px 6px; font-size: 9.5px;">⚠️ Долг: -$${debtNum.toFixed(2)}</span>` : ''}
                     </div>
                   </div>
                 </div>
               </td>
               <td>
                 <span style="font-weight: 900; font-size: 14.5px; color: ${profitColor};">
-                  ${profitSign}$${p.netProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  ${profitSign}$${profitNum.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
-                ${p.currentDebt > 0 ? `<div style="font-size: 10px; color: #f87171;">Штраф 1.5x: -$${p.debtPenalty.toFixed(2)}</div>` : ''}
+                ${debtNum > 0 ? `<div style="font-size: 10px; color: #f87171;">Штраф 1.5x: -$${penaltyNum.toFixed(2)}</div>` : ''}
               </td>
               <td>
-                <div style="font-weight: 800; color: ${p.netWorth >= 0 ? '#fff' : '#ef4444'};">$${p.netWorth.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                <div style="font-size: 11px; color: var(--text-muted);">$${p.balance.toFixed(2)} баланс • ${p.invCount} скинов</div>
+                <div style="font-weight: 800; color: ${netWorthNum >= 0 ? '#fff' : '#ef4444'};">$${netWorthNum.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">$${balNum.toFixed(2)} баланс • ${p.invCount || 0} скинов</div>
               </td>
               <td>
-                <div style="font-weight: 700; color: #e5e7eb;">${p.winrate}%</div>
-                <div style="font-size: 11px; color: var(--text-muted);">${p.wonUpgrades} побед из ${p.totalUpgrades}</div>
+                <div style="font-weight: 700; color: #e5e7eb;">${p.winrate || 0}%</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${p.wonUpgrades || 0} побед из ${p.totalUpgrades || 0}</div>
               </td>
               <td>
                 ${bestDropHtml}
@@ -3113,11 +3138,14 @@ function initMainApp() {
         lbTbody.innerHTML = debtors.map((p, idx) => {
           const isCurrent = currentUser && currentUser.id === p.id;
           const rankBadge = `<div class="rank-badge" style="color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">#${idx + 1}</div>`;
+          const curDebt = Number(p.currentDebt || 0);
+          const totalBorrow = Number(p.totalBorrowed || 0);
+          const userBal = Number(p.balance || 0);
 
           let statusPill = '';
-          if (p.currentDebt > 5000) {
+          if (curDebt > 5000) {
             statusPill = `<span class="loan-status-pill loan-status-danger">Критический долг</span>`;
-          } else if (p.currentDebt > 0) {
+          } else if (curDebt > 0) {
             statusPill = `<span class="loan-status-pill loan-status-active">Активный заём</span>`;
           } else {
             statusPill = `<span class="loan-status-pill loan-status-clean">Долг закрыт</span>`;
@@ -3130,7 +3158,7 @@ function initMainApp() {
                 <div class="player-info-cell">
                   <div class="player-avatar-sm" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); font-weight: 800; font-size: 11px; color: var(--accent-color);">${(p.username || '?').substring(0, 2).toUpperCase()}</div>
                   <div class="player-name-wrap">
-                    <span style="font-weight: 800; color: #fff;">${p.username}</span>
+                    <span style="font-weight: 800; color: #fff;">${p.username || 'Игрок'}</span>
                     ${p.equippedTitle ? `<span class="player-title-badge-table">${p.equippedTitle}</span>` : ''}
                     ${isCurrent ? '<span class="you-badge">★ ВЫ</span>' : ''}
                     ${!isCurrent && p.isGlobal ? '<span class="global-badge" title="Игрок глобального рейтинга" style="font-size:9.5px;font-weight:800;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:#38bdf8;padding:1px 6px;border-radius:20px;">🌐 TOP</span>' : ''}
@@ -3139,17 +3167,17 @@ function initMainApp() {
               </td>
               <td>
                 <span style="font-weight: 900; font-size: 15px; color: #ef4444;">
-                  $${p.currentDebt.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  $${curDebt.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
               </td>
               <td>
                 <span style="font-weight: 700; color: var(--text-main);">
-                  $${p.totalBorrowed.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  $${totalBorrow.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
               </td>
               <td>
                 <span style="font-weight: 800; color: var(--accent-color);">
-                  $${p.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  $${userBal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
               </td>
               <td style="white-space: nowrap !important; text-align: right; min-width: 110px;">
@@ -3491,7 +3519,7 @@ function initMainApp() {
           <button class="contract-slot-remove" data-remove-id="${item.instanceId}" title="Убрать из контракта">&times;</button>
           <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="contract-slot-img" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
           <div class="contract-slot-name" title="${item.name}">${item.name}</div>
-          <div class="contract-slot-price">$${item.price.toFixed(2)}</div>
+          <div class="contract-slot-price">$${Number(item.price || 0).toFixed(2)}</div>
         `;
         slotEl.querySelector('.contract-slot-remove')?.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -3533,17 +3561,17 @@ function initMainApp() {
     }
 
     invPicker.innerHTML = availableItems.map(item => `
-      <div class="skin-card skin-rarity-${item.rarity}" data-add-contract="${item.instanceId}" style="--rarity-clr: ${item.rarityColor || '#888'}; cursor: pointer; padding: 10px; transition: transform 0.15s ease;">
+      <div class="skin-card skin-rarity-${item.rarity || 'milspec'}" data-add-contract="${item.instanceId}" style="--rarity-clr: ${item.rarityColor || '#888'}; cursor: pointer; padding: 10px; transition: transform 0.15s ease;">
         <div class="skin-card-header">
-          <span class="game-badge game-${item.game}">${(item.game || 'CS2').toUpperCase()}</span>
+          <span class="game-badge game-${item.game || 'cs2'}">${(item.game || 'CS2').toUpperCase()}</span>
           ${item.wear && item.wear !== 'STANDARD' ? `<span class="wear-pill">${item.wear}</span>` : ''}
         </div>
         <div class="skin-img-wrap" style="height: 60px;">
-          <img src="${item.image || item.fallbackSvg}" alt="${item.name}" class="skin-img" style="max-height: 55px;" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${item.name?.replace(/['\"\\]/g, '') || ''}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
+          <img src="${item.image || item.fallbackSvg || ''}" alt="${item.name || 'Скин'}" class="skin-img" style="max-height: 55px;" onerror="if(window.handleSkinImgError) window.handleSkinImgError(this, '${item.id || ''}', '${(item.name || '').replace(/['\"\\]/g, '')}', '${item.rarity || 'milspec'}', '${item.category || 'weapon'}', '${item.game || 'cs2'}');">
         </div>
         <div class="skin-info" style="margin-top: 4px;">
-          <div class="skin-name" style="font-size: 11px;" title="${item.name}">${item.name}</div>
-          <div class="skin-price" style="font-size: 13px; margin: 2px 0;">$${item.price.toFixed(2)}</div>
+          <div class="skin-name" style="font-size: 11px;" title="${item.name || 'Скин'}">${item.name || 'Скин'}</div>
+          <div class="skin-price" style="font-size: 13px; margin: 2px 0;">$${Number(item.price || 0).toFixed(2)}</div>
           <div style="font-size: 10px; color: var(--accent-color); font-weight: 700; text-align: center; margin-top: 4px;">+ В контракт</div>
         </div>
       </div>
@@ -4883,55 +4911,83 @@ function initMainApp() {
   };
   window.switchTab = switchTab;
   window.updateUpgraderUI = updateUpgraderUI;
+  window.drawWheel = drawWheel;
   window.renderInventoryPage = renderInventoryPage;
+  window.renderInventoryDrawer = renderInventoryDrawer;
   window.updateHeaderUserUI = updateHeaderUserUI;
+  window.renderCrashUI = renderCrashUI;
+  window.renderMinesBoard = renderMinesBoard;
+  window.renderCoinflipUI = renderCoinflipUI;
+  window.renderLeaderboard = renderLeaderboard;
+  window.renderProfilePage = renderProfilePage;
+  window.renderContractsDesk = renderContractsDesk;
+  window.renderCasesGrid = renderCasesGrid;
+  window.renderBankPage = renderBankPage;
 
-  function buySkin(skinOrId) {
+  function buySkin(skinOrId, qty = 1) {
     const skin = typeof skinOrId === 'string'
-      ? ((window.SKINS_DATABASE || []).find(s => s.id === skinOrId) || (window.catalogController?.skins || []).find(s => s.id === skinOrId))
+      ? ((window.SKINS_DATABASE || []).find(s => s.id === skinOrId) ||
+         (window.catalogController?.skins || []).find(s => s.id === skinOrId) ||
+         (typeof window.getAllSkinVariants === 'function' ? window.getAllSkinVariants().find(s => s.id === skinOrId) : null))
       : skinOrId;
     if (!skin) return false;
+
     if (window.catalogCart && typeof window.catalogCart.buyDirect === 'function') {
-      return window.catalogCart.buyDirect(skin);
+      return window.catalogCart.buyDirect(skin, qty);
     }
-    const user = window.authManager?.currentUser;
+
+    const user = window.authManager?.currentUser || (window.SimupCore && window.SimupCore.getUser());
     if (!user) {
       window.notify?.warning('Вход в аккаунт', 'Пожалуйста, войдите в профиль для совершения покупок!');
       if (typeof window.showAuthModal === 'function') window.showAuthModal('login');
       return false;
     }
-    const price = (typeof window.marketEconomy?.getPrice === 'function' ? window.marketEconomy.getPrice(skin.id) : null) || skin.price || 0;
-    if ((user.balance || 0) < price) {
-      const diff = (price - (user.balance || 0)).toFixed(2);
+
+    const livePrice = Number((typeof window.marketEconomy?.getPrice === 'function' ? window.marketEconomy.getPrice(skin.id) : null) || skin.price || 0);
+    const count = Math.max(1, parseInt(qty, 10) || 1);
+    const totalCost = Number((livePrice * count).toFixed(2));
+
+    if ((user.balance || 0) < totalCost) {
+      const diff = (totalCost - (user.balance || 0)).toFixed(2);
       window.notify?.warning('Недостаточно средств', `Вам не хватает $${diff} на балансе. Пополните баланс в Банке!`);
       if (typeof switchTab === 'function') switchTab('bank');
       return false;
     }
-    user.balance = parseFloat((user.balance - price).toFixed(2));
-    if (!user.inventory) user.inventory = [];
-    const invItem = {
-      instanceId: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-      id: skin.id,
-      skinId: skin.id,
-      name: skin.name,
-      game: skin.game || 'cs2',
-      category: skin.category || 'rifle',
-      rarity: skin.rarity || 'Mil-Spec',
-      rarityColor: skin.rarityColor || '#4b69ff',
-      image: skin.image || skin.fallbackSvg,
-      wear: skin.wear || 'FN',
-      price: price,
-      obtainedAt: new Date().toISOString(),
-      source: 'Каталог (Купить)'
-    };
-    user.inventory.unshift(invItem);
-    window.authManager.saveCurrentUser();
+
+    user.balance = Number((user.balance - totalCost).toFixed(2));
+    if (!Array.isArray(user.inventory)) user.inventory = [];
+
+    for (let i = 0; i < count; i++) {
+      const invItem = {
+        instanceId: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7) + '_' + i,
+        id: skin.id,
+        skinId: skin.id,
+        name: skin.name || 'Скин',
+        game: skin.game || 'cs2',
+        category: skin.category || 'rifle',
+        rarity: skin.rarity || 'Mil-Spec',
+        rarityColor: skin.rarityColor || '#4b69ff',
+        image: skin.image || skin.fallbackSvg || '',
+        wear: skin.wear || 'FN',
+        price: livePrice,
+        obtainedAt: new Date().toISOString(),
+        source: 'Каталог (Купить)'
+      };
+      user.inventory.unshift(invItem);
+    }
+
+    if (window.authManager?.saveCurrentUser) {
+      window.authManager.saveCurrentUser();
+    }
     window.SoundManager?.playSuccess?.();
-    window.notify?.success('Покупка успешна! 🎉', `Скин «${skin.name}» за $${price.toFixed(2)} добавлен в ваш инвентарь!`);
+    window.notify?.success('Покупка успешна! 🎉', `Скин «${skin.name}» (${count > 1 ? count + ' шт. — ' : ''}$${totalCost.toFixed(2)}) добавлен в ваш инвентарь!`);
+
     updateHeaderUserUI(user);
-    updateUpgraderUI();
+    if (typeof updateUpgraderUI === 'function') updateUpgraderUI();
+    if (typeof renderInventoryDrawer === 'function') renderInventoryDrawer();
     renderInventoryPage();
-    if (window.catalogController) window.catalogController.render();
+    if (window.catalogController?.render) window.catalogController.render();
+    if (window.catalogCart?.updateUI) window.catalogCart.updateUI();
     return true;
   }
   window.buySkin = buySkin;

@@ -103,16 +103,19 @@ class CrashEngine {
   resizeCanvas() {
     if (!this.canvas) {
       this.canvas = document.getElementById('crash-canvas');
-      if (this.canvas) this.ctx = this.canvas.getContext('2d');
     }
-    if (!this.canvas || !this.canvas.parentElement) return;
+    if (this.canvas && !this.ctx) {
+      this.ctx = this.canvas.getContext('2d');
+    }
+    if (!this.canvas) return;
+
     const parent = this.canvas.parentElement;
-    const rect = parent.getBoundingClientRect();
+    const rect = parent ? parent.getBoundingClientRect() : null;
     const isMobile = window.innerWidth <= 768;
     const defaultW = isMobile ? Math.max(300, window.innerWidth - 32) : 600;
     const defaultH = isMobile ? 220 : 380;
-    const w = rect.width > 50 ? rect.width : (parent.clientWidth > 50 ? parent.clientWidth : defaultW);
-    const h = rect.height > 50 ? rect.height : (parent.clientHeight > 50 ? parent.clientHeight : defaultH);
+    const w = (rect && rect.width > 50) ? rect.width : ((parent && parent.clientWidth > 50) ? parent.clientWidth : defaultW);
+    const h = (rect && rect.height > 50) ? rect.height : ((parent && parent.clientHeight > 50) ? parent.clientHeight : defaultH);
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     this.canvas.width = Math.floor(w * dpr);
     this.canvas.height = Math.floor(h * dpr);

@@ -1889,9 +1889,9 @@ function initMainApp() {
 
     // 0. Textured Disc Background (Obsidian carbon texture with cyber radial lines)
     ctx.save();
-    const bgGrad = ctx.createRadialGradient(cx, cy, 25, cx, cy, radius + 22);
-    bgGrad.addColorStop(0, 'rgba(24, 12, 32, 0.65)');
-    bgGrad.addColorStop(0.6, 'rgba(14, 7, 20, 0.88)');
+    const bgGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, radius + 22);
+    bgGrad.addColorStop(0, 'rgba(28, 14, 36, 0.75)');
+    bgGrad.addColorStop(0.55, 'rgba(16, 8, 22, 0.92)');
     bgGrad.addColorStop(1, 'rgba(6, 3, 9, 0.98)');
     ctx.beginPath();
     ctx.arc(cx, cy, radius + 20, 0, Math.PI * 2);
@@ -1899,9 +1899,9 @@ function initMainApp() {
     ctx.fill();
 
     // Concentric cyber grid rings (dashed technical rings)
-    ctx.lineWidth = 1.2;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-    [radius - 36, radius - 24, radius + 16].forEach(r => {
+    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+    [radius - 42, radius - 24, radius + 16].forEach(r => {
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.stroke();
@@ -1911,38 +1911,41 @@ function initMainApp() {
     ctx.beginPath();
     ctx.setLineDash([5, 5]);
     ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255, 0, 77, 0.55)';
+    ctx.strokeStyle = 'rgba(255, 0, 77, 0.75)';
     ctx.stroke();
 
     // Dashed tech accent ring (Cyber Emerald)
     ctx.beginPath();
     ctx.setLineDash([3, 6]);
     ctx.arc(cx, cy, radius - 14, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0, 255, 170, 0.45)';
+    ctx.strokeStyle = 'rgba(0, 255, 170, 0.65)';
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Radial Cyber Spokes (16 technical spokes with neon pips)
+    // Radial Cyber Spokes (16 technical spokes with glowing neon pips)
     for (let s = 0; s < 16; s++) {
       const spAng = (s / 16) * Math.PI * 2;
-      const xStart = cx + Math.cos(spAng) * (radius - 40);
-      const yStart = cy + Math.sin(spAng) * (radius - 40);
-      const xEnd = cx + Math.cos(spAng) * (radius - 10);
-      const yEnd = cy + Math.sin(spAng) * (radius - 10);
+      const xStart = cx + Math.cos(spAng) * (radius - 52);
+      const yStart = cy + Math.sin(spAng) * (radius - 52);
+      const xEnd = cx + Math.cos(spAng) * (radius - 8);
+      const yEnd = cy + Math.sin(spAng) * (radius - 8);
       ctx.beginPath();
       ctx.moveTo(xStart, yStart);
       ctx.lineTo(xEnd, yEnd);
-      ctx.lineWidth = 1.6;
-      ctx.strokeStyle = s % 2 === 0 ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 240, 255, 0.35)';
+      ctx.lineWidth = s % 4 === 0 ? 2.2 : 1.4;
+      ctx.strokeStyle = s % 4 === 0 ? 'rgba(255, 0, 77, 0.75)' : (s % 2 === 0 ? 'rgba(0, 240, 255, 0.65)' : 'rgba(255, 255, 255, 0.40)');
       ctx.stroke();
 
       // Outer illuminated tech pip
       const px = cx + Math.cos(spAng) * (radius + 14);
       const py = cy + Math.sin(spAng) * (radius + 14);
       ctx.beginPath();
-      ctx.arc(px, py, 2.2, 0, Math.PI * 2);
-      ctx.fillStyle = s % 4 === 0 ? '#ff004d' : (s % 2 === 0 ? '#00f0ff' : 'rgba(255, 255, 255, 0.75)');
+      ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = s % 4 === 0 ? '#ff004d' : (s % 2 === 0 ? '#00f0ff' : '#ffffff');
+      ctx.shadowColor = s % 4 === 0 ? '#ff004d' : '#00f0ff';
+      ctx.shadowBlur = 6;
       ctx.fill();
+      ctx.shadowBlur = 0;
     }
     ctx.restore();
 
@@ -2160,6 +2163,18 @@ function initMainApp() {
     // Direction pills
     if (btnDirUnder) btnDirUnder.classList.toggle('active', window.upgraderEngine.direction === 'under');
     if (btnDirOver) btnDirOver.classList.toggle('active', window.upgraderEngine.direction === 'over');
+
+    // Sync Random Upgrade mystery button
+    const btnRandomEl = document.getElementById('btn-random-upgrade');
+    if (btnRandomEl) {
+      btnRandomEl.classList.toggle('active', Boolean(isMystery));
+    }
+
+    // Ensure needle pointer is visible
+    if (wheelNeedle) {
+      wheelNeedle.style.display = 'block';
+      wheelNeedle.style.visibility = 'visible';
+    }
 
     // Draw Wheel
     drawWheel(currentChance, window.upgraderEngine.direction);
@@ -4700,12 +4715,16 @@ function initMainApp() {
           });
         }
       } catch (err) {
-        console.warn('QRCode local rendering fallback to SVG:', err);
+        console.warn('QRCode local rendering fallback to SVG/IMG:', err);
         try {
           if (window.QRCode) {
             container.innerHTML = window.QRCode.toSVG(syncUrl, { size: 180, margin: 2, colorDark: '#0b1120', colorLight: '#ffffff' });
+          } else {
+            container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(syncUrl)}" alt="QR Code" style="width: 180px; height: 180px; border-radius: 8px;">`;
           }
-        } catch (e2) {}
+        } catch (e2) {
+          container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(syncUrl)}" alt="QR Code" style="width: 180px; height: 180px; border-radius: 8px;" onerror="this.outerHTML='<div style=\\'padding: 30px 10px; font-size: 12px; color: var(--text-dim); text-align: center;\\'>Используйте код синхронизации ниже</div>'">`;
+        }
       }
     }
   }

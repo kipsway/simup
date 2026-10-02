@@ -806,22 +806,19 @@ class AuthManager {
     if (!this.currentUser) return null;
     try {
       const u = this.currentUser;
-      const skinsDb = (typeof window !== 'undefined' && window.SKINS_DATABASE) || [];
+      const allSkins = (typeof window !== 'undefined' && window.getAllSkinVariants ? window.getAllSkinVariants() : null) || (typeof window !== 'undefined' && window.SKINS_DATABASE) || [];
       const compactInv = (u.inventory || []).map(s => {
         if (!s) return null;
         if (typeof s === 'string') return s;
-        const dbMatch = skinsDb.find(x => x.id === s.id);
-        if (dbMatch && dbMatch.price === s.price && dbMatch.name === s.name) {
-          return s.id;
+        const id = s.id || s.skinId;
+        if (id) {
+          const matched = allSkins.find(x => x.id === id);
+          if (matched && matched.price === s.price) {
+            return id;
+          }
+          return { id, p: s.price };
         }
-        return {
-          id: s.id,
-          name: s.name,
-          price: s.price,
-          rarity: s.rarity || 'rare',
-          image: s.image || '',
-          game: s.game || 'cs2'
-        };
+        return { id: 'custom_' + Date.now(), n: s.name, p: s.price };
       }).filter(Boolean);
 
       const compactUser = {
@@ -887,16 +884,34 @@ class AuthManager {
         if (!cu.un) {
           return { success: false, error: 'Неверный формат аккаунта в ключе.' };
         }
-        const skinsDb = (typeof window !== 'undefined' && window.SKINS_DATABASE) || [];
+        const allSkins = (typeof window !== 'undefined' && window.getAllSkinVariants ? window.getAllSkinVariants() : null) || (typeof window !== 'undefined' && window.SKINS_DATABASE) || [];
         const restoredInv = (cu.inv || []).map(item => {
           if (!item) return null;
           if (typeof item === 'string') {
-            const found = skinsDb.find(s => s.id === item);
-            return found ? { ...found } : { id: item, name: item, price: 10, rarity: 'rare', image: '' };
+            const found = allSkins.find(s => s.id === item);
+            return found
+              ? { ...found, instanceId: 'inst_' + Math.random().toString(36).substring(2, 9) }
+              : { id: item, name: item, price: 10, rarity: 'milspec', image: '', game: 'cs2', instanceId: 'inst_' + Date.now() };
           }
           if (typeof item === 'object') {
-            const found = skinsDb.find(s => s.id === item.id);
-            return found ? { ...found, ...item } : item;
+            const itemId = item.id;
+            const found = allSkins.find(s => s.id === itemId);
+            if (found) {
+              return {
+                ...found,
+                price: item.p !== undefined ? item.p : (item.price || found.price),
+                instanceId: 'inst_' + Math.random().toString(36).substring(2, 9)
+              };
+            }
+            return {
+              id: item.id || ('custom_' + Date.now()),
+              name: item.name || item.n || 'Скин',
+              price: item.price !== undefined ? item.price : (item.p || 10),
+              rarity: item.rarity || 'milspec',
+              image: item.image || '',
+              game: item.game || 'cs2',
+              instanceId: 'inst_' + Math.random().toString(36).substring(2, 9)
+            };
           }
           return null;
         }).filter(Boolean);

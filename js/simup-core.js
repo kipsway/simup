@@ -337,7 +337,8 @@
         } else if (tabId === 'pass') {
           if (window.simupPassManager?.render) window.simupPassManager.render();
         } else if (tabId === 'admin') {
-          if (window.adminPanel?.render) window.adminPanel.render();
+          if (window.AdminPanelController?.render) window.AdminPanelController.render();
+          else if (window.adminPanel?.render) window.adminPanel.render();
         }
       } catch (err) {
         console.error(`Error activating tab [${tabId}]:`, err);

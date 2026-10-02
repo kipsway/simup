@@ -382,6 +382,11 @@ class EconomyManager {
     user.inventory.splice(idx, 1);
     user.balance = Number((user.balance + sellPrice).toFixed(2));
 
+    // Auto-repay active loan from sold item proceeds (20%)
+    if (user.loans && user.loans.currentDebt > 0 && user.loans.autoRepay !== false) {
+      this.autoDeductDebtFromWin(user, sellPrice);
+    }
+
     window.authManager.saveCurrentUser();
     window.SoundManager?.playCash();
 
@@ -410,6 +415,11 @@ class EconomyManager {
 
     user.inventory = [];
     user.balance = Number((user.balance + totalValue).toFixed(2));
+
+    // Auto-repay active loan from full sale proceeds (20%)
+    if (user.loans && user.loans.currentDebt > 0 && user.loans.autoRepay !== false) {
+      this.autoDeductDebtFromWin(user, totalValue);
+    }
 
     window.authManager.saveCurrentUser();
     window.SoundManager?.playCash();

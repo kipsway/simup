@@ -95,6 +95,10 @@ class UpgraderEngine {
   clearMysteryMode() {
     this.isMysteryMode = false;
     this.mysteryMultiplier = null;
+    this.desiredMultiplier = null;
+    try {
+      localStorage.setItem('simup_last_target_mode', 'chance');
+    } catch(e) {}
   }
 
   rollRandomUpgrade() {
@@ -196,6 +200,7 @@ class UpgraderEngine {
 
   setDesiredChance(pct) {
     this.clearMysteryMode();
+    this.desiredMultiplier = null;
     const clamped = Math.min(90.0, Math.max(0.1, Number(pct)));
     this.desiredChance = clamped;
     try {
@@ -211,17 +216,12 @@ class UpgraderEngine {
     const allSkins = (window.getAllSkinVariants ? window.getAllSkinVariants() : null) || window.catalogController?.skins || window.SKINS_DATABASE || [];
     if (allSkins.length === 0) return null;
 
-    // Comprehensive exclusion set of sacrificed items
+    // Comprehensive exclusion set of sacrificed items (only exclude exact sacrificed IDs)
     const sacrificedIds = new Set(this.selectedItems.flatMap(it => [it.skinId, it.id, it.baseId, it.instanceId].filter(Boolean)));
-    const sacrificedNames = new Set(this.selectedItems.map(it => (it.name || '').trim().toLowerCase()));
-    const sacrificedBaseNames = new Set(this.selectedItems.map(it => (it.baseName || it.name || '').split('(')[0].trim().toLowerCase()));
 
     const isSacrificed = (s) => {
-      if (sacrificedIds.has(s.id) || sacrificedIds.has(s.baseId)) return true;
-      const sName = (s.name || '').trim().toLowerCase();
-      if (sacrificedNames.has(sName)) return true;
-      const sBase = (s.baseName || s.name || '').split('(')[0].trim().toLowerCase();
-      if (sacrificedBaseNames.has(sBase) && this.selectedItems.length === 1) return true;
+      if (sacrificedIds.has(s.id)) return true;
+      if (s.baseId && sacrificedIds.has(s.baseId) && this.selectedItems.some(it => it.id === s.id)) return true;
       return false;
     };
 
@@ -262,15 +262,10 @@ class UpgraderEngine {
     if (allSkins.length === 0) return null;
 
     const sacrificedIds = new Set(this.selectedItems.flatMap(it => [it.skinId, it.id, it.baseId, it.instanceId].filter(Boolean)));
-    const sacrificedNames = new Set(this.selectedItems.map(it => (it.name || '').trim().toLowerCase()));
-    const sacrificedBaseNames = new Set(this.selectedItems.map(it => (it.baseName || it.name || '').split('(')[0].trim().toLowerCase()));
 
     const isSacrificed = (s) => {
-      if (sacrificedIds.has(s.id) || sacrificedIds.has(s.baseId)) return true;
-      const sName = (s.name || '').trim().toLowerCase();
-      if (sacrificedNames.has(sName)) return true;
-      const sBase = (s.baseName || s.name || '').split('(')[0].trim().toLowerCase();
-      if (sacrificedBaseNames.has(sBase) && this.selectedItems.length === 1) return true;
+      if (sacrificedIds.has(s.id)) return true;
+      if (s.baseId && sacrificedIds.has(s.baseId) && this.selectedItems.some(it => it.id === s.id)) return true;
       return false;
     };
 

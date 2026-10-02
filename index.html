@@ -164,11 +164,6 @@
           <span class="action-badge" id="cart-badge-count" style="display:none;">0</span>
         </button>
 
-        <!-- Bank / Loan Button -->
-        <button class="btn-header-action" id="btn-header-bank" title="Виртуальный банк и кредиты" aria-label="Банк" data-tab="bank">
-          <span class="action-icon">🏦</span>
-          <span class="action-label">Банк</span>
-        </button>
 
         <!-- Cross-Device Sync Button -->
         <button class="btn-header-action" id="btn-open-sync-modal" title="Синхронизация аккаунта (ПК ↔ Смартфон)" aria-label="Синхронизация">
@@ -290,14 +285,7 @@
               </div>
             </div>
 
-            <!-- Right on Mobile: Minimalist SIMUP Logo (hidden on PC via CSS @media) -->
-            <div class="arena-brand-badge" title="SIMUP Upgrader">
-              <svg class="arena-brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <polygon points="12,2 22,7 22,17 12,22 2,17 2,7" stroke="#ff004d" stroke-width="2" fill="rgba(255, 0, 77, 0.12)" stroke-linejoin="round"/>
-                <path d="M12 7L16.5 12H13.5V17H10.5V12H7.5L12 7Z" fill="#ff004d"/>
-              </svg>
-              <span class="arena-brand-text">SIMUP</span>
-            </div>
+
           </div>
 
           <!-- 60fps Interactive Wheel Box (Clean canvas without overlays) -->
@@ -1936,36 +1924,36 @@
     window.SIMUP_SUPABASE_URL = "https://btnsijgkefzhnnidcbou.supabase.co";
     window.SIMUP_SUPABASE_ANON_KEY = "sb_publishable_y5d9oDSY42gfFZoWvn074Q_mD_9zxOV";
   </script>
-  <script src="js/sound.js?v=5.0"></script>
-  <script src="js/skins-data.js?v=5.0"></script>
-  <script src="js/notifications.js?v=5.0"></script>
-  <script src="js/auth.js?v=5.0"></script>
-  <script src="js/economy.js?v=5.0"></script>
-  <script src="js/market-economy.js?v=5.0"></script>
-  <script src="js/catalog.js?v=5.0"></script>
-  <script src="js/upgrader.js?v=5.0"></script>
-  <script src="js/cases-data.js?v=5.0"></script>
-  <script src="js/cases.js?v=5.0"></script>
-  <script src="js/players-db.js?v=5.0"></script>
-  <script src="js/online-db.js?v=5.0"></script>
-  <script src="js/leaderboard.js?v=5.0"></script>
-  <script src="js/contracts.js?v=5.0"></script>
-  <script src="js/lucky-wheel.js?v=5.0"></script>
-  <script src="js/case-builder.js?v=5.0"></script>
-  <script src="js/mines.js?v=5.0"></script>
-  <script src="js/quests.js?v=5.0"></script>
-  <script src="js/coinflip.js?v=5.0"></script>
-  <script src="js/crash.js?v=5.0"></script>
-  <script src="js/case-battle.js?v=5.0"></script>
-  <script src="js/simup-pass.js?v=5.0"></script>
-  <script src="js/admin-panel.js?v=5.0"></script>
-  <script src="js/qrcode.js?v=5.0"></script>
-  <script src="js/simup-core.js?v=5.0"></script>
-  <script src="js/app.js?v=5.0"></script>
+  <script src="js/sound.js?v=5.1"></script>
+  <script src="js/skins-data.js?v=5.1"></script>
+  <script src="js/notifications.js?v=5.1"></script>
+  <script src="js/auth.js?v=5.1"></script>
+  <script src="js/economy.js?v=5.1"></script>
+  <script src="js/market-economy.js?v=5.1"></script>
+  <script src="js/catalog.js?v=5.1"></script>
+  <script src="js/upgrader.js?v=5.1"></script>
+  <script src="js/cases-data.js?v=5.1"></script>
+  <script src="js/cases.js?v=5.1"></script>
+  <script src="js/players-db.js?v=5.1"></script>
+  <script src="js/online-db.js?v=5.1"></script>
+  <script src="js/leaderboard.js?v=5.1"></script>
+  <script src="js/contracts.js?v=5.1"></script>
+  <script src="js/lucky-wheel.js?v=5.1"></script>
+  <script src="js/case-builder.js?v=5.1"></script>
+  <script src="js/mines.js?v=5.1"></script>
+  <script src="js/quests.js?v=5.1"></script>
+  <script src="js/coinflip.js?v=5.1"></script>
+  <script src="js/crash.js?v=5.1"></script>
+  <script src="js/case-battle.js?v=5.1"></script>
+  <script src="js/simup-pass.js?v=5.1"></script>
+  <script src="js/admin-panel.js?v=5.1"></script>
+  <script src="js/qrcode.js?v=5.1"></script>
+  <script src="js/simup-core.js?v=5.1"></script>
+  <script src="js/app.js?v=5.1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=5.0').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=5.1').then(reg => {
           reg.update();
         }).catch(() => {});
       });

@@ -378,6 +378,39 @@ class AdminPanelController {
     this.render();
   }
 
+  giveSkinToPlayer(username, skinId = 'cs2_awp_dragon_lore_FN') {
+    if (!this.isAdmin()) {
+      window.notify?.error('Ошибка прав', 'Недостаточно прав.');
+      return;
+    }
+    const users = window.authManager.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if (!target) {
+      window.notify?.error('Игрок не найден', `Пользователь ${username} не найден.`);
+      return;
+    }
+    const allSkins = (typeof window !== 'undefined' && window.getAllSkinVariants ? window.getAllSkinVariants() : null) || window.SKINS_DATABASE || [];
+    const skin = allSkins.find(s => s.id === skinId) || allSkins[0];
+    if (!skin) return;
+
+    if (!target.inventory) target.inventory = [];
+    const itemToAdd = {
+      ...skin,
+      instanceId: 'admin_inst_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6)
+    };
+    target.inventory.unshift(itemToAdd);
+    window.authManager.saveUsers(users);
+
+    if (window.authManager.currentUser?.id === target.id) {
+      window.authManager.currentUser.inventory = target.inventory;
+      window.authManager.saveCurrentUser();
+      if (typeof window.renderInventoryPage === 'function') window.renderInventoryPage();
+      if (typeof window.updateUpgraderUI === 'function') window.updateUpgraderUI();
+    }
+    window.notify?.bigWin('Скин выдан! 🎁', `Игроку ${target.username} выдан скин: ${skin.name} ($${skin.price.toFixed(2)})`);
+    this.render();
+  }
+
   deleteBug(id) {
     this.bugs = this.bugs.filter(b => b.id !== id);
     this.saveBugs();
@@ -398,12 +431,12 @@ class AdminPanelController {
           <div style="font-size: 54px; margin-bottom: 12px; filter: drop-shadow(0 0 12px rgba(255, 0, 77, 0.6));">🔒</div>
           <h2 style="font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 8px;">Панель Создателя SIMUP</h2>
           <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 24px;">
-            Доступ в панель управления и назначение администраторов строго ограничены. Введите мастер-ключ Создателя для входа.
+            Доступ в панель управления и назначение администраторов строго ограничены. Введите мастер-ключ Создателя (<code>creator777</code>) для входа.
           </p>
 
           <form id="creator-auth-form" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 12px;">
             <input type="password" id="creator-key-input" class="form-input" placeholder="Введите ключ Создателя..." style="padding: 12px 16px; font-size: 14px; text-align: center; letter-spacing: 2px;" autocomplete="current-password">
-            <button type="submit" id="btn-creator-unlock" class="btn-upgrade-fire" style="padding: 12px; font-size: 14px; border-radius: 10px;">
+            <button type="submit" id="btn-creator-unlock" class="btn-upgrade-fire" style="padding: 12px; font-size: 14px; border-radius: 10px; cursor: pointer;">
               🔑 Войти как Создатель
             </button>
           </form>
@@ -414,10 +447,18 @@ class AdminPanelController {
         </div>
       `;
 
-      document.getElementById('creator-auth-form')?.addEventListener('submit', (e) => {
-        e.preventDefault();
+      const handleUnlock = () => {
         const key = document.getElementById('creator-key-input')?.value;
         this.unlockCreator(key);
+      };
+
+      document.getElementById('creator-auth-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleUnlock();
+      });
+      document.getElementById('btn-creator-unlock')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        handleUnlock();
       });
       return;
     }
@@ -502,11 +543,16 @@ class AdminPanelController {
 
                   <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-dim); flex-wrap: wrap; gap: 6px;">
                     <div>Инвентарь: ${(u.inventory || []).length} шт. | Оборот: $${(u.stats?.totalWagered || 0).toFixed(0)}</div>
-                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
                       <button onclick="document.getElementById('admin-credit-username').value='${u.username}'; document.getElementById('admin-credit-amount').focus();" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer;">Выбрать</button>
+                      <button onclick="window.AdminPanelController.creditPlayerBalance('${u.username}', 1000)" style="background: rgba(16,185,129,0.15); border: 1px solid #10b981; color: #10b981; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer; font-weight: 700;">+$1k</button>
+                      <button onclick="window.AdminPanelController.creditPlayerBalance('${u.username}', 10000)" style="background: rgba(16,185,129,0.25); border: 1px solid #10b981; color: #10b981; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer; font-weight: 800;">+$10k</button>
+                      <button onclick="window.AdminPanelController.deductPlayerBalance('${u.username}', 1000)" style="background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #ef4444; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer; font-weight: 700;">−$1k</button>
+                      <button onclick="if(confirm('Обнулить баланс игрока ${u.username}?')) window.AdminPanelController.setPlayerBalance('${u.username}', 0)" style="background: rgba(239,68,68,0.25); border: 1px solid #ef4444; color: #ef4444; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer;">Баланс $0</button>
                       ${(u.loans?.currentDebt || 0) > 0 ? `
                         <button onclick="window.AdminPanelController.clearPlayerDebt('${u.username}')" style="background: rgba(255,215,0,0.15); border: 1px solid #ffd700; color: #ffd700; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer; font-weight: 700;">Списать долг</button>
                       ` : ''}
+                      <button onclick="window.AdminPanelController.giveSkinToPlayer('${u.username}', 'cs2_awp_dragon_lore_FN')" style="background: rgba(255,215,0,0.15); border: 1px solid #ffd700; color: #ffd700; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer; font-weight: 700;">+Dragon Lore</button>
                       <button onclick="if(confirm('Очистить инвентарь игрока ${u.username}?')) window.AdminPanelController.clearPlayerInventory('${u.username}')" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer;">Очистить инв.</button>
                       <button onclick="if(confirm('Сбросить аккаунт игрока ${u.username} к старту ($500.00 баланс)?')) window.AdminPanelController.resetPlayerToStart('${u.username}')" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer;">Сброс ($500)</button>
                       ${isCreator ? `
@@ -601,3 +647,5 @@ class AdminPanelController {
 }
 
 window.AdminPanelController = new AdminPanelController();
+window.adminPanel = window.AdminPanelController;
+window.adminPanelController = window.AdminPanelController;
